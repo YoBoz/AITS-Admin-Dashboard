@@ -1,0 +1,125 @@
+{
+  "phase": 1,
+  "title": "Core Layout, Pagination and Modal Infrastructure Fixes",
+  "objective": "Fix global UI behavior issues affecting pagination, modal positioning, routing, sidebar and topbar logic across Ai-TS frontend.",
+  "tasks": [
+    {
+      "id": "pagination_global_fix",
+      "description": "Fix pagination across entire app where it is not functioning.",
+      "requirements": [
+        "If using @tanstack/react-table, ensure pagination state is controlled.",
+        "Bind pagination state to table.getState().pagination.",
+        "Implement pageIndex and pageSize state.",
+        "Ensure onPaginationChange updates state properly.",
+        "If server-style pagination is mocked, update mockApi to accept page & limit query params.",
+        "Pagination must update URL query params (?page=1&pageSize=10).",
+        "Ensure total pages calculation is correct.",
+        "Verify previous/next buttons are enabled/disabled correctly.",
+        "Add console logging during pagination state change for debugging."
+      ]
+    },
+    {
+      "id": "modal_centering_global",
+      "description": "Fix ALL modals in entire application so they are properly centered.",
+      "requirements": [
+        "Use flex + fixed positioning wrapper.",
+        "Use class: fixed inset-0 flex items-center justify-center z-50.",
+        "Backdrop must be bg-black/50 and backdrop-blur-sm.",
+        "Modal container must use max-w-[...] and w-full px-4 for responsiveness.",
+        "Remove any absolute top offsets.",
+        "Ensure scrollable content inside modal uses max-h-[90vh] overflow-y-auto.",
+        "All pages must reuse single reusable <AppModal> component."
+      ]
+    },
+    {
+      "id": "sidebar_notification_behavior",
+      "description": "Fix collapsed sidebar notification behavior.",
+      "requirements": [
+        "When sidebar is collapsed, REMOVE notification dot.",
+        "Instead apply pulse red outline around icon.",
+        "Use Tailwind ring-2 ring-[#BE052E] animate-pulse.",
+        "Ensure icon alignment remains centered.",
+        "No layout shifting allowed."
+      ]
+    },
+    {
+      "id": "sidebar_label_fix",
+      "description": "Fix translation key rendering issue in sidebar.",
+      "requirements": [
+        "Replace nav.terminalMap, nav.heatMap, nav.ShopManagement etc with actual translated values.",
+        "Ensure t('nav.terminalMap') is used properly.",
+        "Verify translation JSON contains proper keys.",
+        "Add fallback text if translation missing."
+      ]
+    },
+    {
+      "id": "sidebar_logo_fix",
+      "description": "Fix logo rendering in sidebar.",
+      "requirements": [
+        "Load logo from public/images/logo.svg or logo.png.",
+        "Do not inline SVG via hardcoded JSX.",
+        "Logo must be centered.",
+        "Increase size by 20%.",
+        "Collapsed mode shows centered icon-only logo."
+      ]
+    },
+    {
+      "id": "dashboard_viewall_routing",
+      "description": "Fix non-functional 'View All' buttons in dashboard cards.",
+      "requirements": [
+        "Ensure router.push() is correctly used.",
+        "Bind correct route paths.",
+        "Verify buttons are not type='submit' inside forms.",
+        "Add onClick handler properly."
+      ]
+    },
+    {
+      "id": "breadcrumb_fix",
+      "description": "Remove nav.dashboard from breadcrumb root.",
+      "requirements": [
+        "Breadcrumb should reflect only current page hierarchy.",
+        "Remove static dashboard prefix.",
+        "If on dashboard page, show single 'Dashboard'.",
+        "Otherwise show parent > current."
+      ]
+    },
+    {
+      "id": "topbar_search_modal",
+      "description": "Fix search modal.",
+      "requirements": [
+        "Center search modal.",
+        "Implement keyboard navigation for results.",
+        "Press Enter should navigate.",
+        "ESC should close modal.",
+        "Modal must reuse global modal component."
+      ]
+    },
+    {
+      "id": "dark_mode_icon_fix",
+      "description": "Fix tilted moon icon.",
+      "requirements": [
+        "Remove rotate class if exists.",
+        "Ensure icon uses lucide-react Moon properly.",
+        "Center icon vertically."
+      ]
+    },
+    {
+      "id": "notification_navigation_fix",
+      "description": "Fix notification click navigation.",
+      "requirements": [
+        "On click notification item, route to /alerts or /notifications page.",
+        "Highlight specific alert using query param ?id=",
+        "Auto-scroll to alert.",
+        "Mark notification as read."
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "Pagination works in all tables.",
+    "All modals across entire app are centered.",
+    "Sidebar collapsed does not shift layout.",
+    "Breadcrumb no longer shows nav.dashboard prefix.",
+    "Search modal is centered and navigable.",
+    "Dark mode icon aligned properly."
+  ]
+}

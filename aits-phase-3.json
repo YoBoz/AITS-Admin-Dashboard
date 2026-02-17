@@ -1,0 +1,398 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 3,
+  "phase_title": "Trolley Management, Shop Management, Terminal Map and Offers",
+  "phase_description": "Build the full Trolley Management module (list, detail, live status, tracking), Shop/Company Management module (list, detail, contract management), Terminal Map page with interactive SVG airport floor plan, and Offers & Contracts page. All use realistic mock data.",
+  "depends_on_phase": 2,
+  "reference_files_from_previous_phases": [
+    "src/layouts/DashboardLayout.tsx",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/common/StatusDot.tsx",
+    "src/components/common/EmptyState.tsx",
+    "src/components/ui/Button.tsx",
+    "src/components/ui/Card.tsx",
+    "src/components/ui/Badge.tsx",
+    "src/data/mock/trolleys.mock.ts",
+    "src/types/index.ts",
+    "src/lib/utils.ts",
+    "src/store/notifications.store.ts",
+    "src/routes/index.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/pages/trolleys/TrolleyListPage.tsx",
+    "src/pages/trolleys/TrolleyDetailPage.tsx",
+    "src/pages/trolleys/AddTrolleyModal.tsx",
+    "src/pages/shops/ShopListPage.tsx",
+    "src/pages/shops/ShopDetailPage.tsx",
+    "src/pages/shops/AddShopModal.tsx",
+    "src/pages/map/TerminalMapPage.tsx",
+    "src/pages/offers/OffersPage.tsx",
+    "src/pages/offers/OfferDetailModal.tsx",
+    "src/components/trolleys/TrolleyCard.tsx",
+    "src/components/trolleys/TrolleyStatusBadge.tsx",
+    "src/components/trolleys/BatteryIndicator.tsx",
+    "src/components/trolleys/TrolleyHealthScore.tsx",
+    "src/components/trolleys/TrolleyHistoryChart.tsx",
+    "src/components/trolleys/TrolleyMapMarker.tsx",
+    "src/components/shops/ShopCard.tsx",
+    "src/components/shops/ContractStatusBadge.tsx",
+    "src/components/shops/ShopCategoryBadge.tsx",
+    "src/components/map/AirportMapSVG.tsx",
+    "src/components/map/MapLegend.tsx",
+    "src/components/map/MapFilters.tsx",
+    "src/components/map/MapTooltip.tsx",
+    "src/components/map/TrolleyDot.tsx",
+    "src/components/offers/OfferCard.tsx",
+    "src/components/offers/ContractTimeline.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/components/common/FileUpload.tsx",
+    "src/components/common/SearchFilter.tsx",
+    "src/data/mock/shops.mock.ts",
+    "src/data/mock/offers.mock.ts",
+    "src/data/mock/map.mock.ts",
+    "src/types/trolley.types.ts",
+    "src/types/shop.types.ts",
+    "src/types/offer.types.ts",
+    "src/types/map.types.ts",
+    "src/store/trolleys.store.ts",
+    "src/store/shops.store.ts",
+    "src/store/map.store.ts"
+  ],
+
+  "typescript_types": {
+    "src/types/trolley.types.ts": {
+      "Trolley": {
+        "id": "string",
+        "imei": "string (15-digit)",
+        "serial_number": "string",
+        "status": "'active' | 'idle' | 'charging' | 'maintenance' | 'offline'",
+        "battery": "number (0-100)",
+        "health_score": "number (0-100)",
+        "location": "{ x: number; y: number; zone: string; gate?: string }",
+        "last_seen": "string (ISO datetime)",
+        "assigned_gate": "string",
+        "firmware_version": "string",
+        "total_trips": "number",
+        "today_trips": "number",
+        "manufacturer": "string",
+        "model": "string",
+        "registered_at": "string (ISO datetime)",
+        "last_maintenance": "string (ISO datetime)",
+        "tab_model": "string",
+        "tab_serial": "string",
+        "notes": "string",
+        "maintenance_history": "MaintenanceRecord[]"
+      },
+      "MaintenanceRecord": {
+        "id": "string",
+        "date": "string",
+        "type": "'scheduled' | 'repair' | 'battery_replace' | 'firmware_update'",
+        "description": "string",
+        "technician": "string",
+        "cost": "number"
+      },
+      "TrolleyFilters": {
+        "status": "Trolley['status'] | 'all'",
+        "battery_min": "number",
+        "battery_max": "number",
+        "zone": "string | 'all'",
+        "search": "string"
+      }
+    },
+    "src/types/shop.types.ts": {
+      "Shop": {
+        "id": "string",
+        "name": "string",
+        "company_name": "string",
+        "category": "ShopCategory",
+        "logo_url": "string | null",
+        "location": "{ zone: string; unit_number: string; floor: number; coordinates: { x: number; y: number } }",
+        "contact": "{ name: string; email: string; phone: string }",
+        "contract": "Contract",
+        "status": "'active' | 'inactive' | 'suspended' | 'pending'",
+        "registered_at": "string",
+        "offers_count": "number",
+        "total_visitors": "number",
+        "rating": "number (1-5)",
+        "description": "string"
+      },
+      "ShopCategory": "'retail' | 'restaurant' | 'cafe' | 'lounge' | 'pharmacy' | 'electronics' | 'fashion' | 'services' | 'bank' | 'washroom' | 'gate' | 'other'",
+      "Contract": {
+        "id": "string",
+        "start_date": "string",
+        "end_date": "string",
+        "monthly_fee": "number",
+        "revenue_share_percent": "number",
+        "status": "'active' | 'expiring_soon' | 'expired' | 'pending_renewal'",
+        "auto_renew": "boolean",
+        "terms_file_url": "string | null",
+        "signed_at": "string"
+      }
+    },
+    "src/types/offer.types.ts": {
+      "Offer": {
+        "id": "string",
+        "shop_id": "string",
+        "shop_name": "string",
+        "title": "string",
+        "description": "string",
+        "discount_type": "'percentage' | 'fixed' | 'bogo' | 'freebie'",
+        "discount_value": "number",
+        "start_date": "string",
+        "end_date": "string",
+        "status": "'active' | 'scheduled' | 'expired' | 'paused'",
+        "target_categories": "string[]",
+        "impressions": "number",
+        "redemptions": "number",
+        "image_url": "string | null",
+        "created_by": "string",
+        "created_at": "string",
+        "priority": "number (1-10)"
+      }
+    },
+    "src/types/map.types.ts": {
+      "MapZone": {
+        "id": "string",
+        "name": "string",
+        "type": "'terminal' | 'gate' | 'retail' | 'food' | 'lounge' | 'service' | 'washroom' | 'security' | 'customs'",
+        "polygon": "{ x: number; y: number }[]",
+        "color": "string",
+        "shops": "string[] (shop ids)"
+      },
+      "MapConfig": {
+        "width": "number",
+        "height": "number",
+        "zones": "MapZone[]",
+        "poi_list": "PointOfInterest[]"
+      },
+      "PointOfInterest": {
+        "id": "string",
+        "label": "string",
+        "type": "string",
+        "x": "number",
+        "y": "number",
+        "shop_id": "string | null"
+      }
+    }
+  },
+
+  "trolley_management": {
+    "list_page": {
+      "file": "src/pages/trolleys/TrolleyListPage.tsx",
+      "route": "/dashboard/trolleys",
+      "layout": "PageHeader with title 'Trolley Management', subtitle 'Monitor and manage the trolley fleet', and action button 'Add Trolley' (opens AddTrolleyModal).",
+      "stats_row": "4 mini stat cards above table: Total Fleet (280), Active (247), Need Attention (11), Offline (2). Each card compact with icon and number.",
+      "filter_bar": "Row with: Search by IMEI/Serial, Status filter dropdown (All/Active/Idle/Charging/Maintenance/Offline), Zone filter dropdown, Battery range slider (0-100%), View toggle (Table view / Card grid view).",
+      "table_view": {
+        "columns": ["IMEI", "Serial", "Status", "Battery", "Health Score", "Zone/Gate", "Last Seen", "Today Trips", "Actions"],
+        "battery_column": "Render BatteryIndicator component (visual bar + percentage)",
+        "health_column": "Render TrolleyHealthScore (color-coded progress circle + score number)",
+        "status_column": "Render TrolleyStatusBadge",
+        "last_seen_column": "Relative time (e.g. '2 min ago') with tooltip for exact datetime",
+        "actions_column": "Icon buttons: View Details (eye), Edit (pencil), Flag for Maintenance (wrench), Delete (trash, requires confirm dialog)",
+        "row_click": "Navigate to /dashboard/trolleys/:id"
+      },
+      "card_view": {
+        "description": "Grid of TrolleyCard components (3 cols desktop, 2 tablet, 1 mobile). Each card: IMEI prominent, status badge, battery bar, health score ring, location zone, last seen, quick action buttons."
+      },
+      "pagination": "25 per page default"
+    },
+
+    "detail_page": {
+      "file": "src/pages/trolleys/TrolleyDetailPage.tsx",
+      "route": "/dashboard/trolleys/:id",
+      "layout": "Back button + breadcrumb. Two column layout (60/40).",
+      "left_column": {
+        "header_card": "Large IMEI number (Montserrat monospace style), status badge, manufacturer + model, serial number. Edit button top right.",
+        "metrics_row": "4 mini cards: Battery %, Health Score, Total Trips, Today Trips",
+        "battery_history_chart": "TrolleyHistoryChart - line chart showing battery level over last 48 hours (hourly data). Recharts LineChart. Gradient fill under line. Color transitions from red (low) to green (full) based on value.",
+        "location_mini_map": "Small airport map SVG (reuse AirportMapSVG in mini mode) showing the trolley's current position as a pulsing red dot. Zone label shown.",
+        "maintenance_history_table": "DataTable showing MaintenanceRecord[]. Columns: Date, Type badge, Description, Technician, Cost. Compact style."
+      },
+      "right_column": {
+        "info_card": "All trolley metadata in labeled rows: Firmware Version, Tab Model, Tab Serial, Assigned Gate, Registered Date, Last Maintenance Date, Notes textarea (editable).",
+        "quick_actions": "Buttons: Mark for Maintenance, Send to Charging, Reset Tab, Download Report (disabled with tooltip), Flag Issue.",
+        "status_timeline": "Simple vertical timeline of last 5 status changes with timestamps."
+      }
+    },
+
+    "add_trolley_modal": {
+      "file": "src/pages/trolleys/AddTrolleyModal.tsx",
+      "description": "FormModal wrapper. Multi-step form (2 steps): Step 1 - Device Details (IMEI, Serial Number, Manufacturer select, Model, Firmware Version, Tab Model, Tab Serial), Step 2 - Assignment (Zone select, Gate select, Notes). Progress indicator at top. Validation with zod. Submit adds to mock store and shows success toast."
+    }
+  },
+
+  "shop_management": {
+    "list_page": {
+      "file": "src/pages/shops/ShopListPage.tsx",
+      "route": "/dashboard/shops",
+      "layout": "PageHeader with 'Shop & Company Management', stats row, filter/search bar, table.",
+      "stats_row": "Active Shops (64), Expiring Contracts (5), Pending Approval (3), Total Monthly Revenue (mock figure in currency).",
+      "filters": "Search by name/company, Category multi-select, Status filter, Contract status filter, Sort by: Name/Visitors/Revenue/Contract expiry",
+      "table_columns": ["Logo (small, show placeholder if null)", "Shop Name", "Company", "Category", "Unit/Zone", "Contract Status", "Monthly Fee", "Contract Expiry", "Status", "Actions"],
+      "contract_status_column": "ContractStatusBadge - color coded: Active (green), Expiring Soon < 30 days (amber with icon), Expired (red), Pending Renewal (blue)",
+      "row_click": "Navigate to /dashboard/shops/:id"
+    },
+
+    "detail_page": {
+      "file": "src/pages/shops/ShopDetailPage.tsx",
+      "route": "/dashboard/shops/:id",
+      "tabs": ["Overview", "Contract", "Offers", "Visitor Stats", "Documents"],
+      "overview_tab": "Shop info card (name, logo upload area, category, description), Location card (zone, unit, floor, show on map mini button), Contact card (name, email, phone), Status toggle (active/inactive with confirm).",
+      "contract_tab": "ContractTimeline component showing contract lifecycle. Contract details: start/end dates, monthly fee, revenue share %, auto-renew toggle, contract file download/upload. Edit contract button. Renew contract button (opens renewal modal with date pickers and fee fields).",
+      "offers_tab": "List of this shop's offers using OfferCard components. Filter: All/Active/Expired/Scheduled. Add Offer button.",
+      "visitor_stats_tab": "Charts: visitors per day (last 30 days bar chart), peak hours heatmap grid (7 days x 24 hours, cells colored by intensity), comparison vs terminal average.",
+      "documents_tab": "File list with type icons (PDF, DOC, IMG), name, upload date, size, download/delete actions. Upload Documents button."
+    },
+
+    "add_shop_modal": {
+      "file": "src/pages/shops/AddShopModal.tsx",
+      "steps": 3,
+      "step_1": "Company Information: Company Name, Shop Display Name, Category select, Description, Logo upload (FileUpload component)",
+      "step_2": "Location & Contact: Zone select, Unit Number, Floor, Contact Person Name, Email, Phone",
+      "step_3": "Contract Details: Start Date picker, End Date picker, Monthly Fee, Revenue Share %, Auto-renew toggle, Upload contract terms (FileUpload). Review summary before submit."
+    }
+  },
+
+  "terminal_map": {
+    "file": "src/pages/map/TerminalMapPage.tsx",
+    "route": "/dashboard/map",
+    "description": "Interactive SVG airport terminal floor plan. The SVG is entirely custom-drawn as a React component. It represents a realistic T-shaped airport terminal with 2 concourses.",
+
+    "airport_svg_spec": {
+      "file": "src/components/map/AirportMapSVG.tsx",
+      "viewBox": "0 0 1200 800",
+      "description": "Draw a realistic single-terminal floor plan SVG. The terminal is a horizontal rectangle (the main building) with two concourses extending downward (Concourse A left, Concourse B right). All elements are SVG rect/polygon/circle/text elements hardcoded as React SVG JSX.",
+      "terminal_building": "Main hall: rect x=100 y=100 width=1000 height=200 (check-in, security, main concourse). Fill: light gray in light mode, dark gray in dark mode. Stroke: border color.",
+      "concourse_A": "rect x=150 y=300 width=350 height=400. Gates A1-A8 as small rectangles along the sides.",
+      "concourse_B": "rect x=700 y=300 width=350 height=400. Gates B1-B8 along sides.",
+      "connector": "rect x=500 y=250 width=200 height=100 (connecting main hall to concourses).",
+      "zones_to_draw": [
+        { "id": "checkin", "label": "Check-in Hall", "type": "terminal", "x": 100, "y": 100, "w": 300, "h": 200, "color_light": "#F0F0F0", "color_dark": "#2A2A2A" },
+        { "id": "security", "label": "Security", "type": "security", "x": 400, "y": 100, "w": 200, "h": 200, "color_light": "#FEF3C7", "color_dark": "#2D2108" },
+        { "id": "customs", "label": "Customs & Immigration", "x": 600, "y": 100, "w": 300, "h": 200, "color_light": "#EDE9FE", "color_dark": "#1E1B2E" },
+        { "id": "main_retail", "label": "Retail Zone", "x": 900, "y": 100, "w": 200, "h": 200, "color_light": "#DCFCE7", "color_dark": "#0D2016" },
+        { "id": "food_court", "label": "Food Court", "x": 150, "y": 300, "w": 350, "h": 150, "color_light": "#FEE2E2", "color_dark": "#2D0A0A" },
+        { "id": "duty_free", "label": "Duty Free", "x": 700, "y": 300, "w": 350, "h": 150, "color_light": "#DCFCE7", "color_dark": "#0D2016" },
+        { "id": "lounge_a", "label": "Sky Lounge A", "x": 150, "y": 450, "w": 160, "h": 120, "color_light": "#EDE9FE", "color_dark": "#1E1B2E" },
+        { "id": "gates_a_left", "label": "Gates A1-A4", "x": 150, "y": 570, "w": 350, "h": 130, "color_light": "#F8FAFC", "color_dark": "#1A1A1A" },
+        { "id": "lounge_b", "label": "Sky Lounge B", "x": 890, "y": 450, "w": 160, "h": 120, "color_light": "#EDE9FE", "color_dark": "#1E1B2E" },
+        { "id": "gates_b", "label": "Gates B1-B8", "x": 700, "y": 570, "w": 350, "h": 130, "color_light": "#F8FAFC", "color_dark": "#1A1A1A" },
+        { "id": "washroom_a", "label": "WC", "x": 330, "y": 450, "w": 60, "h": 60, "color_light": "#DBEAFE", "color_dark": "#0A1628" },
+        { "id": "washroom_b", "label": "WC", "x": 700, "y": 450, "w": 60, "h": 60, "color_light": "#DBEAFE", "color_dark": "#0A1628" },
+        { "id": "pharmacy", "label": "Pharma Plus", "x": 400, "y": 310, "w": 100, "h": 80, "color_light": "#DCFCE7", "color_dark": "#0D2016" },
+        { "id": "bank", "label": "Bank / ATM", "x": 600, "y": 310, "w": 100, "h": 80, "color_light": "#FEF9C3", "color_dark": "#1C1600" }
+      ],
+      "gate_markers": "Small rectangles (20x30) along concourse edges representing each gate. Label: A1, A2... B1, B2...",
+      "poi_icons": "SVG circles (r=12) for: Info Desk (blue, i), First Aid (red cross), Charging Station (green, lightning bolt emoji as text), Elevator (gray, arrow)",
+      "shop_markers": "SVG circles (r=8, fill=#BE052E) with hover tooltip showing shop name/category. Only show when 'Shops' layer is active.",
+      "trolley_markers": "Animated SVG dots (r=6) representing live trolley positions. Pulse animation on active trolleys. Color: active=green, idle=gray, low_battery=amber.",
+      "interactivity": "Click on zone: highlight with primary color stroke and show info panel. Hover: cursor pointer, tooltip. Click on shop marker: show shop info popup. Click on trolley: show trolley info popup.",
+      "rendering_note": "This is pure SVG JSX inside a React component, not Leaflet. Aspect ratio preserved with preserveAspectRatio='xMidYMid meet'. Container is responsive width 100%."
+    },
+
+    "map_page_layout": {
+      "header": "PageHeader: 'Terminal Map' with filter buttons as actions",
+      "main_area": "Left: AirportMapSVG (75% width). Right: info panel (25%) - shows selected zone/shop/trolley details OR layer controls when nothing selected.",
+      "layer_controls": {
+        "file": "src/components/map/MapFilters.tsx",
+        "toggles": ["Shops", "Trolleys", "Lounges", "Washrooms", "Gates", "POI"],
+        "description": "Toggle switches for each layer. Each toggle shows/hides that category of markers on the SVG map."
+      },
+      "map_legend": {
+        "file": "src/components/map/MapLegend.tsx",
+        "items": "Color swatches + labels for each zone type. Trolley status colors. POI icons."
+      },
+      "selected_info_panel": "When user clicks a zone: show zone name, type badge, list of shops in zone (if any). When user clicks a shop marker: show shop card (name, category, contact, View Details link). When user clicks a trolley dot: show trolley card (IMEI, status, battery, View Details link).",
+      "zoom_controls": "Plus/minus buttons that use CSS transform scale on the SVG wrapper. Reset zoom button. Min scale 0.5, max 2.0.",
+      "mini_mode_prop": "AirportMapSVG accepts a prop 'mini?: boolean' - when true, renders without interactivity, no controls, simplified - used in TrolleyDetailPage and ShopDetailPage."
+    }
+  },
+
+  "offers_page": {
+    "file": "src/pages/offers/OffersPage.tsx",
+    "route": "/dashboard/offers",
+    "layout": "PageHeader with 'Offers & Contracts Management'. Stats row: Active Offers, Scheduled, Expired this month, Total Impressions.",
+    "filters": "Search, Status filter, Shop filter (select), Discount type filter, Date range picker",
+    "view_modes": "Grid of OfferCard OR Table view toggle",
+    "offer_card": {
+      "file": "src/components/offers/OfferCard.tsx",
+      "design": "Card with: shop logo/avatar, offer title (Poppins bold), discount badge (e.g. '30% OFF' in primary color, large), shop name + category chip, validity date range, impressions + redemptions stats, status badge, Edit/Delete/Toggle actions."
+    },
+    "offer_detail_modal": {
+      "file": "src/pages/offers/OfferDetailModal.tsx",
+      "description": "Full detail edit modal. Fields: Title, Description (textarea), Shop select, Discount Type radio (Percentage/Fixed/BOGO/Freebie), Discount Value, Start/End date pickers, Target Customer Categories (multi-select chips), Priority slider (1-10), Image upload, Status toggle. Save + Cancel buttons."
+    },
+    "add_offer_button": "Opens OfferDetailModal in create mode",
+    "contract_timeline": {
+      "file": "src/components/offers/ContractTimeline.tsx",
+      "description": "Horizontal timeline SVG/CSS component showing contract duration. Start date on left, end date on right. Today marker line. Color fills: past=gray, active=green, future=blue. Shows percentage complete. Used in ShopDetailPage contract tab."
+    }
+  },
+
+  "common_components": {
+    "ConfirmDialog": {
+      "file": "src/components/common/ConfirmDialog.tsx",
+      "description": "Radix AlertDialog wrapper. Props: open, onOpenChange, title, description, confirmLabel, confirmVariant ('danger'|'warning'|'default'), onConfirm. Used for delete/deactivate actions."
+    },
+    "FormModal": {
+      "file": "src/components/common/FormModal.tsx",
+      "description": "Radix Dialog wrapper for forms. Props: open, onOpenChange, title, subtitle, children, footer, size ('sm'|'md'|'lg'|'xl'). Handles scroll for long forms, sticky footer with action buttons."
+    },
+    "FileUpload": {
+      "file": "src/components/common/FileUpload.tsx",
+      "description": "Drag-and-drop file upload zone. Shows file type icon and name after selection. Supports multiple files prop. Shows progress bar mock. Accepted types prop. No actual upload - just UI state."
+    },
+    "SearchFilter": {
+      "file": "src/components/common/SearchFilter.tsx",
+      "description": "Compound filter bar component. Slots: search input, filter dropdowns (passed as children or config), date range picker toggle, sort select, view toggle (grid/list). Responsive: on mobile collapses into filter drawer."
+    }
+  },
+
+  "mock_data": {
+    "src/data/mock/shops.mock.ts": "Generate 64 shop objects covering all categories. Include 5 with expiring contracts (end_date within 30 days), 3 with pending status. Realistic shop names: mix of global chains (Starbucks, Hudson News) and local brands. Include offer counts and visitor totals.",
+    "src/data/mock/offers.mock.ts": "Generate 45 offers spread across shops. Mix of statuses. Include realistic offer titles: 'Buy 1 Get 1 Free Croissant', '15% Off All Electronics', 'Free WiFi Upgrade with Purchase'. Include impressions (1000-50000) and redemptions (50-5000).",
+    "src/data/mock/map.mock.ts": "Export mapConfig with zones array matching AirportMapSVG zones, poi_list (info desks, first aid, charging spots), and trolleyPositions array (280 objects with x,y,status matching map coordinate space)."
+  },
+
+  "zustand_stores_new": {
+    "src/store/trolleys.store.ts": "State: trolleys (Trolley[]), filters (TrolleyFilters), selectedTrolley (Trolley|null), viewMode ('table'|'grid'), isLoading. Actions: setTrolleys, updateTrolley, deleteTrolley, setFilters, selectTrolley, setViewMode. Initialize with trolleys.mock.ts data.",
+    "src/store/shops.store.ts": "State: shops (Shop[]), filters, selectedShop, viewMode, isLoading. Actions: CRUD operations + setFilters. Initialize with shops.mock.ts.",
+    "src/store/map.store.ts": "State: activeMapLayers (string[]), selectedZone, selectedShop, selectedTrolley, zoomLevel (0.5-2.0). Actions: toggleLayer, selectZone, clearSelection, setZoom."
+  },
+
+  "routes_to_add": [
+    "/dashboard/trolleys",
+    "/dashboard/trolleys/:id",
+    "/dashboard/shops",
+    "/dashboard/shops/:id",
+    "/dashboard/map",
+    "/dashboard/offers"
+  ],
+
+  "quality_checklist": [
+    "Trolley list renders all 280 trolleys with pagination",
+    "Battery indicator color changes: red <20%, amber 20-50%, green >50%",
+    "Status filter correctly filters trolley list",
+    "Trolley detail page shows battery history chart",
+    "Add Trolley modal multi-step works with validation",
+    "Shop list table shows all shops with correct contract status badges",
+    "Expiring contracts highlighted in amber",
+    "Shop detail page tabs all render",
+    "Airport SVG renders all zones with correct colors",
+    "SVG zones are clickable and show info panel",
+    "Trolley dots render on SVG map",
+    "Layer toggles show/hide map layers",
+    "Zoom controls work on SVG",
+    "Mini-map mode renders correctly in trolley detail",
+    "Offers grid shows all offers",
+    "OfferDetailModal form validates all fields",
+    "ConfirmDialog prevents accidental deletion",
+    "All pages dark mode compatible",
+    "Mobile responsive for all new pages"
+  ]
+}

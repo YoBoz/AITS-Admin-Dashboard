@@ -1,0 +1,519 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 6,
+  "phase_title": "Polish, Accessibility, Performance, Global Integration and Final QA",
+  "phase_description": "Final phase covering: global polish (micro-interactions, loading states, error boundaries), accessibility audit (WCAG 2.1 AA), performance optimizations (code splitting, lazy loading), RTL layout completion for Arabic, comprehensive error handling, onboarding tour, keyboard shortcuts, print/export styles, and full cross-page integration testing. This phase does not add new pages but significantly improves everything built in phases 1-5.",
+  "depends_on_phase": 5,
+  "touches_files_from_all_phases": true,
+  "reference_all_files": "All files from src/pages/**, src/components/**, src/layouts/**, src/store/**, src/hooks/**, src/types/**, src/lib/**",
+
+  "output_files_this_phase": [
+    "src/components/common/ErrorBoundary.tsx",
+    "src/components/common/GlobalErrorFallback.tsx",
+    "src/components/common/PageErrorFallback.tsx",
+    "src/components/common/NetworkStatus.tsx",
+    "src/components/common/OnboardingTour.tsx",
+    "src/components/common/KeyboardShortcutsDialog.tsx",
+    "src/components/common/ScrollToTop.tsx",
+    "src/components/common/BackToTop.tsx",
+    "src/components/common/ExportButton.tsx",
+    "src/components/common/PrintLayout.tsx",
+    "src/components/common/Callout.tsx",
+    "src/components/common/ProgressBar.tsx",
+    "src/components/common/Stepper.tsx",
+    "src/components/common/Timeline.tsx",
+    "src/layouts/RootLayout.tsx",
+    "src/pages/errors/NotFoundPage.tsx",
+    "src/pages/errors/UnauthorizedPage.tsx",
+    "src/pages/errors/ServerErrorPage.tsx",
+    "src/lib/animations.ts",
+    "src/lib/keyboard.ts",
+    "src/lib/export.ts",
+    "src/lib/print.ts",
+    "src/lib/accessibility.ts",
+    "src/hooks/useKeyboardShortcuts.ts",
+    "src/hooks/useExport.ts",
+    "src/hooks/useBreakpoint.ts",
+    "src/hooks/usePrint.ts",
+    "src/hooks/useDebounce.ts",
+    "src/hooks/useIntersectionObserver.ts",
+    "src/hooks/useOnboarding.ts",
+    "src/store/ui.store.ts",
+    "src/styles/print.css",
+    "src/styles/rtl.css",
+    "src/styles/animations.css"
+  ],
+
+  "polish_tasks": {
+    "micro_interactions": {
+      "description": "Add micro-interactions to all interactive elements using framer-motion.",
+      "implementations": [
+        {
+          "element": "All primary buttons",
+          "interactions": "Hover: scale(1.02) + shadow increase (150ms). Active/Press: scale(0.97) (80ms). Focus-visible: ring outline in primary color."
+        },
+        {
+          "element": "Sidebar nav items",
+          "interactions": "Hover: slide in background from left (x: -100% to 0) using before pseudo-element or motion.div. Active: same but persistent."
+        },
+        {
+          "element": "KPI Cards",
+          "interactions": "Entrance: staggered bottom-to-top fade-in (each card 60ms apart). Hover: subtle lift (y: -2px, shadow increase)."
+        },
+        {
+          "element": "Table rows",
+          "interactions": "Hover: row highlight slides in from left. Click (if clickable): slight scale-x compression (0.998) then back."
+        },
+        {
+          "element": "Modal entrance",
+          "interactions": "Scale from 0.95 + fade in (200ms). Backdrop fades in simultaneously. Exit: reverse."
+        },
+        {
+          "element": "Notification badge",
+          "interactions": "New notification: badge bounces (keyframe scale: 1 -> 1.4 -> 1, 300ms). Badge number changes: flip/count animation."
+        },
+        {
+          "element": "Form inputs",
+          "interactions": "Focus: border slides up from bottom (use box-shadow transition trick). Valid: subtle green flash. Error: shake animation (x: -4px alternating, 3 cycles, 350ms)."
+        },
+        {
+          "element": "Toggle switches",
+          "interactions": "Thumb slides smoothly with spring physics (framer-motion spring stiffness: 500, damping: 30)."
+        },
+        {
+          "element": "Status dots",
+          "interactions": "Active pulse: scale 1 -> 1.6 -> 1, opacity 1 -> 0, loop every 2s."
+        },
+        {
+          "element": "Chart data updates",
+          "interactions": "When time range changes: bars/lines animate from previous values to new values (Recharts animationDuration: 800ms)."
+        },
+        {
+          "element": "Page transitions",
+          "interactions": "Route change: old page exits (opacity 0, x: -10px, 150ms), new page enters (opacity 1, x: 0 from 10px, 200ms). Use AnimatePresence with mode='wait'."
+        },
+        {
+          "element": "Dropdown menus",
+          "interactions": "Scale from 0.95 + opacity 0 origin from top (150ms ease-out)."
+        },
+        {
+          "element": "Alert items",
+          "interactions": "Resolve/dismiss: slide out to right + opacity 0 + height collapse (with useAnimate). New alert entering: slide in from top."
+        }
+      ]
+    },
+
+    "loading_states": {
+      "description": "Every data-dependent component must have a proper loading skeleton state.",
+      "skeleton_rules": [
+        "KPI Cards: skeleton shimmer matching card dimensions",
+        "Tables: 5 skeleton rows with randomized widths per cell (60-90% width)",
+        "Charts: skeleton rectangle with shimmer matching chart area",
+        "Profile card: skeleton avatar circle + 3 lines",
+        "Notification items: skeleton icon + 2 lines",
+        "Map: skeleton overlay with pulsing opacity on the SVG"
+      ],
+      "shimmer_animation": "CSS animation: background gradient sweeps from left to right. Colors: light mode: #E5E7EB to #F3F4F6 to #E5E7EB. Dark mode: #2A2A2A to #333333 to #2A2A2A. Duration: 1.5s infinite linear.",
+      "page_loading": "When navigating to a new page, show a 3px tall progress bar at very top of viewport (like GitHub/YouTube). Primary color (#BE052E). Advances to 70% instantly, then slowly to 90%, then jumps to 100% when page renders. Animate disappear after 300ms."
+    },
+
+    "empty_states": {
+      "description": "Every table and list must have a proper empty state when filtered results or data is empty.",
+      "per_page": {
+        "trolleys_empty_filtered": "Icon: ShoppingCart with search lines. Title: 'No trolleys match your filters'. Desc: 'Try adjusting your search or filter criteria.' Action: Clear Filters button.",
+        "shops_empty": "Icon: Store. Title: 'No shops registered yet'. Desc: 'Add your first shop to get started.' Action: Add Shop button.",
+        "alerts_empty_resolved": "Icon: CheckCircle (green). Title: 'No active alerts'. Desc: 'All systems are operating normally.' No action needed.",
+        "complaints_empty": "Icon: MessageSquareCheck. Title: 'No complaints found'. Desc: 'No complaints match the selected filters.'",
+        "notifications_empty": "Icon: Bell (with zzz). Title: 'All caught up'. Desc: 'No new notifications at this time.'",
+        "audit_log_empty": "Icon: ScrollText. Title: 'No audit events found'. Desc: 'Try a different date range or search term.'"
+      }
+    },
+
+    "error_handling": {
+      "error_boundary": {
+        "file": "src/components/common/ErrorBoundary.tsx",
+        "description": "React class component ErrorBoundary. Props: children, fallback (optional custom component). Catches JS errors in child component tree. Reports to console (would send to monitoring in prod)."
+      },
+      "global_error_fallback": {
+        "file": "src/components/common/GlobalErrorFallback.tsx",
+        "description": "Full page error state. Shows Ai-TS logo, error icon, 'Something went wrong' heading, error message (in development), Reload Page button, Go to Dashboard button."
+      },
+      "page_error_fallback": {
+        "file": "src/components/common/PageErrorFallback.tsx",
+        "description": "In-page error state (for individual page-level errors, not full app). Smaller than global fallback. Retry button calls reset."
+      },
+      "error_pages": {
+        "404": {
+          "file": "src/pages/errors/NotFoundPage.tsx",
+          "design": "Centered. Large '404' in Montserrat (very large, primary color). 'Page Not Found' heading. Description. Go to Overview button. Small airport terminal illustration SVG (gate with 'Boarding Gate 404' sign)."
+        },
+        "403": {
+          "file": "src/pages/errors/UnauthorizedPage.tsx",
+          "design": "Shield icon. '403' large. 'Access Restricted' heading. Description mentioning permissions. Contact admin link. Back button."
+        },
+        "500": {
+          "file": "src/pages/errors/ServerErrorPage.tsx",
+          "design": "Warning icon. 'Service Unavailable'. Retry countdown timer (30s then auto-retry). Report Issue link."
+        }
+      },
+      "wrap_all_routes": "Wrap each page in ErrorBoundary in routes/index.tsx"
+    }
+  },
+
+  "accessibility_audit": {
+    "wcag_target": "WCAG 2.1 AA",
+    "tasks": [
+      {
+        "area": "Color Contrast",
+        "instructions": "Check all text/background combinations. Primary #BE052E on white: ratio 4.8:1 (passes AA for normal text). Ensure all muted gray text on backgrounds meets 4.5:1 minimum. Fix any failing combinations in dark and light mode. Especially check: muted foreground colors, badge text, caption text."
+      },
+      {
+        "area": "Keyboard Navigation",
+        "instructions": "Every interactive element must be reachable via Tab. Correct focus order: top-left to bottom-right, logical reading order. All sidebar nav items: Tab navigable, Enter/Space to activate. Modal: focus trap when open (Tab cycles only within modal), Escape closes, focus returns to trigger element on close. Dropdown menus: Arrow keys navigate, Enter selects, Escape closes. DataTable: Tab between controls, Arrow keys navigate rows when focused."
+      },
+      {
+        "area": "Focus Indicators",
+        "instructions": "Add visible focus-visible ring to ALL interactive elements. Style: outline: 2px solid #BE052E; outline-offset: 2px. Remove default outline only on focus (not focus-visible). Never use outline: none without replacement."
+      },
+      {
+        "area": "ARIA Labels",
+        "instructions": "Add aria-label to all icon-only buttons (e.g. theme toggle: aria-label='Toggle dark mode', close buttons: aria-label='Close dialog'). Add aria-describedby for form fields with description text. Add role='alert' to error messages. Add aria-live='polite' to notification badge count. Add aria-expanded to accordion/collapse controls. Add aria-current='page' to active nav items."
+      },
+      {
+        "area": "Semantic HTML",
+        "instructions": "Ensure: nav element wraps sidebar navigation. main element wraps page content. h1 only once per page. Headings in logical order (h1 > h2 > h3, no skipping). Tables have thead/tbody, th elements with scope attribute. Forms have fieldset/legend for groups. Lists use ul/ol not div+span."
+      },
+      {
+        "area": "Screen Reader",
+        "instructions": "Add sr-only class (visually hidden but in DOM) for: status indicators (e.g. '<span class=sr-only>Status: Active</span>' after colored dot), table column headers that are icon-only, breadcrumb separators. Use aria-hidden='true' on decorative icons."
+      },
+      {
+        "area": "Reduced Motion",
+        "instructions": "Add @media (prefers-reduced-motion: reduce) CSS. When active: disable all framer-motion animations (set duration to 0ms), disable CSS transitions, disable shimmer animations. Also respect settings.store animationsEnabled toggle."
+      }
+    ]
+  },
+
+  "performance_optimizations": {
+    "code_splitting": {
+      "description": "Use React.lazy() + Suspense for all page-level components. Each route gets its own chunk.",
+      "implementation": "In src/routes/index.tsx, replace all direct imports with: const OverviewPage = React.lazy(() => import('../pages/dashboard/OverviewPage')). Wrap all lazy routes with <Suspense fallback={<PageLoadingSpinner />}>. This means initial bundle only loads auth + layout code."
+    },
+    "memo_and_callbacks": {
+      "description": "Apply React.memo, useMemo, useCallback strategically.",
+      "targets": [
+        "All chart components: wrap in React.memo, data transformations in useMemo",
+        "DataTable: columns definition in useMemo, row click handlers in useCallback",
+        "AirportMapSVG: wrap in React.memo with custom comparator (only re-render if props change)",
+        "KPICard: React.memo",
+        "Sidebar nav items: React.memo",
+        "SectionCard: React.memo"
+      ]
+    },
+    "virtual_scrolling": {
+      "description": "Trolley list with 280 items needs virtual scrolling. Install @tanstack/react-virtual and use for the trolley card grid view. Table view already paginated so less critical.",
+      "implementation": "In TrolleyListPage card grid view: use useVirtualizer from @tanstack/react-virtual. Window scrolling mode."
+    },
+    "image_and_asset": {
+      "description": "All SVG assets are inline React components (already handled). For any external images in shop logos etc.: use loading='lazy' on img elements. Add proper width/height attributes to prevent layout shift."
+    },
+    "debounce": {
+      "description": "All search inputs must debounce the filter update by 300ms. Use useDebounce hook (file: src/hooks/useDebounce.ts). Apply to: SearchFilter component globally, command palette search, audit log search, complaint search.",
+      "hook_implementation": "function useDebounce<T>(value: T, delay: number): T { const [debounced, setDebounced] = useState(value); useEffect(() => { const timer = setTimeout(() => setDebounced(value), delay); return () => clearTimeout(timer); }, [value, delay]); return debounced; }"
+    },
+    "localStorage_optimization": "All localStorage reads are done once on store initialization, not on every render. Writes are debounced (500ms) to avoid excessive I/O."
+  },
+
+  "rtl_completion": {
+    "file": "src/styles/rtl.css",
+    "description": "Complete RTL layout for Arabic language. When dir=rtl applied to html element, the following must be correct:",
+    "rules": [
+      "Sidebar: float/position to right side. Nav items: text right-aligned, icons on right.",
+      "Breadcrumb: direction reversed, separators mirrored.",
+      "Navbar: search left, user controls right (reverse of LTR).",
+      "Page content: text right-aligned, margin shifts mirrored.",
+      "DataTable: text-align right, sort icons on left of header.",
+      "KPI card trend indicators: positioned correctly.",
+      "Form labels: right-aligned.",
+      "Modal: close button on left (instead of right).",
+      "Notification panel: slides in from left.",
+      "Timeline: items right-aligned.",
+      "Implementation: Use Tailwind's [dir=rtl] variant or logical CSS properties (margin-inline-start instead of margin-left etc).",
+      "Test: After switching to Arabic in settings, full sidebar + layout must mirror correctly."
+    ]
+  },
+
+  "keyboard_shortcuts": {
+    "file": "src/lib/keyboard.ts",
+    "hook": "src/hooks/useKeyboardShortcuts.ts",
+    "dialog": "src/components/common/KeyboardShortcutsDialog.tsx",
+    "shortcuts": [
+      { "keys": "Ctrl+K", "action": "Open command palette", "global": true },
+      { "keys": "Ctrl+/", "action": "Open keyboard shortcuts help", "global": true },
+      { "keys": "Ctrl+D", "action": "Toggle dark/light mode", "global": true },
+      { "keys": "Ctrl+B", "action": "Toggle sidebar collapsed", "global": true },
+      { "keys": "Escape", "action": "Close open modal/panel/dropdown", "global": true },
+      { "keys": "G then O", "action": "Go to Overview", "global": true },
+      { "keys": "G then T", "action": "Go to Trolleys", "global": true },
+      { "keys": "G then S", "action": "Go to Shops", "global": true },
+      { "keys": "G then A", "action": "Go to Alerts", "global": true },
+      { "keys": "G then M", "action": "Go to Terminal Map", "global": true },
+      { "keys": "N", "action": "Open notifications panel (when not in input)", "global": true }
+    ],
+    "dialog_design": "Modal showing all shortcuts in a two-column table. Group by category: Navigation, UI Controls, Pages. Show key combinations as styled kbd elements.",
+    "footer_hint": "Add '? Press Ctrl+/' hint at very bottom of sidebar (visible when expanded) that opens the shortcuts dialog."
+  },
+
+  "onboarding_tour": {
+    "file": "src/components/common/OnboardingTour.tsx",
+    "hook": "src/hooks/useOnboarding.ts",
+    "description": "First-run onboarding tour for new users. Shows on first login only (tracked in localStorage 'aits-onboarding-complete'). Uses a custom spotlight/overlay approach.",
+    "implementation": "No external tour library. Build with framer-motion + Radix Popover. Spotlight: dark overlay with a transparent cut-out rect around the highlighted element (use CSS clip-path or SVG mask). Popover anchored to target element showing step title, description, step counter (x of y), Next/Skip buttons.",
+    "steps": [
+      { "target": ".sidebar-nav", "title": "Navigation", "description": "Access all modules from the sidebar. Click sections to navigate." },
+      { "target": ".kpi-cards-row", "title": "Terminal Overview", "description": "Monitor key metrics at a glance. Hover cards for more details." },
+      { "target": ".navbar-search", "title": "Quick Search", "description": "Press Ctrl+K to search pages, trolleys, and shops instantly." },
+      { "target": ".navbar-notifications", "title": "Notifications", "description": "Stay updated with real-time alerts and system notifications." },
+      { "target": ".theme-toggle", "title": "Dark Mode", "description": "Toggle between light and dark mode to suit your preference." },
+      { "target": ".sidebar-settings", "title": "Settings", "description": "Customize language, appearance, and system preferences here." }
+    ],
+    "resume_tour_button": "In Settings > General, add 'Restart Onboarding Tour' button that resets the localStorage flag and re-triggers the tour."
+  },
+
+  "export_functionality": {
+    "file": "src/lib/export.ts",
+    "hook": "src/hooks/useExport.ts",
+    "component": "src/components/common/ExportButton.tsx",
+    "description": "Generic export utility. Supports CSV and JSON export of table data.",
+    "implementation": "For CSV: construct CSV string from columns and data, create Blob, download via anchor element click. For JSON: JSON.stringify with 2-space indent, same Blob approach. ExportButton component: dropdown with 'Export CSV' and 'Export JSON' options. Props: data, filename, columns.",
+    "usage": "Add ExportButton to: Trolley list, Shop list, Visitor stats summary table, Audit log, Complaints table."
+  },
+
+  "print_layout": {
+    "file": "src/styles/print.css",
+    "hook": "src/hooks/usePrint.ts",
+    "description": "Print-specific styles loaded via @media print. Hide: sidebar, navbar, filter bars, action buttons, tooltips. Show: full-width content. Page breaks before major sections. Tables: borders visible. Charts: ensure they print. Header on each page: Ai-TS logo text + terminal name + print date.",
+    "print_button": "Add Print button to: Trolley detail page, Shop detail page, Complaint detail modal, Visitor stats page."
+  },
+
+  "network_status": {
+    "file": "src/components/common/NetworkStatus.tsx",
+    "description": "Monitor navigator.onLine. When offline: show persistent amber banner below navbar: 'You are currently offline. Some features may be unavailable.' with offline icon. When back online: brief green success toast 'Connection restored'. Handle gracefully - mock data still works offline."
+  },
+
+  "global_ui_store": {
+    "file": "src/store/ui.store.ts",
+    "description": "Centralized UI state that crosses multiple components.",
+    "state": {
+      "isCommandPaletteOpen": "boolean",
+      "isNotificationPanelOpen": "boolean",
+      "isKeyboardShortcutsOpen": "boolean",
+      "isOnboardingActive": "boolean",
+      "onboardingStep": "number",
+      "toasts": "ToastItem[]",
+      "isOffline": "boolean",
+      "pageLoadingProgress": "number (0-100)"
+    },
+    "actions": "setCommandPaletteOpen, setNotificationPanelOpen, setKeyboardShortcutsOpen, setOnboardingActive, setOnboardingStep, addToast, removeToast, setOffline, setPageProgress"
+  },
+
+  "final_integration_tasks": {
+    "description": "Cross-cutting integration tasks to tie all phases together.",
+    "tasks": [
+      {
+        "task": "Link all 'View Details' buttons",
+        "description": "Ensure every 'View Details' or linked reference navigates to the correct route: alert trolley reference -> /dashboard/trolleys/:id, shop offer count -> /dashboard/shops/:id#offers tab, complaint shop_id -> /dashboard/shops/:id, overview top shops list items -> /dashboard/shops/:id"
+      },
+      {
+        "task": "Notification linking",
+        "description": "Every notification with link_to set should navigate to that route when clicked in both the notification panel and notifications page."
+      },
+      {
+        "task": "Alert -> Trolley cross-link",
+        "description": "In TrolleyDetailPage, show a small 'Active Alerts' section that filters alerts.store for alerts matching this trolley's id."
+      },
+      {
+        "task": "Shop -> Offers cross-link",
+        "description": "In ShopDetailPage Offers tab, load from offers.store filtered by shop_id instead of separate mock data."
+      },
+      {
+        "task": "Dashboard Overview -> Page links",
+        "description": "All 'View All' links on Overview page widgets navigate to their respective pages. Active Alerts widget 'View All' -> /dashboard/alerts. Top Shops 'View All' -> /dashboard/shops. System Health -> show tooltip mentioning /dashboard/settings for config."
+      },
+      {
+        "task": "Sidebar notification badges update",
+        "description": "Alerts sidebar badge count: read from alerts.store activeCount. Notifications badge: notifications.store unreadCount. Complaints badge: complaints.store openCount. These update reactively."
+      },
+      {
+        "task": "Permission gates on all pages",
+        "description": "Review every page for action buttons and apply usePermissions().can() check. Buttons that fail permission check: either hidden (delete, create) or shown as disabled with tooltip 'Insufficient permissions' (less destructive actions). Reference permission_gating section from Phase 5."
+      },
+      {
+        "task": "Settings language change",
+        "description": "When language changed in settings, it must update: i18next locale, document dir attribute (for Arabic), sidebar labels, page titles, all translated strings. Verify by switching to French and confirming all nav items change."
+      },
+      {
+        "task": "Settings theme change",
+        "description": "Dark/light mode toggled in Settings must be in sync with the NavBar theme toggle button. Both read/write from the same ThemeProvider context."
+      },
+      {
+        "task": "Settings compact mode",
+        "description": "When compact mode enabled in settings, apply 'compact' class to table elements reducing row padding and font size by 1 step."
+      },
+      {
+        "task": "Browser tab titles",
+        "description": "Each page should set document.title to '[Page Name] - Ai-TS Admin'. Use a custom usePageTitle hook or useEffect in each page."
+      },
+      {
+        "task": "Scroll position reset",
+        "description": "Add ScrollToTop component (src/components/common/ScrollToTop.tsx) that scrolls main content area to top on route change. Also add BackToTop floating button that appears after scrolling 300px."
+      }
+    ]
+  },
+
+  "final_animation_library": {
+    "file": "src/lib/animations.ts",
+    "description": "Centralized framer-motion variants for consistency. Export named variant objects.",
+    "exports": {
+      "fadeIn": "opacity 0->1, 200ms",
+      "fadeInUp": "opacity 0->1, y 20->0, 300ms",
+      "fadeInScale": "opacity 0->1, scale 0.95->1, 200ms",
+      "staggerContainer": "staggerChildren: 0.05s",
+      "staggerItem": "opacity 0->1, y 10->0",
+      "slideInRight": "x 100%->0, opacity 0->1, 250ms",
+      "slideInLeft": "x -100%->0, opacity 0->1, 250ms",
+      "slideUp": "y 100%->0, opacity 0->1, 300ms",
+      "pageEnter": "opacity 0->1, x 10->0, 200ms ease-out",
+      "pageExit": "opacity 1->0, x 0->-10, 150ms ease-in",
+      "scaleButton": "hover scale 1.02, tap scale 0.97",
+      "shimmer": "CSS keyframe via className"
+    }
+  },
+
+  "quality_and_testing_checklist": {
+    "functionality": [
+      "Login with correct credentials succeeds, wrong credentials shows error",
+      "Logout clears auth state and redirects to /login",
+      "Dark mode toggle works everywhere, persists on refresh",
+      "Language switch to French translates sidebar + nav labels",
+      "Language switch to Arabic applies RTL layout correctly",
+      "Sidebar collapse/expand animates smoothly, persists on refresh",
+      "Command palette (Ctrl+K) opens, searches pages, navigates on Enter",
+      "All 11 navigation items navigate to correct pages",
+      "Overview page loads all 6 KPI cards + 5 chart widgets",
+      "Trolley list: search, filter, sort, pagination all work",
+      "Trolley detail: all sections render, battery chart loads",
+      "Shop list: contract status badges correct for expiring/expired",
+      "Shop detail: all 5 tabs render",
+      "Terminal map SVG renders all zones, clicking shows info panel",
+      "Map layer toggles show/hide markers",
+      "Heatmap mode switches update zone colors with animation",
+      "Hour range slider updates heatmap in real time",
+      "Visitor stats all 5 chart rows render",
+      "Peak hours grid shows correct 24x7 grid",
+      "Alerts list sorted by severity, bulk actions work",
+      "Resolve alert updates status immediately",
+      "Notifications grouped by date, mark all read works",
+      "Complaints SLA column shows correct time remaining",
+      "Permissions matrix: custom role editable, system role read-only",
+      "Add user modal: role permission preview renders",
+      "Settings language change applies immediately",
+      "Settings font size slider shows live preview",
+      "Settings unsaved changes warning appears",
+      "Keyboard shortcuts dialog opens with Ctrl+/",
+      "Go-to shortcuts (G+T etc.) navigate correctly",
+      "Onboarding tour shows on first login, skippable",
+      "Export CSV downloads a file with table data",
+      "Print button triggers browser print dialog",
+      "Offline banner shows when navigator.onLine is false",
+      "404 page renders for unknown routes",
+      "403 page renders for unauthorized access attempts",
+      "All mock data displays without undefined/null errors"
+    ],
+    "visual": [
+      "Primary color #BE052E used consistently for: active nav, buttons, accents",
+      "Dark mode: no white flash, all surfaces correctly dark",
+      "Light mode: no dark surfaces leaking through",
+      "Typography hierarchy clear: Montserrat headers, Poppins subheadings, Lexend body, Roboto tables",
+      "Spacing consistent throughout (4px grid)",
+      "All charts have proper labels, legends, tooltips",
+      "All badges/chips readable in both modes",
+      "Status dots visible and pulse animation working",
+      "All modals centered, backdrop blurs properly",
+      "Sidebar active item visually distinct",
+      "Mobile (375px): sidebar hidden, bottom nav visible",
+      "Tablet (768px): 2-column grids, compact sidebar",
+      "Desktop (1440px): full 3-column layouts"
+    ],
+    "accessibility": [
+      "Tab navigation reaches every interactive element",
+      "Focus ring visible on all elements",
+      "Modal focus trap works",
+      "Escape closes modals and dropdowns",
+      "All icon buttons have aria-label",
+      "Active nav item has aria-current='page'",
+      "Form errors announced to screen readers",
+      "Color is not the only indicator of status (icons + text also used)",
+      "Minimum touch target 44x44px for all clickable elements"
+    ],
+    "performance": [
+      "Initial bundle < 500KB (code splitting working)",
+      "Page navigation feels instant (lazy loading)",
+      "280-trolley list renders without jank (virtual scrolling)",
+      "Search inputs debounced (no lag while typing)",
+      "No unnecessary re-renders (memo applied correctly)"
+    ]
+  },
+
+  "final_file_structure_summary": {
+    "description": "Complete expected file tree after all 6 phases",
+    "src": {
+      "assets": ["logo.tsx"],
+      "components": {
+        "alerts": ["AlertItem.tsx", "AlertSeverityBadge.tsx", "AlertStatsBar.tsx", "AlertTimeline.tsx"],
+        "common": ["Avatar.tsx", "BackToTop.tsx", "Callout.tsx", "ConfirmDialog.tsx", "DataTable.tsx", "EmptyState.tsx", "ErrorBoundary.tsx", "ExportButton.tsx", "FileUpload.tsx", "FormModal.tsx", "GlobalErrorFallback.tsx", "KeyboardShortcutsDialog.tsx", "LoadingScreen.tsx", "NetworkStatus.tsx", "OnboardingTour.tsx", "PageErrorFallback.tsx", "PageHeader.tsx", "PrintLayout.tsx", "ProgressBar.tsx", "ScrollToTop.tsx", "SearchFilter.tsx", "SectionCard.tsx", "Skeleton.tsx", "StatusDot.tsx", "Stepper.tsx", "ThemeToggle.tsx", "Timeline.tsx", "LanguageSwitcher.tsx"],
+        "complaints": ["ComplaintItem.tsx", "ComplaintStatusBadge.tsx", "ComplaintTimeline.tsx"],
+        "dashboard": ["ActiveAlertsWidget.tsx", "KPICard.tsx", "RecentActivityFeed.tsx", "SystemHealthWidget.tsx", "TopShopsWidget.tsx", "TrolleyBatteryChart.tsx", "TrolleyStatusWidget.tsx", "VisitorFlowChart.tsx"],
+        "heatmap": ["CategoryHeatmapToggle.tsx", "HeatmapControls.tsx", "HeatmapLegend.tsx", "HeatmapOverlay.tsx"],
+        "map": ["AirportMapSVG.tsx", "MapFilters.tsx", "MapLegend.tsx", "MapTooltip.tsx", "TrolleyDot.tsx"],
+        "notifications": ["NotificationFilters.tsx", "NotificationItem.tsx"],
+        "offers": ["ContractTimeline.tsx", "OfferCard.tsx"],
+        "permissions": ["PermissionCell.tsx", "PermissionGroupRow.tsx", "RoleBadge.tsx", "RoleCard.tsx", "UserCard.tsx", "UserStatusToggle.tsx"],
+        "settings": ["ColorSchemeSelector.tsx", "FontSizePreview.tsx", "SettingRow.tsx", "SettingsSection.tsx", "ThemePreviewCard.tsx"],
+        "shops": ["ContractStatusBadge.tsx", "ShopCard.tsx", "ShopCategoryBadge.tsx"],
+        "trolleys": ["BatteryIndicator.tsx", "TrolleyCard.tsx", "TrolleyHealthScore.tsx", "TrolleyHistoryChart.tsx", "TrolleyMapMarker.tsx", "TrolleyStatusBadge.tsx"],
+        "ui": ["Badge.tsx", "Button.tsx", "Card.tsx", "Checkbox.tsx", "Input.tsx", "Label.tsx", "Select.tsx", "Separator.tsx", "Skeleton.tsx", "Switch.tsx", "Tooltip.tsx"],
+        "visitors": ["DwellTimeChart.tsx", "GateTrafficChart.tsx", "PeakHoursGrid.tsx", "TopCategoriesChart.tsx", "VisitorDemographicChart.tsx", "VisitorFlowSankey.tsx", "VisitorTrendChart.tsx"]
+      },
+      "data": {
+        "mock": ["alerts.mock.ts", "audit.mock.ts", "complaints.mock.ts", "heatmap.mock.ts", "map.mock.ts", "notifications.mock.ts", "offers.mock.ts", "overview.mock.ts", "profile.mock.ts", "roles.mock.ts", "shops.mock.ts", "trolleys.mock.ts", "users.mock.ts", "visitors.mock.ts"]
+      },
+      "hooks": ["useAuth.ts", "useBreakpoint.ts", "useDebounce.ts", "useExport.ts", "useHeatmapData.ts", "useIntersectionObserver.ts", "useKeyboardShortcuts.ts", "useLocalStorage.ts", "useNotifications.ts", "useOnboarding.ts", "usePermissions.ts", "usePrint.ts", "useSidebar.ts", "useTheme.ts"],
+      "layouts": ["Breadcrumb.tsx", "CommandPalette.tsx", "DashboardLayout.tsx", "MobileNav.tsx", "Navbar.tsx", "NotificationPanel.tsx", "RootLayout.tsx", "Sidebar.tsx"],
+      "lib": ["accessibility.ts", "animations.ts", "constants.ts", "export.ts", "i18n.ts", "keyboard.ts", "print.ts", "theme.ts", "utils.ts"],
+      "locales": ["ar.json", "en.json", "fr.json"],
+      "pages": {
+        "alerts": ["AlertDetailModal.tsx", "AlertsPage.tsx"],
+        "auth": ["LoginPage.tsx"],
+        "complaints": ["ComplaintDetailModal.tsx", "ComplaintsPage.tsx"],
+        "dashboard": ["OverviewPage.tsx"],
+        "errors": ["NotFoundPage.tsx", "ServerErrorPage.tsx", "UnauthorizedPage.tsx"],
+        "heatmap": ["HeatmapPage.tsx"],
+        "map": ["TerminalMapPage.tsx"],
+        "notifications": ["NotificationsPage.tsx"],
+        "offers": ["OfferDetailModal.tsx", "OffersPage.tsx"],
+        "permissions": ["AddUserModal.tsx", "AuditLogTab.tsx", "EditUserModal.tsx", "PermissionMatrixTab.tsx", "PermissionsPage.tsx", "RoleEditorModal.tsx", "RolesTab.tsx", "UsersTab.tsx"],
+        "profile": ["ProfilePage.tsx"],
+        "settings": ["AppearanceSettingsTab.tsx", "DataSettingsTab.tsx", "GeneralSettingsTab.tsx", "NotificationSettingsTab.tsx", "SecuritySettingsTab.tsx", "SettingsPage.tsx", "TerminalSettingsTab.tsx"],
+        "shops": ["AddShopModal.tsx", "ShopDetailPage.tsx", "ShopListPage.tsx"],
+        "trolleys": ["AddTrolleyModal.tsx", "TrolleyDetailPage.tsx", "TrolleyListPage.tsx"],
+        "visitors": ["VisitorStatsPage.tsx"]
+      },
+      "providers": ["AuthProvider.tsx", "index.tsx", "ThemeProvider.tsx"],
+      "routes": ["index.tsx", "ProtectedRoute.tsx"],
+      "store": ["alerts.store.ts", "complaints.store.ts", "map.store.ts", "notifications.store.ts", "permissions.store.ts", "settings.store.ts", "shops.store.ts", "sidebar.store.ts", "trolleys.store.ts", "ui.store.ts"],
+      "styles": ["animations.css", "print.css", "rtl.css"],
+      "types": ["alert.types.ts", "auth.types.ts", "complaint.types.ts", "index.ts", "map.types.ts", "notification.types.ts", "offer.types.ts", "permissions.types.ts", "shop.types.ts", "theme.types.ts", "trolley.types.ts", "visitor.types.ts"]
+    }
+  }
+}

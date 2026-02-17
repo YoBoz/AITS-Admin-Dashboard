@@ -1,0 +1,524 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 5,
+  "phase_title": "Permissions Management, Role Management and Settings",
+  "phase_description": "Build the full Permissions and Role-Based Access Control (RBAC) management module with user management, role creation/editing, granular permission matrix, and the comprehensive Settings page covering language, theme, notifications, system configuration, and display preferences.",
+  "depends_on_phase": 4,
+  "reference_files_from_previous_phases": [
+    "src/providers/AuthProvider.tsx",
+    "src/hooks/useAuth.ts",
+    "src/types/auth.types.ts",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/components/common/SearchFilter.tsx",
+    "src/components/common/Avatar.tsx",
+    "src/components/ui/Switch.tsx",
+    "src/components/ui/Badge.tsx",
+    "src/hooks/useTheme.ts",
+    "src/lib/constants.ts",
+    "src/lib/i18n.ts",
+    "src/locales/en.json",
+    "src/locales/ar.json",
+    "src/locales/fr.json",
+    "src/routes/index.tsx",
+    "src/store/notifications.store.ts"
+  ],
+
+  "output_files_this_phase": [
+    "src/pages/permissions/PermissionsPage.tsx",
+    "src/pages/permissions/UsersTab.tsx",
+    "src/pages/permissions/RolesTab.tsx",
+    "src/pages/permissions/PermissionMatrixTab.tsx",
+    "src/pages/permissions/AuditLogTab.tsx",
+    "src/pages/permissions/AddUserModal.tsx",
+    "src/pages/permissions/EditUserModal.tsx",
+    "src/pages/permissions/RoleEditorModal.tsx",
+    "src/components/permissions/UserCard.tsx",
+    "src/components/permissions/RoleCard.tsx",
+    "src/components/permissions/PermissionCell.tsx",
+    "src/components/permissions/PermissionGroupRow.tsx",
+    "src/components/permissions/RoleBadge.tsx",
+    "src/components/permissions/UserStatusToggle.tsx",
+    "src/pages/settings/SettingsPage.tsx",
+    "src/pages/settings/GeneralSettingsTab.tsx",
+    "src/pages/settings/AppearanceSettingsTab.tsx",
+    "src/pages/settings/NotificationSettingsTab.tsx",
+    "src/pages/settings/SecuritySettingsTab.tsx",
+    "src/pages/settings/TerminalSettingsTab.tsx",
+    "src/pages/settings/DataSettingsTab.tsx",
+    "src/components/settings/SettingRow.tsx",
+    "src/components/settings/SettingsSection.tsx",
+    "src/components/settings/ThemePreviewCard.tsx",
+    "src/components/settings/FontSizePreview.tsx",
+    "src/components/settings/ColorSchemeSelector.tsx",
+    "src/data/mock/users.mock.ts",
+    "src/data/mock/roles.mock.ts",
+    "src/data/mock/audit.mock.ts",
+    "src/types/permissions.types.ts",
+    "src/store/permissions.store.ts",
+    "src/store/settings.store.ts",
+    "src/hooks/usePermissions.ts"
+  ],
+
+  "typescript_types": {
+    "src/types/permissions.types.ts": {
+      "Permission": {
+        "id": "string",
+        "key": "string (e.g. 'trolleys.view', 'shops.edit', 'alerts.resolve')",
+        "label": "string",
+        "description": "string",
+        "group": "PermissionGroup",
+        "risk_level": "'low' | 'medium' | 'high' | 'critical'"
+      },
+      "PermissionGroup": "'dashboard' | 'trolleys' | 'shops' | 'visitors' | 'heatmap' | 'alerts' | 'notifications' | 'complaints' | 'offers' | 'permissions' | 'settings' | 'reports'",
+      "Role": {
+        "id": "string",
+        "name": "string",
+        "label": "string",
+        "description": "string",
+        "color": "string (hex)",
+        "permissions": "string[] (permission keys)",
+        "is_system_role": "boolean (system roles cannot be deleted)",
+        "user_count": "number",
+        "created_at": "string",
+        "created_by": "string"
+      },
+      "AdminUser": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "role": "string (role id)",
+        "role_label": "string",
+        "avatar": "string | null",
+        "status": "'active' | 'inactive' | 'suspended' | 'pending_invite'",
+        "terminal": "string",
+        "department": "string",
+        "phone": "string",
+        "last_login": "string | null",
+        "created_at": "string",
+        "invited_by": "string",
+        "two_fa_enabled": "boolean",
+        "permissions_override": "string[] (extra permissions beyond role, can be empty)"
+      },
+      "AuditLogEntry": {
+        "id": "string",
+        "actor_id": "string",
+        "actor_name": "string",
+        "actor_role": "string",
+        "action": "string (e.g. 'user.created', 'role.updated', 'permission.granted')",
+        "resource_type": "string",
+        "resource_id": "string",
+        "resource_label": "string",
+        "changes": "{ field: string; from: string; to: string }[] | null",
+        "ip_address": "string",
+        "timestamp": "string",
+        "result": "'success' | 'failed' | 'blocked'"
+      }
+    }
+  },
+
+  "permissions_data_model": {
+    "description": "Define the full permission tree before building the UI. All permissions organized by group.",
+    "permission_definitions": {
+      "dashboard": ["dashboard.view", "dashboard.export"],
+      "trolleys": ["trolleys.view", "trolleys.create", "trolleys.edit", "trolleys.delete", "trolleys.maintenance_flag", "trolleys.export"],
+      "shops": ["shops.view", "shops.create", "shops.edit", "shops.delete", "shops.contract_manage", "shops.export"],
+      "visitors": ["visitors.view", "visitors.export"],
+      "heatmap": ["heatmap.view"],
+      "alerts": ["alerts.view", "alerts.acknowledge", "alerts.resolve", "alerts.dismiss", "alerts.assign"],
+      "notifications": ["notifications.view", "notifications.send", "notifications.manage"],
+      "complaints": ["complaints.view", "complaints.assign", "complaints.resolve", "complaints.escalate", "complaints.close"],
+      "offers": ["offers.view", "offers.create", "offers.edit", "offers.delete", "offers.approve"],
+      "permissions": ["permissions.view", "permissions.users_manage", "permissions.roles_manage", "permissions.audit_view"],
+      "settings": ["settings.view", "settings.general_edit", "settings.security_edit", "settings.terminal_edit"],
+      "reports": ["reports.view", "reports.export", "reports.schedule"]
+    },
+    "default_roles": [
+      {
+        "id": "super_admin",
+        "name": "super_admin",
+        "label": "Super Admin",
+        "color": "#BE052E",
+        "description": "Full system access with no restrictions",
+        "permissions": "ALL",
+        "is_system_role": true
+      },
+      {
+        "id": "terminal_admin",
+        "name": "terminal_admin",
+        "label": "Terminal Admin",
+        "color": "#7C3AED",
+        "description": "Full access to terminal operations, cannot manage super admin accounts",
+        "permissions": "All except permissions.roles_manage for system roles",
+        "is_system_role": true
+      },
+      {
+        "id": "operator",
+        "name": "operator",
+        "label": "Operator",
+        "color": "#2563EB",
+        "description": "Day-to-day operations: trolleys, alerts, complaints",
+        "permissions": ["trolleys.view", "trolleys.edit", "trolleys.maintenance_flag", "alerts.*", "complaints.view", "complaints.assign", "complaints.resolve", "dashboard.view", "notifications.view"],
+        "is_system_role": true
+      },
+      {
+        "id": "viewer",
+        "name": "viewer",
+        "label": "Viewer",
+        "color": "#059669",
+        "description": "Read-only access to dashboard and reports",
+        "permissions": ["dashboard.view", "trolleys.view", "shops.view", "visitors.view", "heatmap.view", "alerts.view", "notifications.view", "complaints.view", "offers.view"],
+        "is_system_role": true
+      }
+    ]
+  },
+
+  "permissions_page": {
+    "file": "src/pages/permissions/PermissionsPage.tsx",
+    "route": "/dashboard/permissions",
+    "description": "Tabbed page. Tabs: Users, Roles, Permission Matrix, Audit Log. PageHeader with 'Access Control & Permissions'.",
+
+    "users_tab": {
+      "file": "src/pages/permissions/UsersTab.tsx",
+      "stats_row": "4 cards: Total Users, Active, Pending Invites, Suspended",
+      "filter_bar": "Search by name/email, Filter by Role, Filter by Status, Filter by Terminal",
+      "users_table": {
+        "columns": ["Avatar+Name", "Email", "Role", "Terminal", "Status", "Last Login", "2FA", "Actions"],
+        "avatar_column": "Avatar component (initials fallback) + full name + department below",
+        "role_column": "RoleBadge - colored pill matching role color",
+        "status_column": "UserStatusToggle - toggle switch for active/inactive (disabled for own account and super admins)",
+        "last_login_column": "Relative time or 'Never' for pending invites",
+        "two_fa_column": "Green checkmark or gray dash",
+        "actions": "Edit (opens EditUserModal), Reset Password (sends toast), View Activity, Revoke Access (confirm dialog + suspend)"
+      },
+      "invite_user_button": "Opens AddUserModal",
+      "bulk_actions": "Select multiple, bulk: Activate, Suspend, Export Selected"
+    },
+
+    "roles_tab": {
+      "file": "src/pages/permissions/RolesTab.tsx",
+      "description": "Grid of RoleCard components (3 cols desktop, 2 tablet).",
+      "role_card": {
+        "file": "src/components/permissions/RoleCard.tsx",
+        "design": "Card with colored top border (role color). Role name in Montserrat bold. Description. Permission count badge. User count. System role lock icon. Edit button (disabled for system roles if not super admin). Clone role button. Delete button (disabled for system roles + confirm if custom). List of 4-5 key permissions as chips (preview)."
+      },
+      "create_custom_role": "Button: '+ Create Custom Role' - opens RoleEditorModal in create mode"
+    },
+
+    "permission_matrix_tab": {
+      "file": "src/pages/permissions/PermissionMatrixTab.tsx",
+      "description": "Full permission matrix table. Rows: permissions grouped by PermissionGroup (collapsible group rows). Columns: each role. Cell intersection: PermissionCell showing checkbox (checked if role has that permission).",
+      "layout": "Sticky left column (permission label), sticky header row (role names). Horizontal scroll for many roles. Vertical scroll for many permissions.",
+      "permission_group_row": {
+        "file": "src/components/permissions/PermissionGroupRow.tsx",
+        "description": "Collapsible section header row spanning all columns. Shows group name + permission count. Click to expand/collapse all permissions in group. Background: slightly darker than body."
+      },
+      "permission_cell": {
+        "file": "src/components/permissions/PermissionCell.tsx",
+        "description": "Checkbox cell. Checked=green checkbox. Unchecked=gray. For system roles: disabled (cannot uncheck). For custom roles: editable. Change triggers confirm dialog if removing a permission, direct apply if adding. Shows risk_level color indicator on hover (tooltip)."
+      },
+      "export_matrix_button": "Export as CSV button in header",
+      "read_only_note": "Banner at top: 'System roles cannot be modified. To customize permissions, clone a role and create a custom version.'"
+    },
+
+    "audit_log_tab": {
+      "file": "src/pages/permissions/AuditLogTab.tsx",
+      "description": "Searchable, filterable table of all permission-related audit events.",
+      "filter_bar": "Search by actor/resource, Filter by action type, Filter by result (success/failed/blocked), Date range picker",
+      "table_columns": ["Timestamp", "Actor (name + role badge)", "Action", "Resource Type", "Resource", "Changes (expandable)", "IP Address", "Result"],
+      "changes_column": "Expandable cell. Click to expand and show before/after diff in a small table within the row.",
+      "result_column": "Colored badge: success=green, failed=amber, blocked=red",
+      "auto_refresh": "Toggle for live updates every 30s (updates mock data with a new random entry)"
+    },
+
+    "add_user_modal": {
+      "file": "src/pages/permissions/AddUserModal.tsx",
+      "description": "Invite new admin user. Fields: Full Name, Email (unique validation), Role select (dropdown of all roles with descriptions), Terminal Assignment select, Department, Phone (optional). Preview: shows what permissions the selected role grants as a compact list. Send Invite button. Success: adds user with status 'pending_invite' to store."
+    },
+
+    "edit_user_modal": {
+      "file": "src/pages/permissions/EditUserModal.tsx",
+      "description": "Edit existing user. Fields: Name, Role (dropdown), Terminal, Department, Phone, Status toggle. Permissions Override section: shows base permissions from role, allows adding extra permissions (multi-select of all permissions not already in role) or revoking permissions (checkboxes to exclude from role). Warning banner when overriding: 'Permission overrides make auditing harder. Prefer creating a custom role instead.'"
+    },
+
+    "role_editor_modal": {
+      "file": "src/pages/permissions/RoleEditorModal.tsx",
+      "description": "Create or edit custom role. Fields: Role Label, Description, Color picker (6 preset colors + custom hex), Base on existing role (optional select). Permissions section: same collapsible group layout as matrix tab, all checkboxes enabled. Preview panel on right: shows effective permission count, risk summary. Save Role button."
+    }
+  },
+
+  "settings_page": {
+    "file": "src/pages/settings/SettingsPage.tsx",
+    "route": "/dashboard/settings",
+    "description": "Settings page with vertical nav on left (or tabs on mobile) for 6 sections.",
+    "nav_items": ["General", "Appearance", "Notifications", "Security", "Terminal", "Data & Reports"],
+
+    "general_tab": {
+      "file": "src/pages/settings/GeneralSettingsTab.tsx",
+      "sections": [
+        {
+          "title": "Application Language",
+          "description": "Choose the display language for the entire Ai-TS dashboard interface. Affects all labels, messages, and system text.",
+          "control": "Language selector cards (3 cards side by side): English (EN), Arabic (AR - with RTL note), French (FR). Each card: flag representation as colored block + language name in native script + translated name. Selected card: primary border + checkmark. On change: immediately apply via i18next and update direction for AR."
+        },
+        {
+          "title": "Time Zone",
+          "control": "Select dropdown with common time zones. Default: UTC+4 (Gulf Standard Time)"
+        },
+        {
+          "title": "Date Format",
+          "control": "Radio group: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD"
+        },
+        {
+          "title": "Time Format",
+          "control": "Radio group: 12 Hour (AM/PM), 24 Hour"
+        },
+        {
+          "title": "Currency Display",
+          "control": "Select: AED (د.إ), USD ($), EUR (€). Affects any monetary values shown in dashboard."
+        }
+      ]
+    },
+
+    "appearance_tab": {
+      "file": "src/pages/settings/AppearanceSettingsTab.tsx",
+      "sections": [
+        {
+          "title": "Theme",
+          "description": "Choose between light and dark mode, or follow your system setting.",
+          "control": "ThemePreviewCard components (3 cards): Light Mode, Dark Mode, System Default. Each card is a miniature preview showing the dashboard sidebar and a card in that theme. Selected card has primary border.",
+          "theme_preview_card": {
+            "file": "src/components/settings/ThemePreviewCard.tsx",
+            "description": "SVG-based miniature dashboard preview (150x100px). Shows: colored sidebar bar, top navbar bar, two mock card outlines. Colors adapt to represent light/dark/system. Label below: theme name."
+          }
+        },
+        {
+          "title": "Accent Color",
+          "description": "The primary accent color is fixed to the Ai-TS brand color #BE052E. This cannot be changed.",
+          "control": "Single color swatch (non-interactive, tooltip: 'Brand color locked')"
+        },
+        {
+          "title": "Font Size",
+          "description": "Adjust the base font size for comfortable reading.",
+          "control": "Slider: Small / Medium (default) / Large / Extra Large. FontSizePreview component showing live preview of text at selected size.",
+          "font_size_preview": {
+            "file": "src/components/settings/FontSizePreview.tsx",
+            "description": "Small card showing sample text (heading, body, caption) at current slider font scale. Updates live."
+          },
+          "implementation": "Store selected size in settings store. Apply as data-font-size attribute on html element. CSS: [data-font-size='small'] { font-size: 14px; } [data-font-size='medium'] { font-size: 16px; } etc."
+        },
+        {
+          "title": "Sidebar Behavior",
+          "control": "Toggle: 'Start with sidebar collapsed by default'"
+        },
+        {
+          "title": "Compact Mode",
+          "control": "Toggle: 'Use compact spacing for tables and lists (shows more data per screen)'"
+        },
+        {
+          "title": "Animation",
+          "control": "Toggle: 'Enable animations and transitions'. When off, all framer-motion durations set to 0."
+        }
+      ]
+    },
+
+    "notifications_tab": {
+      "file": "src/pages/settings/NotificationSettingsTab.tsx",
+      "sections": [
+        {
+          "title": "Alert Notifications",
+          "rows": [
+            { "label": "Critical Alerts", "description": "Battery <10%, hardware fault, system down", "control": "toggle", "default": true, "cannot_disable": true },
+            { "label": "Warning Alerts", "description": "Battery <25%, maintenance overdue", "control": "toggle", "default": true },
+            { "label": "Info Alerts", "description": "Routine notifications", "control": "toggle", "default": false }
+          ]
+        },
+        {
+          "title": "Operational Notifications",
+          "rows": [
+            { "label": "New Complaints", "control": "toggle + severity filter (High only / All)", "default": true },
+            { "label": "Contract Expiry", "description": "Days before expiry", "control": "toggle + number input (default 30 days)", "default": true },
+            { "label": "New Shop Registration", "control": "toggle", "default": true },
+            { "label": "Visitor Milestones", "description": "e.g. 10,000th visitor today", "control": "toggle", "default": false }
+          ]
+        },
+        {
+          "title": "Delivery Methods",
+          "rows": [
+            { "label": "In-App Notifications", "control": "toggle", "default": true, "cannot_disable": true },
+            { "label": "Email Digest", "description": "Frequency", "control": "toggle + select (Immediate / Hourly / Daily)", "default": false },
+            { "label": "Sound Alerts", "description": "Play sound for critical alerts", "control": "toggle", "default": true }
+          ]
+        },
+        {
+          "title": "Quiet Hours",
+          "description": "Suppress non-critical notifications during specified hours",
+          "control": "Toggle + time range pickers (From / To)"
+        }
+      ]
+    },
+
+    "security_tab": {
+      "file": "src/pages/settings/SecuritySettingsTab.tsx",
+      "sections": [
+        {
+          "title": "Two-Factor Authentication",
+          "description": "Add an extra layer of security to your account.",
+          "control": "Enable/Disable 2FA toggle with setup wizard (mock - shows QR code placeholder and verify code input)"
+        },
+        {
+          "title": "Session Management",
+          "description": "Control how long admin sessions remain active.",
+          "rows": [
+            { "label": "Session Timeout", "control": "select: 15 min / 30 min / 1 hour / 4 hours / Never" },
+            { "label": "Remember Me Duration", "control": "select: 1 day / 7 days / 30 days" }
+          ]
+        },
+        {
+          "title": "Password Policy",
+          "description": "View the current password requirements.",
+          "content": "Read-only list: Minimum 8 characters, Must include uppercase + lowercase + number + special char, Cannot reuse last 5 passwords, Expires every 90 days."
+        },
+        {
+          "title": "Allowed IP Addresses",
+          "description": "Restrict admin access to specific IP ranges (optional).",
+          "control": "Text input + Add button. List of added IP/CIDR ranges. Remove button per entry. Warning: 'Ensure your current IP is included before saving.'"
+        },
+        {
+          "title": "Active Sessions",
+          "description": "Devices currently signed into your account.",
+          "control": "List of mock sessions (current device highlighted). Each: device/browser icon, device name, IP, location, last active, 'Revoke' button. 'Revoke All Other Sessions' button."
+        }
+      ]
+    },
+
+    "terminal_tab": {
+      "file": "src/pages/settings/TerminalSettingsTab.tsx",
+      "description": "Terminal-specific configuration (visible only to super_admin and terminal_admin).",
+      "sections": [
+        {
+          "title": "Terminal Information",
+          "fields": [
+            { "label": "Terminal Name", "type": "text", "value": "Terminal 2 - International" },
+            { "label": "Airport IATA Code", "type": "text", "value": "DXB", "disabled": true },
+            { "label": "Timezone", "type": "select" },
+            { "label": "Terminal Manager", "type": "text" },
+            { "label": "Support Email", "type": "email" },
+            { "label": "Emergency Contact", "type": "text" }
+          ]
+        },
+        {
+          "title": "Trolley Configuration",
+          "fields": [
+            { "label": "Low Battery Threshold", "type": "number+unit (%)", "default": 20 },
+            { "label": "Critical Battery Threshold", "type": "number+unit (%)", "default": 10 },
+            { "label": "Idle Alert After (minutes)", "type": "number", "default": 60 },
+            { "label": "Max Fleet Size", "type": "number", "default": 300 },
+            { "label": "Auto-alert on Offline (minutes)", "type": "number", "default": 15 }
+          ]
+        },
+        {
+          "title": "Display Settings (Trolley Tablets)",
+          "fields": [
+            { "label": "Default Screen Language", "type": "select (EN/AR/FR)" },
+            { "label": "Offer Rotation Interval (seconds)", "type": "number", "default": 10 },
+            { "label": "Screen Brightness (%)", "type": "slider", "default": 80 },
+            { "label": "Show Navigation by Default", "type": "toggle", "default": true }
+          ]
+        }
+      ]
+    },
+
+    "data_tab": {
+      "file": "src/pages/settings/DataSettingsTab.tsx",
+      "sections": [
+        {
+          "title": "Data Retention",
+          "rows": [
+            { "label": "Trolley Tracking History", "control": "select: 30 days / 90 days / 180 days / 1 year", "default": "90 days" },
+            { "label": "Visitor Statistics", "control": "select: 6 months / 1 year / 2 years", "default": "1 year" },
+            { "label": "Alert Logs", "control": "select: 90 days / 180 days / 1 year", "default": "180 days" },
+            { "label": "Audit Logs", "control": "select: 1 year / 2 years / Forever", "default": "1 year" }
+          ]
+        },
+        {
+          "title": "Export & Reports",
+          "rows": [
+            { "label": "Scheduled Report", "description": "Weekly PDF summary emailed to admins", "control": "toggle + day select + time select", "default": false },
+            { "label": "Export Format Default", "control": "radio: CSV / Excel / PDF", "default": "Excel" }
+          ]
+        },
+        {
+          "title": "Data Anonymization",
+          "rows": [
+            { "label": "Anonymize visitor data after (days)", "type": "number", "default": 30 },
+            { "label": "Mask complaint submitter PII in exports", "control": "toggle", "default": true }
+          ]
+        },
+        {
+          "title": "System Maintenance",
+          "content": "Read-only info: Last database backup (timestamp), Next scheduled maintenance window, Database size. Button: 'Request Data Export (Full Backup)' - shows toast 'Export requested. You will be notified when ready.'"
+        }
+      ]
+    },
+
+    "save_behavior": "Each tab has a 'Save Changes' button at bottom. Changes tracked (isDirty state). Unsaved changes badge on tab if modified. Navigation away with unsaved changes triggers ConfirmDialog."
+  },
+
+  "zustand_stores": {
+    "src/store/permissions.store.ts": "State: users (AdminUser[]), roles (Role[]), permissions (Permission[]), auditLog (AuditLogEntry[]), filters. Actions: addUser, updateUser, deactivateUser, addRole, updateRole, deleteRole, updateRolePermissions, addAuditEntry. Initialize with mock data.",
+    "src/store/settings.store.ts": "State: all settings from all tabs as a flat or nested object. Actions: updateSetting(key, value), resetSection(section), saveSettings (show success toast). Persist to localStorage 'aits-settings'."
+  },
+
+  "hooks": {
+    "src/hooks/usePermissions.ts": "Custom hook. Returns: can(permission: string) => boolean based on current user's role + overrides. canAny(permissions: string[]) => boolean. canAll(permissions: string[]) => boolean. Used throughout app to conditionally render buttons and actions."
+  },
+
+  "permission_gating": {
+    "description": "Apply usePermissions hook to gate UI elements in previously built pages. Examples:",
+    "examples": [
+      "Add Trolley button: only show if can('trolleys.create')",
+      "Delete Shop button: only show if can('shops.delete')",
+      "Resolve Alert button: only show if can('alerts.resolve')",
+      "Permission Matrix edit: only show if can('permissions.roles_manage')",
+      "Terminal Settings tab: only show if can('settings.terminal_edit')"
+    ]
+  },
+
+  "mock_data": {
+    "src/data/mock/users.mock.ts": "Generate 18 admin users. Include: 1 super_admin, 3 terminal_admins, 8 operators, 6 viewers. Mix of active/inactive/pending. 2 with 2FA enabled. Realistic names and emails. Last login dates spread over last 30 days.",
+    "src/data/mock/roles.mock.ts": "4 system roles + 2 custom roles created by admin: 'Reporting Specialist' (viewer + reports.export), 'Senior Operator' (operator + shops.view + complaints.escalate).",
+    "src/data/mock/audit.mock.ts": "Generate 60 audit log entries covering the last 30 days. Mix of: user.created (8), role.updated (5), permission.granted (10), user.login (20), user.suspended (2), role.created (2), settings.updated (13). All actors from users.mock.ts. Include changes arrays for update events."
+  },
+
+  "routes_to_add": [
+    "/dashboard/permissions",
+    "/dashboard/settings"
+  ],
+
+  "locales_update": "Add all new translation keys for Permissions page, Settings page, role names, permission group labels, all settings labels to en.json, ar.json, fr.json",
+
+  "quality_checklist": [
+    "Permission matrix renders all groups as collapsible sections",
+    "System role checkboxes are disabled (read-only)",
+    "Custom role checkboxes are editable with confirm on removal",
+    "Add user modal shows permission preview when role is selected",
+    "Edit user modal allows permission overrides",
+    "Role editor modal saves new custom role to store",
+    "Audit log table shows changes expanded on row click",
+    "Settings language change immediately applies i18next locale",
+    "Settings language change to Arabic applies dir=rtl to html element",
+    "Theme setting in Appearance tab applies immediately",
+    "Font size slider shows live preview",
+    "Unsaved changes warning shown when navigating away from dirty settings",
+    "Permission gating hides buttons for users without permissions",
+    "usePermissions hook returns correct boolean for each role",
+    "Compact mode toggle reduces table row height",
+    "All 6 settings tabs render without errors",
+    "All new pages dark mode compatible",
+    "No TypeScript errors"
+  ]
+}

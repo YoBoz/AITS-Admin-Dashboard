@@ -1,0 +1,85 @@
+{
+  "phase": 2,
+  "title": "Functional Page-Specific Corrections",
+  "objective": "Fix all non-working buttons, modal triggers, and missing functionality across core management pages.",
+  "tasks": [
+    {
+      "id": "terminal_map_cleanup",
+      "description": "Improve map clarity and remove unnecessary controls.",
+      "requirements": [
+        "Remove Zone toggle/filter.",
+        "Remove Fullscreen option.",
+        "Remove any connector rectangle or background blocks.",
+        "Ensure dots stay within map bounds.",
+        "Improve color scheme: shops=blue, lounges=purple, restaurants=orange, washrooms=teal.",
+        "Map background must be clean white surface.",
+        "Ensure no elements render behind map container."
+      ]
+    },
+    {
+      "id": "heatmap_cleanup",
+      "description": "Fix heatmap page issues.",
+      "requirements": [
+        "Remove redundant data mode control beside heading.",
+        "Remove background artifacts behind map.",
+        "Ensure overlay is clean.",
+        "Use single heatmap legend."
+      ]
+    },
+    {
+      "id": "trolley_modal_center",
+      "description": "Center Add Trolley modal using global modal."
+    },
+    {
+      "id": "shop_management_modals",
+      "description": "Fix shop management functionality.",
+      "requirements": [
+        "Center modal.",
+        "Make contract action buttons open modal.",
+        "Implement Add Offer button functionality.",
+        "Ensure routing to offer editor works.",
+        "Add temporary mock state update."
+      ]
+    },
+    {
+      "id": "offer_contracts_button_fix",
+      "description": "Fix Create Offer button.",
+      "requirements": [
+        "Add onClick handler.",
+        "Open modal or navigate to /offers/new.",
+        "Ensure no console errors."
+      ]
+    },
+    {
+      "id": "alerts_modal_fix",
+      "description": "Center View Alert modal."
+    },
+    {
+      "id": "complaints_table_fix",
+      "description": "Fix complaints page layout.",
+      "requirements": [
+        "Wrap table in max-w-[1280px] mx-auto.",
+        "Add padding px-6.",
+        "Prevent content hitting edges.",
+        "Center view modal."
+      ]
+    },
+    {
+      "id": "permissions_page_fixes",
+      "description": "Fix permissions page.",
+      "requirements": [
+        "Center Invite User modal.",
+        "Implement View Activity (use mock logs).",
+        "Center Create Custom Role modal.",
+        "Ensure modals reuse global modal."
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "All modals open and are centered.",
+    "All buttons perform intended navigation.",
+    "Map pages are clean with no artifacts.",
+    "Complaints page layout fixed.",
+    "Permissions activity shows mock data."
+  ]
+}

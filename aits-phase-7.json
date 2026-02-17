@@ -1,0 +1,620 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 7,
+  "phase_title": "Merchant Dashboard: Orders Inbox, Menu Management, Coupons and Refunds",
+  "phase_description": "Build the complete Merchant-facing dashboard as a dedicated sub-application within the same Vite/React project. Merchants access a scoped portal via role-based routing. Covers: merchant login with role switching, live orders inbox with SLA countdowns, menu CRUD, coupon/campaign builder, and role-gated refund flows. All data is mock; no backend calls.",
+  "depends_on_phases": [1, 2, 5],
+  "reference_files_from_previous_phases": [
+    "src/providers/AuthProvider.tsx",
+    "src/hooks/useAuth.ts",
+    "src/hooks/usePermissions.ts",
+    "src/types/auth.types.ts",
+    "src/types/permissions.types.ts",
+    "src/lib/constants.ts",
+    "src/lib/utils.ts",
+    "src/lib/animations.ts",
+    "src/components/ui/Button.tsx",
+    "src/components/ui/Card.tsx",
+    "src/components/ui/Badge.tsx",
+    "src/components/ui/Input.tsx",
+    "src/components/ui/Switch.tsx",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/components/common/EmptyState.tsx",
+    "src/components/common/StatusDot.tsx",
+    "src/components/common/SearchFilter.tsx",
+    "src/store/notifications.store.ts",
+    "src/store/settings.store.ts",
+    "src/data/mock/shops.mock.ts",
+    "src/data/mock/offers.mock.ts",
+    "src/routes/index.tsx",
+    "src/routes/ProtectedRoute.tsx",
+    "src/layouts/DashboardLayout.tsx",
+    "src/assets/logo.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/layouts/MerchantLayout.tsx",
+    "src/layouts/MerchantSidebar.tsx",
+    "src/layouts/MerchantNavbar.tsx",
+    "src/pages/merchant/MerchantLoginPage.tsx",
+    "src/pages/merchant/MerchantRoleSwitcher.tsx",
+    "src/pages/merchant/orders/OrdersInboxPage.tsx",
+    "src/pages/merchant/orders/OrderDetailPanel.tsx",
+    "src/pages/merchant/orders/RejectOrderModal.tsx",
+    "src/pages/merchant/sla/SLASettingsPage.tsx",
+    "src/pages/merchant/menu/MenuManagementPage.tsx",
+    "src/pages/merchant/menu/MenuCategoryEditor.tsx",
+    "src/pages/merchant/menu/MenuItemEditor.tsx",
+    "src/pages/merchant/menu/ModifierGroupEditor.tsx",
+    "src/pages/merchant/coupons/CouponsPage.tsx",
+    "src/pages/merchant/coupons/CouponRedeemPanel.tsx",
+    "src/pages/merchant/coupons/CampaignBuilderModal.tsx",
+    "src/pages/merchant/refunds/RefundRequestModal.tsx",
+    "src/components/merchant/OrderCard.tsx",
+    "src/components/merchant/SLACountdown.tsx",
+    "src/components/merchant/OrderStatusStepper.tsx",
+    "src/components/merchant/OrderTabBar.tsx",
+    "src/components/merchant/MenuItemCard.tsx",
+    "src/components/merchant/AvailabilityToggle.tsx",
+    "src/components/merchant/CampaignCard.tsx",
+    "src/components/merchant/RefundRulesBanner.tsx",
+    "src/components/merchant/CapacityIndicator.tsx",
+    "src/components/merchant/BusyModeToggle.tsx",
+    "src/components/merchant/ReasonCodeSelect.tsx",
+    "src/data/mock/merchant-orders.mock.ts",
+    "src/data/mock/merchant-menu.mock.ts",
+    "src/data/mock/merchant-campaigns.mock.ts",
+    "src/data/mock/reason-codes.mock.ts",
+    "src/types/merchant.types.ts",
+    "src/types/order.types.ts",
+    "src/types/menu.types.ts",
+    "src/types/coupon.types.ts",
+    "src/store/merchant.store.ts",
+    "src/store/orders.store.ts",
+    "src/hooks/useOrderPolling.ts",
+    "src/hooks/useSLACountdown.ts",
+    "src/hooks/useMerchantAuth.ts"
+  ],
+
+  "routing_strategy": {
+    "description": "Merchant portal lives under /merchant/* routes. Separate from /dashboard/* (admin portal). Both share the same React app and design system but have distinct layouts and auth guards.",
+    "routes_to_add": [
+      { "path": "/merchant/login", "component": "MerchantLoginPage", "public": true },
+      { "path": "/merchant", "redirect_to": "/merchant/orders" },
+      { "path": "/merchant/orders", "component": "OrdersInboxPage", "layout": "MerchantLayout" },
+      { "path": "/merchant/sla", "component": "SLASettingsPage", "layout": "MerchantLayout", "requires_role": ["manager"] },
+      { "path": "/merchant/menu", "component": "MenuManagementPage", "layout": "MerchantLayout", "requires_role": ["manager", "developer"] },
+      { "path": "/merchant/coupons", "component": "CouponsPage", "layout": "MerchantLayout", "requires_role": ["manager"] },
+      { "path": "/merchant/analytics", "component": "stub - Phase 10", "layout": "MerchantLayout" }
+    ],
+    "merchant_protected_route": "Similar to ProtectedRoute but checks for merchant session. Redirects to /merchant/login. Also checks merchant role for role-restricted pages."
+  },
+
+  "typescript_types": {
+    "src/types/merchant.types.ts": {
+      "MerchantRole": "'manager' | 'cashier' | 'kitchen' | 'developer'",
+      "MerchantUser": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "merchant_role": "MerchantRole",
+        "shop_id": "string",
+        "shop_name": "string",
+        "available_roles": "MerchantRole[] (roles this user can switch to)",
+        "permissions": "MerchantPermission[]"
+      },
+      "MerchantPermission": "'orders.view' | 'orders.accept' | 'orders.reject' | 'orders.prepare' | 'orders.ready' | 'menu.view' | 'menu.edit' | 'menu.publish' | 'sla.view' | 'sla.edit' | 'capacity.edit' | 'campaigns.view' | 'campaigns.create' | 'coupons.validate' | 'refunds.view' | 'refunds.request' | 'analytics.view'",
+      "MerchantSLASettings": {
+        "acceptance_sla_seconds": "number (default 90)",
+        "max_concurrent_orders": "number (default 15)",
+        "busy_auto_throttle_at": "number (orders count that triggers busy mode)",
+        "is_store_closed": "boolean",
+        "close_reason": "string | null",
+        "estimated_reopen": "string | null (ISO)"
+      },
+      "MerchantCapacitySettings": {
+        "current_queue_length": "number",
+        "max_queue_length": "number",
+        "avg_prep_time_minutes": "number",
+        "is_accepting_orders": "boolean"
+      }
+    },
+    "src/types/order.types.ts": {
+      "OrderStatus": "'new' | 'accepted' | 'preparing' | 'ready' | 'in_transit' | 'delivered' | 'rejected' | 'failed' | 'refund_requested' | 'refunded'",
+      "Order": {
+        "id": "string",
+        "order_number": "string (format: ORD-YYYYMMDD-XXXX)",
+        "status": "OrderStatus",
+        "created_at": "string (ISO)",
+        "accepted_at": "string | null",
+        "preparing_started_at": "string | null",
+        "ready_at": "string | null",
+        "delivered_at": "string | null",
+        "sla_accept_by": "string (ISO - created_at + acceptance_sla_seconds)",
+        "sla_deliver_by": "string (ISO)",
+        "items": "OrderItem[]",
+        "subtotal": "number",
+        "discount_applied": "number",
+        "total": "number",
+        "currency": "string",
+        "destination_gate": "string",
+        "destination_zone": "string",
+        "passenger_alias": "string (anonymized, e.g. PAX-4821)",
+        "runner_id": "string | null",
+        "runner_name": "string | null",
+        "reject_reason": "string | null",
+        "reject_notes": "string | null",
+        "refund_status": "'none' | 'pending_approval' | 'approved' | 'declined'",
+        "refund_amount": "number | null",
+        "refund_reason": "string | null",
+        "event_log": "OrderEvent[]",
+        "coupon_code": "string | null",
+        "shop_id": "string",
+        "is_priority": "boolean"
+      },
+      "OrderItem": {
+        "id": "string",
+        "menu_item_id": "string",
+        "name": "string",
+        "quantity": "number",
+        "unit_price": "number",
+        "modifiers": "{ name: string; price: number }[]",
+        "notes": "string | null",
+        "status": "'available' | 'out_of_stock' | 'substituted'"
+      },
+      "OrderEvent": {
+        "timestamp": "string",
+        "actor": "string",
+        "action": "string",
+        "details": "string | null"
+      }
+    },
+    "src/types/menu.types.ts": {
+      "MenuCategory": {
+        "id": "string",
+        "name": "string",
+        "description": "string | null",
+        "sort_order": "number",
+        "is_available": "boolean",
+        "items": "MenuItem[]"
+      },
+      "MenuItem": {
+        "id": "string",
+        "category_id": "string",
+        "name": "string",
+        "description": "string",
+        "price": "number",
+        "currency": "string",
+        "image_url": "string | null",
+        "is_available": "boolean",
+        "is_out_of_stock": "boolean",
+        "prep_time_minutes": "number",
+        "allergens": "string[]",
+        "tags": "string[]",
+        "modifier_groups": "ModifierGroup[]",
+        "status": "'draft' | 'published'",
+        "sort_order": "number"
+      },
+      "ModifierGroup": {
+        "id": "string",
+        "name": "string",
+        "required": "boolean",
+        "min_select": "number",
+        "max_select": "number",
+        "options": "{ id: string; name: string; price: number; is_available: boolean }[]"
+      }
+    },
+    "src/types/coupon.types.ts": {
+      "Coupon": {
+        "id": "string",
+        "code": "string",
+        "type": "'percentage' | 'fixed' | 'bogo' | 'freebie'",
+        "value": "number",
+        "min_order_value": "number | null",
+        "max_uses": "number | null",
+        "used_count": "number",
+        "valid_from": "string",
+        "valid_to": "string",
+        "status": "'active' | 'expired' | 'depleted' | 'paused'",
+        "shop_id": "string",
+        "stacking_allowed": "boolean",
+        "campaign_id": "string | null"
+      },
+      "Campaign": {
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "shop_id": "string",
+        "status": "'draft' | 'scheduled' | 'active' | 'paused' | 'ended'",
+        "start_date": "string",
+        "end_date": "string",
+        "time_window_start": "string (HH:MM)",
+        "time_window_end": "string (HH:MM)",
+        "target_zones": "string[]",
+        "target_gates": "string[]",
+        "discount_type": "Coupon['type']",
+        "discount_value": "number",
+        "budget_cap": "number | null",
+        "budget_spent": "number",
+        "impressions": "number",
+        "redemptions": "number",
+        "revenue_attributed": "number",
+        "created_by": "string",
+        "created_at": "string"
+      }
+    }
+  },
+
+  "merchant_login_page": {
+    "file": "src/pages/merchant/MerchantLoginPage.tsx",
+    "route": "/merchant/login",
+    "description": "Identical visual style to the admin LoginPage (Phase 1) but branded for merchants. Same full-viewport layout, gradient background, card design.",
+    "differences_from_admin_login": [
+      "Heading: 'Merchant Portal'",
+      "Subheading: 'Sign in to manage your store on Ai-TS'",
+      "Logo: LogoFull (same as admin)",
+      "After login: navigate to /merchant/orders",
+      "If user has multiple merchant roles: show MerchantRoleSwitcher dialog before navigating"
+    ],
+    "mock_credentials": [
+      { "email": "manager@skylounge.io", "password": "Manager@123", "role": "manager", "shop": "Sky Lounge Premier" },
+      { "email": "cashier@skylounge.io", "password": "Cashier@123", "role": "cashier", "shop": "Sky Lounge Premier" },
+      { "email": "kitchen@skylounge.io", "password": "Kitchen@123", "role": "kitchen", "shop": "Sky Lounge Premier" }
+    ]
+  },
+
+  "merchant_role_switcher": {
+    "file": "src/pages/merchant/MerchantRoleSwitcher.tsx",
+    "description": "Modal that appears after login if user has multiple available roles, or accessible from the Merchant Navbar avatar dropdown as 'Switch Role'. Shows role options as large selectable cards.",
+    "role_cards": [
+      { "role": "manager", "label": "Manager", "description": "Full store control: orders, menu, campaigns, refunds", "icon": "Crown" },
+      { "role": "cashier", "label": "Cashier", "description": "View and process orders. Cannot refund or edit menu.", "icon": "CreditCard" },
+      { "role": "kitchen", "label": "Kitchen", "description": "View preparing and ready orders only. Mark items ready.", "icon": "ChefHat" },
+      { "role": "developer", "label": "Developer", "description": "Menu configuration and integration settings.", "icon": "Code2" }
+    ],
+    "on_select": "Update merchantUser.merchant_role in merchantAuth context. Navigate to /merchant/orders. Show success toast: 'Switched to [Role] view'."
+  },
+
+  "merchant_layout": {
+    "file": "src/layouts/MerchantLayout.tsx",
+    "description": "Simpler than admin DashboardLayout. Fixed sidebar (narrower, 240px), top navbar, main content.",
+    "sidebar": {
+      "file": "src/layouts/MerchantSidebar.tsx",
+      "top": "LogoFull + shop name + role badge",
+      "nav_items_by_role": {
+        "all_roles": [
+          { "label": "Orders", "icon": "ShoppingBag", "route": "/merchant/orders", "badge": "new_count" }
+        ],
+        "manager": [
+          { "label": "Menu", "icon": "UtensilsCrossed", "route": "/merchant/menu" },
+          { "label": "Campaigns", "icon": "Megaphone", "route": "/merchant/coupons" },
+          { "label": "SLA & Capacity", "icon": "Timer", "route": "/merchant/sla" },
+          { "label": "Analytics", "icon": "BarChart3", "route": "/merchant/analytics" }
+        ],
+        "developer": [
+          { "label": "Menu", "icon": "UtensilsCrossed", "route": "/merchant/menu" }
+        ]
+      },
+      "bottom": "User name + role badge + Switch Role button + Logout"
+    },
+    "navbar": {
+      "file": "src/layouts/MerchantNavbar.tsx",
+      "left": "Page title breadcrumb",
+      "center": "BusyModeToggle component (large, prominent toggle for store open/closed)",
+      "right": "CapacityIndicator (orders in queue / max), theme toggle, user avatar dropdown"
+    }
+  },
+
+  "orders_inbox_page": {
+    "file": "src/pages/merchant/orders/OrdersInboxPage.tsx",
+    "route": "/merchant/orders",
+    "description": "The most critical merchant screen. Real-time feeling order management.",
+
+    "role_visibility": {
+      "manager": "All tabs visible, all actions enabled",
+      "cashier": "All tabs visible, Accept/Reject/Preparing/Ready actions enabled (configurable per merchant). Cannot refund.",
+      "kitchen": "Only 'Preparing' and 'Ready' tabs visible. Only 'Mark Ready' action."
+    },
+
+    "tab_bar": {
+      "file": "src/components/merchant/OrderTabBar.tsx",
+      "tabs": [
+        { "key": "new", "label": "New", "badge": "count", "badge_color": "red", "description": "Orders awaiting acceptance" },
+        { "key": "preparing", "label": "Preparing", "badge": "count", "badge_color": "amber" },
+        { "key": "ready", "label": "Ready", "badge": "count", "badge_color": "blue" },
+        { "key": "completed", "label": "Completed" },
+        { "key": "issues", "label": "Issues", "badge": "count", "badge_color": "red", "description": "Rejected, failed, refund requested" }
+      ],
+      "animation": "Sliding underline indicator on active tab. Tab badge numbers update reactively from orders.store."
+    },
+
+    "order_card": {
+      "file": "src/components/merchant/OrderCard.tsx",
+      "layout": "Card with left colored border (red=new/urgent, amber=preparing, blue=ready, green=done, gray=issue). Two-column layout within card.",
+      "left_content": [
+        "Order number (Montserrat monospace, large)",
+        "Created time (relative: '2 min ago')",
+        "Items summary: '3 items - Americano x2, Croissant x1' (truncated, expandable)",
+        "Destination: gate icon + gate name (e.g. Gate B4)",
+        "Coupon badge if coupon_code applied",
+        "Priority flag if is_priority"
+      ],
+      "right_content": [
+        "SLACountdown component (prominent, changes color as time runs out)",
+        "Total amount",
+        "Action buttons (context by status)"
+      ],
+      "action_buttons_by_status": {
+        "new": [
+          { "label": "Accept", "variant": "primary", "action": "acceptOrder(id)", "permission": "orders.accept" },
+          { "label": "Reject", "variant": "destructive_outline", "action": "openRejectModal(id)", "permission": "orders.reject" }
+        ],
+        "accepted": [
+          { "label": "Start Preparing", "variant": "primary", "action": "startPreparing(id)", "permission": "orders.prepare" }
+        ],
+        "preparing": [
+          { "label": "Mark Ready", "variant": "primary", "action": "markReady(id)", "permission": "orders.ready" }
+        ],
+        "ready": [
+          { "label": "Awaiting Runner", "variant": "outline", "disabled": true, "description": "Runner notified - no action needed" }
+        ],
+        "completed": [
+          { "label": "Request Refund", "variant": "ghost", "action": "openRefundModal(id)", "permission": "refunds.request" }
+        ],
+        "issues": [
+          { "label": "View Details", "variant": "outline", "action": "openDetailPanel(id)" }
+        ]
+      },
+      "click_behavior": "Clicking card (not buttons) opens OrderDetailPanel slide-over from right.",
+      "urgent_styling": "When SLA countdown < 30 seconds on 'new' orders: card border pulses red, SLA counter turns red and bolds, card rises in z-index (framer-motion layout animation)."
+    },
+
+    "sla_countdown": {
+      "file": "src/components/merchant/SLACountdown.tsx",
+      "description": "Live countdown timer. Props: sla_by (ISO timestamp), status. Uses useSLACountdown hook.",
+      "hook": {
+        "file": "src/hooks/useSLACountdown.ts",
+        "implementation": "setInterval every 1 second. Returns: secondsLeft (number), isExpired (boolean), percentageLeft (0-100), urgencyLevel ('ok' | 'warning' | 'critical').",
+        "thresholds": "ok > 60s, warning 60-30s, critical < 30s, expired <= 0s"
+      },
+      "visual": "Circular ring progress (SVG). Ring color: green (ok), amber (warning), red (critical), gray dashed (expired). Center: MM:SS time remaining. Below ring: 'Accept by' label for new orders, 'Deliver by' for accepted.",
+      "animation": "Ring drains clockwise. At critical: ring pulses opacity 1->0.7->1 loop.",
+      "expired_state": "Ring fully drained gray. Center shows 'EXPIRED' in red. Triggers a toast notification."
+    },
+
+    "order_detail_panel": {
+      "file": "src/pages/merchant/orders/OrderDetailPanel.tsx",
+      "type": "Slide-over panel from right (framer-motion x: 400 -> 0). Width 480px. Overlay backdrop.",
+      "sections": [
+        "Order header: number, status badge, created time, SLACountdown",
+        "Items table: name, modifiers, quantity, unit price, subtotal. Any out-of-stock items highlighted red with 'OOS' badge.",
+        "Order totals: subtotal, discount, total",
+        "Destination info: gate, zone, passenger alias",
+        "Runner info: runner name (if assigned), assigned_at time",
+        "Coupon info: code, type, value saved",
+        "Event log timeline: all OrderEvents in chronological order. Each: timestamp, actor, action pill (colored by type), details.",
+        "Action buttons section: same as card buttons but full-width, with extra: 'Request Refund' for completed orders (manager only)"
+      ]
+    },
+
+    "reject_order_modal": {
+      "file": "src/pages/merchant/orders/RejectOrderModal.tsx",
+      "description": "Modal triggered by Reject button. Required fields: Reason Code (ReasonCodeSelect - merchant_reject_reasons list), Optional notes (textarea, max 200 chars). Confirm button: 'Reject Order'. Shows warning: 'This action cannot be undone. The passenger will be notified immediately.'",
+      "reason_codes": "merchant_reject_reasons from reason-codes.mock.ts: ['out_of_stock', 'too_busy', 'item_unavailable', 'system_issue', 'other']"
+    },
+
+    "order_polling_simulation": {
+      "file": "src/hooks/useOrderPolling.ts",
+      "description": "Simulates real-time order updates using setInterval. Every 15 seconds: randomly generates a new 'new' order and adds to orders.store. With 30% chance adds a second new order. Shows toast: 'New order received - ORD-XXXX'. Every 45 seconds: randomly moves 1 'accepted' order to 'preparing' (simulating auto-progression). This creates a live-feeling inbox.",
+      "toggle": "Polling starts when merchant is authenticated. Stops on logout or if store is closed."
+    }
+  },
+
+  "sla_settings_page": {
+    "file": "src/pages/merchant/sla/SLASettingsPage.tsx",
+    "route": "/merchant/sla",
+    "access": "manager only",
+    "layout": "PageHeader 'SLA & Capacity Settings'. Two section cards.",
+    "sla_section": {
+      "title": "Acceptance SLA",
+      "description": "How long merchants have to accept incoming orders before they auto-expire.",
+      "fields": [
+        { "label": "Acceptance Window (seconds)", "type": "number_stepper", "min": 30, "max": 300, "step": 15, "default": 90, "help": "Recommended: 60-120 seconds" },
+        { "label": "Auto-reject if not accepted", "type": "toggle", "default": true, "help": "Orders not accepted within SLA window will auto-reject with reason 'too_busy'" }
+      ]
+    },
+    "capacity_section": {
+      "title": "Capacity & Throttling",
+      "description": "Control how many concurrent orders you can handle and when to auto-throttle.",
+      "fields": [
+        { "label": "Max Concurrent Orders", "type": "number_stepper", "min": 1, "max": 50, "default": 15 },
+        { "label": "Busy Mode Auto-Trigger (order count)", "type": "number_stepper", "min": 1, "max": 50, "default": 12, "help": "When queue reaches this count, automatically show 'Busy - Long Wait' to passengers" },
+        { "label": "Average Prep Time (minutes)", "type": "number_stepper", "min": 1, "max": 60, "default": 10 }
+      ]
+    },
+    "store_control_section": {
+      "title": "Store Status",
+      "close_toggle": "Large BusyModeToggle. When toggling to closed: modal asks for 'Close Reason' (textarea) and 'Estimated Reopen Time' (datetime picker). When closed: prominent banner on all merchant pages showing closed status and reopen ETA."
+    },
+    "save": "Save Changes button. Success toast. Changes immediately reflected in orders.store and MerchantNavbar CapacityIndicator."
+  },
+
+  "menu_management_page": {
+    "file": "src/pages/merchant/menu/MenuManagementPage.tsx",
+    "route": "/merchant/menu",
+    "access": "manager, developer",
+    "layout": "Three-pane layout on desktop: Categories list (left, 240px), Items list (center), Item editor (right, appears when item selected). Collapses to tabs on mobile.",
+
+    "categories_pane": {
+      "features": "List of all MenuCategory. Drag to reorder (mock - no persist, just visual). Each: name, item count, is_available toggle, edit name inline, delete (confirm). Add Category button at bottom.",
+      "selected_state": "Clicking category highlights it and shows its items in center pane."
+    },
+
+    "items_pane": {
+      "features": "Grid or list of MenuItemCard components for selected category. Filter: search by name, toggle show unavailable/OOS. Add Item button.",
+      "menu_item_card": {
+        "file": "src/components/merchant/MenuItemCard.tsx",
+        "design": "Card: image thumbnail (placeholder if null), item name (Poppins bold), price, prep time, allergen chips, availability toggle, status badge (Draft/Published), OOS quick action button (marks out-of-stock immediately without opening editor).",
+        "oos_action": "Clicking OOS button: toggles is_out_of_stock, shows toast 'Item marked as out of stock - will not appear to passengers', button changes to 'Mark Available'."
+      }
+    },
+
+    "item_editor": {
+      "file": "src/pages/merchant/menu/MenuItemEditor.tsx",
+      "description": "Slide-over or right pane form. All fields for MenuItem type.",
+      "fields": [
+        "Name (text)",
+        "Description (textarea)",
+        "Category (select)",
+        "Price (number + currency select)",
+        "Prep Time (number stepper, minutes)",
+        "Image upload (FileUpload component from Phase 3)",
+        "Allergens (multi-select chips: Gluten, Dairy, Nuts, Eggs, Shellfish, Soy, etc.)",
+        "Tags (text input + add chip: Vegan, Halal, Spicy, Popular, New)",
+        "Availability toggle",
+        "Out of Stock toggle",
+        "Modifier Groups section (ModifierGroupEditor)"
+      ],
+      "publish_workflow": "Status starts as 'draft'. 'Save Draft' button always available. 'Publish' button: validates all required fields, confirms if allergens are complete, then sets status to 'published'. Unpublish button for published items. Draft items show 'DRAFT' watermark badge and are not visible to passengers (mock)."
+    },
+
+    "modifier_group_editor": {
+      "file": "src/pages/merchant/menu/ModifierGroupEditor.tsx",
+      "description": "Section within ItemEditor. Add/edit/delete modifier groups. Each group: Name, Required toggle, Min/Max select count, list of options (name + price). Options inline editable. Add option row button. Drag to reorder options."
+    }
+  },
+
+  "coupons_page": {
+    "file": "src/pages/merchant/coupons/CouponsPage.tsx",
+    "route": "/merchant/coupons",
+    "access": "manager",
+    "tabs": ["Coupons", "Campaigns"],
+
+    "coupons_tab": {
+      "description": "List of all coupons. Each CouponCard: code (monospace, copyable), type badge, value, usage (used/max), validity dates, status badge, toggle active/paused.",
+      "redeem_panel": {
+        "file": "src/pages/merchant/coupons/CouponRedeemPanel.tsx",
+        "description": "Card on right side of page. Title: 'Validate Coupon'. Input field for code (or 'Scan QR' button mock). Submit button. Result display: If valid: green success card showing discount type, value, applicable items, 'Apply to Order' button. If invalid: red error card showing reason (expired / not found / max uses reached / wrong shop).",
+        "mock_validation": "Check entered code against coupons in store. Simulate 500ms delay with loading state."
+      }
+    },
+
+    "campaigns_tab": {
+      "description": "Grid of CampaignCard components.",
+      "campaign_card": {
+        "file": "src/components/merchant/CampaignCard.tsx",
+        "design": "Card: campaign name, status badge (Draft gray, Scheduled blue, Active green pulsing, Paused amber, Ended gray), date range, time window, target zone/gate chips, discount badge, key metrics row (Impressions, CTR, Redemptions, Revenue), Edit/Pause/End actions."
+      },
+      "create_campaign": {
+        "file": "src/pages/merchant/coupons/CampaignBuilderModal.tsx",
+        "description": "Multi-step modal (3 steps). Step 1 - Basics: Name, Description, Start/End date pickers, Time window (from/to HH:MM). Step 2 - Targeting: Target Zones multi-select (zones from map.mock.ts), Target Gates multi-select, preview of estimated reach (mock number). Step 3 - Discount & Budget: Discount Type radio, Discount Value, Budget Cap (optional), Preview card showing the offer as it would appear to passengers. Activate / Save as Draft buttons."
+      }
+    }
+  },
+
+  "refund_modal": {
+    "file": "src/pages/merchant/refunds/RefundRequestModal.tsx",
+    "description": "Triggered from OrderDetailPanel or completed order card. Role-gated based on merchant role and refund amount.",
+    "role_rules": {
+      "cashier": "Button not shown (cannot request refunds)",
+      "kitchen": "Button not shown",
+      "manager": "Can request refunds. If amount > refund_threshold (from MerchantSLASettings): shows 'Ops Approval Required' warning. Still submits but creates ops approval request."
+    },
+    "fields": [
+      "Refund Type: Full / Partial (radio)",
+      "Amount (number, only shown for Partial - pre-filled with order total for Full)",
+      "Reason Code (ReasonCodeSelect - refund_reasons list: 'order_failed', 'merchant_rejected', 'delay_beyond_threshold', 'wrong_item', 'quality_issue', 'ops_goodwill', 'other')",
+      "Notes (textarea, required if reason = 'other')"
+    ],
+    "submit_behavior": "Updates order status to 'refund_requested'. Adds event to order event_log. If ops approval needed: adds to ops incidents (ops.store - built Phase 8). Shows toast with approval status.",
+    "refund_rules_banner": {
+      "file": "src/components/merchant/RefundRulesBanner.tsx",
+      "description": "Info callout at top of modal showing current refund rules: manager threshold amount, ops approval required above threshold, cashier cannot refund. Uses Callout component from Phase 6."
+    }
+  },
+
+  "reason_codes_system": {
+    "file": "src/data/mock/reason-codes.mock.ts",
+    "description": "Single source of truth for all reason codes used across merchant, runner, and ops flows. Export as typed object.",
+    "reason_codes": {
+      "merchant_reject": [
+        { "code": "out_of_stock", "label": "Out of Stock", "requires_notes": false },
+        { "code": "too_busy", "label": "Too Busy / Capacity Exceeded", "requires_notes": false },
+        { "code": "item_unavailable", "label": "Item Unavailable", "requires_notes": false },
+        { "code": "system_issue", "label": "System Issue", "requires_notes": true },
+        { "code": "other", "label": "Other", "requires_notes": true }
+      ],
+      "runner_fail": [
+        { "code": "passenger_not_found", "label": "Passenger Not Found", "requires_notes": false },
+        { "code": "gate_closed", "label": "Gate Closed / Security Restriction", "requires_notes": false },
+        { "code": "gate_changed_timeout", "label": "Gate Changed and Time Exceeded", "requires_notes": false },
+        { "code": "handoff_verification_failed", "label": "Could Not Verify Handoff", "requires_notes": true },
+        { "code": "other", "label": "Other", "requires_notes": true }
+      ],
+      "ops_override": [
+        { "code": "sla_breach_mitigation", "label": "SLA Breach Mitigation", "requires_notes": true },
+        { "code": "safety_risk", "label": "Safety Risk", "requires_notes": true },
+        { "code": "incorrect_merchant_action", "label": "Incorrect Merchant Action", "requires_notes": true },
+        { "code": "runner_availability", "label": "Runner Availability Issue", "requires_notes": false },
+        { "code": "customer_recovery", "label": "Customer Experience Recovery", "requires_notes": true },
+        { "code": "manual_correction", "label": "Manual Correction", "requires_notes": true },
+        { "code": "other", "label": "Other", "requires_notes": true }
+      ],
+      "refund_reasons": [
+        { "code": "order_failed", "label": "Order Failed", "requires_notes": false },
+        { "code": "merchant_rejected", "label": "Merchant Rejected", "requires_notes": false },
+        { "code": "delay_beyond_threshold", "label": "Delay Beyond Threshold", "requires_notes": false },
+        { "code": "wrong_item", "label": "Wrong Item Delivered", "requires_notes": true },
+        { "code": "quality_issue", "label": "Quality Issue", "requires_notes": true },
+        { "code": "ops_goodwill", "label": "Ops Goodwill Gesture", "requires_notes": true },
+        { "code": "other", "label": "Other", "requires_notes": true }
+      ]
+    },
+    "ReasonCodeSelect_component": {
+      "file": "src/components/merchant/ReasonCodeSelect.tsx",
+      "description": "Reusable dropdown component. Props: codeType (keyof reason_codes object), value, onChange, required. When selected code has requires_notes=true: shows 'Notes (required)' textarea below automatically. Used in all reject/fail/override/refund flows."
+    }
+  },
+
+  "mock_data": {
+    "src/data/mock/merchant-orders.mock.ts": "Generate 35 orders across statuses. Distribution: 4 new (2 within SLA, 1 critical <30s, 1 expired), 6 preparing, 3 ready, 16 completed, 6 issues (2 rejected, 2 failed, 2 refund_requested). All for shop_id 'sky-lounge-premier'. Realistic item names from mock menu. Gates: A1-A8, B1-B8. SLA times: new orders have sla_accept_by 60-120 seconds from now. Completed orders spread over last 8 hours.",
+    "src/data/mock/merchant-menu.mock.ts": "Generate realistic cafe/lounge menu. 4 categories: Hot Drinks (8 items), Cold Drinks (6 items), Food (10 items), Snacks (6 items). Include modifier groups: e.g. Americano has 'Milk Type' (Whole/Oat/Almond/Soy) and 'Size' (Regular/Large). 2 items marked out_of_stock. 3 items as draft.",
+    "src/data/mock/merchant-campaigns.mock.ts": "Generate 6 campaigns: 2 active, 1 scheduled, 1 paused, 1 ended, 1 draft. Realistic names: 'Afternoon Boost - 20% Off Drinks', 'Gate B Welcome Offer', 'Happy Hour BOGO Coffee'. Include impression/redemption/revenue data for non-draft campaigns."
+  },
+
+  "zustand_stores": {
+    "src/store/merchant.store.ts": "State: merchantUser (MerchantUser|null), slaSettings (MerchantSLASettings), capacitySettings (MerchantCapacitySettings), isStoreOpen (bool). Actions: setMerchantUser, updateSLASettings, updateCapacity, toggleStore, logout. Initialize with mock defaults.",
+    "src/store/orders.store.ts": "State: orders (Order[]), activeTab (OrderStatus), selectedOrderId (string|null), isPolling (bool). Actions: addOrder, updateOrderStatus, rejectOrder, requestRefund, selectOrder, setActiveTab, startPolling, stopPolling. Derive: countByStatus (Record<OrderStatus, number>). Initialize with merchant-orders.mock.ts."
+  },
+
+  "hooks": {
+    "src/hooks/useMerchantAuth.ts": "Merchant-specific auth hook. Returns: merchantUser, merchantRole, login(email, password), logout, switchRole(role), canDo(permission: MerchantPermission). Uses merchant.store."
+  },
+
+  "quality_checklist": [
+    "Merchant login with manager@skylounge.io / Manager@123 succeeds and navigates to /merchant/orders",
+    "Role switcher shows correct roles and applies role immediately",
+    "Kitchen role only sees Preparing and Ready tabs",
+    "Cashier role does not see Refund button",
+    "SLACountdown ticks down in real time and turns red below 30 seconds",
+    "Urgent orders (critical SLA) visually rise and pulse",
+    "Order polling simulation adds new orders every 15 seconds",
+    "Accept order immediately moves it from New to Accepted tab",
+    "Reject modal requires reason code, notes required for 'other'",
+    "Menu page three-pane layout works, selecting category shows items",
+    "OOS quick-action toggles immediately without opening editor",
+    "Publish workflow requires all fields before allowing publish",
+    "Coupon validation shows correct error for expired/invalid codes",
+    "Campaign builder 3-step modal progresses correctly",
+    "Refund modal disabled for cashier/kitchen roles",
+    "Manager refund above threshold shows 'Ops Approval Required' warning",
+    "Store closed toggle shows banner on all merchant pages",
+    "Dark mode works on all merchant pages",
+    "Merchant routes inaccessible to unauthenticated users",
+    "Admin /dashboard routes not accessible from merchant auth context"
+  ]
+}

@@ -1,0 +1,121 @@
+/* ──────────────────────────────────────
+   Print-specific styles
+   ────────────────────────────────────── */
+@media print {
+  /* Hide non-content elements */
+  .sidebar-nav,
+  nav,
+  .mobile-nav,
+  .no-print,
+  [data-no-print],
+  .notification-panel,
+  .command-palette,
+  .back-to-top-btn,
+  .network-status-bar {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Full-width content */
+  .print-full-width {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Page break control */
+  .print-break-before {
+    page-break-before: always;
+  }
+
+  .print-break-after {
+    page-break-after: always;
+  }
+
+  .print-no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Table print styles */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #d1d5db !important;
+    padding: 6px 10px !important;
+    text-align: left;
+  }
+
+  th {
+    background-color: #f3f4f6 !important;
+    font-weight: 600;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Charts: ensure they print */
+  .recharts-wrapper {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Cards: remove shadow, add border */
+  [class*='rounded-xl'],
+  [class*='rounded-lg'] {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Print header on each page */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #BE052E;
+  }
+
+  .print-header h1 {
+    font-size: 18pt;
+    color: #BE052E !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-header p {
+    font-size: 10pt;
+    color: #6b7280;
+  }
+
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  /* Links: show URL */
+  a[href]:after {
+    content: none;
+  }
+}
+
+/* Hide print header in screen view */
+.print-header {
+  display: none;
+}

@@ -1,0 +1,92 @@
+/* ──────────────────────────────────────
+   RTL (Right-to-Left) layout overrides
+   Applied when html[dir="rtl"]
+   ────────────────────────────────────── */
+
+[dir='rtl'] {
+  /* Sidebar position */
+  .sidebar-nav {
+    left: auto;
+    right: 0;
+    border-right: none;
+    border-left: 1px solid hsl(var(--border));
+  }
+
+  /* Active nav indicator */
+  .sidebar-nav button {
+    border-left-width: 0;
+    border-right-width: 3px;
+  }
+
+  /* Main content margin flip */
+  .main-content {
+    margin-left: 0;
+  }
+
+  /* Table alignment */
+  table th,
+  table td {
+    text-align: right;
+  }
+
+  /* Form labels */
+  label {
+    text-align: right;
+  }
+
+  /* Badge direction */
+  .badge-live .ping {
+    left: auto;
+    right: 0;
+  }
+}
+
+/* Logical property overrides for RTL-aware spacing */
+[dir='rtl'] .ml-auto {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir='rtl'] .mr-auto {
+  margin-right: 0;
+  margin-left: auto;
+}
+
+/* Breadcrumb separator flip */
+[dir='rtl'] .breadcrumb-separator {
+  transform: scaleX(-1);
+}
+
+/* Modal close button position */
+[dir='rtl'] .modal-close {
+  right: auto;
+  left: 1rem;
+}
+
+/* Notification panel slide direction */
+[dir='rtl'] .notification-panel {
+  right: auto;
+  left: 0;
+  transform-origin: left;
+}
+
+/* Chevron/Arrow icons mirror */
+[dir='rtl'] .rtl-mirror {
+  transform: scaleX(-1);
+}
+
+/* Timeline layout */
+[dir='rtl'] .timeline-item {
+  padding-left: 0;
+  padding-right: 2rem;
+}
+
+[dir='rtl'] .timeline-item::before {
+  left: auto;
+  right: 0;
+}
+
+/* Scrollbar position for RTL */
+[dir='rtl'] ::-webkit-scrollbar {
+  direction: rtl;
+}

@@ -1,0 +1,51 @@
+{
+  "phase": 3,
+  "title": "Settings Page Refinement & UX Standardization",
+  "objective": "Clean up settings page structure and enforce consistent UX layout patterns.",
+  "tasks": [
+    {
+      "id": "settings_remove_language",
+      "description": "Remove Application Language section completely."
+    },
+    {
+      "id": "settings_remove_display_options",
+      "description": "Remove Display Options section in Appearance."
+    },
+    {
+      "id": "settings_toggle_alignment",
+      "description": "Standardize settings toggle alignment.",
+      "requirements": [
+        "Toggle switch aligned to right.",
+        "Dropdown positioned left of toggle.",
+        "Label on far left.",
+        "Use flex justify-between.",
+        "Maintain vertical alignment."
+      ]
+    },
+    {
+      "id": "settings_save_button_fix",
+      "description": "Fix Save button not clickable.",
+      "requirements": [
+        "Ensure button type='button'.",
+        "Remove disabled attribute if present.",
+        "Bind onClick handler.",
+        "Add toast success message."
+      ]
+    },
+    {
+      "id": "settings_terminal_section",
+      "description": "Add Terminal section in Settings.",
+      "requirements": [
+        "Add dropdown to select default terminal.",
+        "Persist selection in localStorage.",
+        "Display current terminal in topbar."
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "Settings page simplified.",
+    "Toggles aligned consistently.",
+    "Save button functional.",
+    "Terminal selection exists and persists."
+  ]
+}

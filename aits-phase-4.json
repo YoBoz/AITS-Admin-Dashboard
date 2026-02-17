@@ -1,0 +1,384 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 4,
+  "phase_title": "Heatmap View, Visitor Statistics, Alerts, Notifications and Complaints",
+  "phase_description": "Build the Heatmap visualization module (overlaid on the airport SVG map), full Visitor Statistics analytics page with rich charts, the Alerts management page with filtering and resolution workflows, the Notifications management page, and the Complaints tracking page.",
+  "depends_on_phase": 3,
+  "reference_files_from_previous_phases": [
+    "src/components/map/AirportMapSVG.tsx",
+    "src/data/mock/map.mock.ts",
+    "src/data/mock/shops.mock.ts",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/common/SearchFilter.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/store/notifications.store.ts",
+    "src/layouts/NotificationPanel.tsx",
+    "src/types/shop.types.ts",
+    "src/lib/utils.ts",
+    "src/routes/index.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/pages/heatmap/HeatmapPage.tsx",
+    "src/components/heatmap/HeatmapOverlay.tsx",
+    "src/components/heatmap/HeatmapLegend.tsx",
+    "src/components/heatmap/HeatmapControls.tsx",
+    "src/components/heatmap/CategoryHeatmapToggle.tsx",
+    "src/pages/visitors/VisitorStatsPage.tsx",
+    "src/components/visitors/VisitorTrendChart.tsx",
+    "src/components/visitors/VisitorDemographicChart.tsx",
+    "src/components/visitors/PeakHoursGrid.tsx",
+    "src/components/visitors/VisitorFlowSankey.tsx",
+    "src/components/visitors/GateTrafficChart.tsx",
+    "src/components/visitors/DwellTimeChart.tsx",
+    "src/components/visitors/TopCategoriesChart.tsx",
+    "src/pages/alerts/AlertsPage.tsx",
+    "src/pages/alerts/AlertDetailModal.tsx",
+    "src/components/alerts/AlertItem.tsx",
+    "src/components/alerts/AlertSeverityBadge.tsx",
+    "src/components/alerts/AlertTimeline.tsx",
+    "src/components/alerts/AlertStatsBar.tsx",
+    "src/pages/notifications/NotificationsPage.tsx",
+    "src/components/notifications/NotificationItem.tsx",
+    "src/components/notifications/NotificationFilters.tsx",
+    "src/pages/complaints/ComplaintsPage.tsx",
+    "src/pages/complaints/ComplaintDetailModal.tsx",
+    "src/components/complaints/ComplaintItem.tsx",
+    "src/components/complaints/ComplaintStatusBadge.tsx",
+    "src/components/complaints/ComplaintTimeline.tsx",
+    "src/data/mock/heatmap.mock.ts",
+    "src/data/mock/visitors.mock.ts",
+    "src/data/mock/alerts.mock.ts",
+    "src/data/mock/notifications.mock.ts",
+    "src/data/mock/complaints.mock.ts",
+    "src/types/alert.types.ts",
+    "src/types/notification.types.ts",
+    "src/types/complaint.types.ts",
+    "src/types/visitor.types.ts",
+    "src/store/alerts.store.ts",
+    "src/store/complaints.store.ts",
+    "src/hooks/useHeatmapData.ts"
+  ],
+
+  "typescript_types": {
+    "src/types/alert.types.ts": {
+      "Alert": {
+        "id": "string",
+        "type": "'battery_low' | 'offline_trolley' | 'hardware_fault' | 'system_error' | 'network_issue' | 'maintenance_due' | 'unusual_activity'",
+        "severity": "'critical' | 'warning' | 'info'",
+        "title": "string",
+        "description": "string",
+        "trolley_id": "string | null",
+        "trolley_imei": "string | null",
+        "zone": "string | null",
+        "status": "'active' | 'acknowledged' | 'resolved' | 'dismissed'",
+        "created_at": "string (ISO)",
+        "acknowledged_at": "string | null",
+        "resolved_at": "string | null",
+        "assigned_to": "string | null",
+        "resolution_notes": "string | null",
+        "auto_generated": "boolean",
+        "history": "AlertHistoryEntry[]"
+      },
+      "AlertHistoryEntry": {
+        "action": "string",
+        "actor": "string",
+        "timestamp": "string",
+        "note": "string | null"
+      }
+    },
+    "src/types/notification.types.ts": {
+      "Notification": {
+        "id": "string",
+        "type": "'alert' | 'system' | 'shop' | 'visitor' | 'contract' | 'offer' | 'complaint'",
+        "title": "string",
+        "body": "string",
+        "is_read": "boolean",
+        "created_at": "string",
+        "link_to": "string | null",
+        "priority": "'high' | 'medium' | 'low'",
+        "icon": "string (lucide icon name)",
+        "actor": "string | null"
+      }
+    },
+    "src/types/complaint.types.ts": {
+      "Complaint": {
+        "id": "string",
+        "ticket_id": "string (format: CMP-YYYYMM-XXXX)",
+        "category": "'trolley_fault' | 'navigation_error' | 'display_issue' | 'offer_dispute' | 'privacy' | 'general' | 'staff' | 'facility'",
+        "subject": "string",
+        "description": "string",
+        "status": "'open' | 'in_progress' | 'pending_response' | 'resolved' | 'closed' | 'escalated'",
+        "priority": "'high' | 'medium' | 'low'",
+        "submitted_by": "{ name: string; email: string; phone?: string }",
+        "assigned_to": "string | null",
+        "trolley_id": "string | null",
+        "shop_id": "string | null",
+        "attachments": "number",
+        "created_at": "string",
+        "updated_at": "string",
+        "resolved_at": "string | null",
+        "resolution": "string | null",
+        "sla_due_at": "string",
+        "sla_breached": "boolean",
+        "timeline": "ComplaintTimelineEntry[]",
+        "internal_notes": "string"
+      },
+      "ComplaintTimelineEntry": {
+        "action": "string",
+        "actor": "string",
+        "timestamp": "string",
+        "note": "string | null",
+        "status_change": "string | null"
+      }
+    },
+    "src/types/visitor.types.ts": {
+      "VisitorStats": {
+        "date": "string",
+        "total": "number",
+        "by_gate": "Record<string, number>",
+        "by_hour": "number[] (24 values)",
+        "avg_dwell_minutes": "number",
+        "trolley_adoption_rate": "number (0-1)",
+        "by_category_visits": "Record<string, number>"
+      }
+    }
+  },
+
+  "heatmap_page": {
+    "file": "src/pages/heatmap/HeatmapPage.tsx",
+    "route": "/dashboard/heatmap",
+    "description": "Full-page interactive heatmap overlaid on the airport terminal SVG map. Shows visitor density, dwell time, or trolley activity concentration by zone.",
+
+    "layout": "Two panel layout: map area (75%) + controls panel (25%).",
+
+    "heatmap_overlay": {
+      "file": "src/components/heatmap/HeatmapOverlay.tsx",
+      "description": "SVG overlay component rendered on top of AirportMapSVG. Uses zone polygons with opacity-mapped fills to visualize intensity. Each zone gets a fill color interpolated on a gradient scale from cold (blue #3B82F6 at low intensity) to hot (red #BE052E at max intensity), passing through amber at medium.",
+      "implementation": "Calculate intensity for each zone from mock data. Map intensity (0-1) to color using linear interpolation. Apply as fill with 70% opacity to zone rect overlays. Zone outlines still visible underneath. Rendered as absolute-positioned SVG overlay matching parent dimensions.",
+      "intensity_calculation": "Based on selected mode: 'visitors' = visitor count / max_zone_visitors, 'dwell' = avg_dwell_time / max_dwell, 'trolleys' = trolley_count / max_trolleys.",
+      "animation": "When switching categories or time range, zones animate from previous opacity to new opacity using CSS transition 800ms."
+    },
+
+    "heatmap_controls": {
+      "file": "src/components/heatmap/HeatmapControls.tsx",
+      "controls": [
+        {
+          "name": "Data Mode",
+          "type": "radio_buttons",
+          "options": ["Visitor Density", "Dwell Time", "Trolley Concentration", "Offer Interactions"],
+          "description": "Switches what metric drives the heatmap color intensity"
+        },
+        {
+          "name": "Time Range",
+          "type": "segmented_control",
+          "options": ["Today", "This Week", "This Month", "Custom"],
+          "custom": "Date range picker when Custom selected"
+        },
+        {
+          "name": "Category Filter",
+          "type": "multi_select_chips",
+          "options": ["All", "Retail", "Food", "Lounge", "Gates", "Washrooms", "Services"],
+          "description": "Filter which zone types contribute to heatmap"
+        },
+        {
+          "name": "Time of Day",
+          "type": "range_slider",
+          "range": "00:00 to 23:59",
+          "description": "Drag to filter to specific hours. Updates heatmap in real time with smooth transitions."
+        }
+      ]
+    },
+
+    "zone_stats_panel": {
+      "description": "Right panel below controls. When a zone is hovered/clicked on the heatmap, show: Zone name, intensity value (formatted), rank among all zones for selected metric, sparkline trend (7-day), top shops in zone (if applicable). Default state (no zone selected): show top 5 zones by current metric as ranked list with intensity bars."
+    },
+
+    "heatmap_legend": {
+      "file": "src/components/heatmap/HeatmapLegend.tsx",
+      "description": "Horizontal gradient bar from blue to red with labels: Low, Medium, High, Max. Shows unit label based on mode (Visitors / Minutes / Trolleys / Clicks). Positioned at bottom of map area."
+    },
+
+    "mock_heatmap_data": {
+      "file": "src/data/mock/heatmap.mock.ts",
+      "description": "Generate intensity data for each zone (by id) for each mode and time period. For 'visitor_density': duty_free and food_court highest (0.9, 0.85), washrooms medium (0.5), gates vary by time of day, lounges medium-high (0.7). For 'dwell_time': lounges highest (avg 45min), food_court (25min), retail (15min), gates (8min). Return as nested object: { [mode]: { [zoneId]: { today: number, weekly: number, monthly: number } } }. Also generate hourly data per zone: 24-value arrays for today."
+    }
+  },
+
+  "visitor_stats_page": {
+    "file": "src/pages/visitors/VisitorStatsPage.tsx",
+    "route": "/dashboard/visitors",
+    "layout": "PageHeader 'Visitor Analytics'. Date range selector at top right. 5 rows of charts.",
+
+    "row_1_summary_kpis": "4 KPI cards: Total Visitors (period), Unique Sessions, Avg Dwell Time, Trolley Adoption Rate. Each with trend vs previous period.",
+
+    "row_2": {
+      "visitor_trend": {
+        "file": "src/components/visitors/VisitorTrendChart.tsx",
+        "description": "Multi-line area chart (Recharts). Shows daily visitor counts for: Total, Trolley Users, Non-Trolley. X axis: dates. Y axis: visitors. Toggle lines on/off via legend. Gradient fills. Width: 65%."
+      },
+      "demographic_pie": {
+        "file": "src/components/visitors/VisitorDemographicChart.tsx",
+        "description": "Pie chart breakdown by visitor type: International Transit (35%), Domestic Departure (30%), International Arrival (20%), Domestic Arrival (15%). With animated entrance. Width: 35%."
+      }
+    },
+
+    "row_3_peak_hours_grid": {
+      "file": "src/components/visitors/PeakHoursGrid.tsx",
+      "description": "Calendar heatmap-style grid. X axis: days of week (Mon-Sun). Y axis: hours (00-23). Each cell colored by visitor count intensity (same blue-to-red gradient as heatmap). Hover shows exact count. This is a pure CSS/HTML grid (no library needed - use Tailwind grid cols and conditional background colors). Cell size responsive. Title: 'Peak Hours by Day of Week'. Below it: two text stats - 'Busiest Hour: Thursday 17:00 - 18:00 (avg 1,847 visitors)' and 'Quietest Hour: Tuesday 03:00 - 04:00 (avg 12 visitors)'."
+    },
+
+    "row_4": {
+      "gate_traffic": {
+        "file": "src/components/visitors/GateTrafficChart.tsx",
+        "description": "Horizontal bar chart. Y axis: all gates (A1-A8, B1-B8). X axis: cumulative visitors. Two bars per gate: arrivals (blue) and departures (primary red). Stacked. Title: 'Gate Traffic Breakdown'. Width: 50%.",
+        "mock_data": "Generate realistic gate traffic: B1 and A1 busiest (international), A8 and B8 quietest."
+      },
+      "dwell_time": {
+        "file": "src/components/visitors/DwellTimeChart.tsx",
+        "description": "Box plot simulation using Recharts (use composed chart with reference lines and bars to simulate). Shows dwell time distribution per zone category: Lounge visitors stay longest (median 48min), Retail (18min), Food (22min), Gate areas (12min), Services (8min). Width: 50%."
+      }
+    },
+
+    "row_5": {
+      "top_categories": {
+        "file": "src/components/visitors/TopCategoriesChart.tsx",
+        "description": "Radial bar chart (Recharts RadialBarChart). Shows which shop categories attract most visitors. Each category a different arc with percentage label. Width: 40%."
+      },
+      "summary_table": "DataTable showing per-day stats for selected period. Columns: Date, Total Visitors, Trolley Users, Avg Dwell, Peak Hour, Top Zone. Exportable. Width: 60%."
+    }
+  },
+
+  "alerts_page": {
+    "file": "src/pages/alerts/AlertsPage.tsx",
+    "route": "/dashboard/alerts",
+
+    "stats_bar": {
+      "file": "src/components/alerts/AlertStatsBar.tsx",
+      "description": "Row of 4 stat cards: Critical Active (count, red), Warnings (count, amber), Info (count, blue), Resolved Today (count, green)"
+    },
+
+    "filter_bar": "Filter by: Status (Active/Acknowledged/Resolved/Dismissed/All), Severity (Critical/Warning/Info/All), Type (dropdown with all alert types), Date range, Assigned to (dropdown)",
+
+    "alerts_list": {
+      "description": "List layout (not table). Each AlertItem card shows: severity color bar on left edge, severity icon, alert title (Poppins medium), description, trolley IMEI / zone if applicable, time ago, status badge, assigned user, action buttons (Acknowledge, Resolve, Dismiss, View Details).",
+      "sorting": "Default: Critical first, then by creation time desc",
+      "bulk_actions": "Select multiple via checkboxes. Bulk: Acknowledge selected, Resolve selected, Assign to user"
+    },
+
+    "alert_detail_modal": {
+      "file": "src/pages/alerts/AlertDetailModal.tsx",
+      "sections": [
+        "Alert Info (type, severity, description, auto-generated flag)",
+        "Affected Asset (trolley card if trolley_id, with link to trolley detail)",
+        "Timeline (AlertTimeline - vertical timeline of all history entries with actions taken)",
+        "Resolution (textarea for resolution notes, status dropdown, assign to user select, submit button)",
+        "Related Alerts (list of other alerts for same trolley or zone)"
+      ]
+    },
+
+    "mock_alerts_data": {
+      "file": "src/data/mock/alerts.mock.ts",
+      "description": "Generate 40 alert objects. Distribution: 7 critical active (battery <10%, hardware fault, offline), 15 warnings (battery <25%, maintenance due, network degraded), 18 info (routine maintenance reminders, software updates). Include 12 resolved from today. Include AlertHistoryEntry arrays with realistic status progression."
+    }
+  },
+
+  "notifications_page": {
+    "file": "src/pages/notifications/NotificationsPage.tsx",
+    "route": "/dashboard/notifications",
+    "description": "Full page version of the notification center (vs the slide panel which is a quick preview).",
+
+    "layout": "PageHeader with 'Notifications'. 'Mark All Read' button. Filter tabs: All / Unread / Alerts / System / Shops / Contracts.",
+
+    "notification_list": {
+      "file": "src/components/notifications/NotificationItem.tsx",
+      "design": "Card-style item. Unread items have left border in primary color and slightly elevated background. Read items are muted. Content: icon in colored circle (by type), title (Poppins), body text (Lexend), time ago, action link if link_to is set, Mark as read / Delete buttons on hover.",
+      "grouping": "Group by date: 'Today', 'Yesterday', 'This Week', 'Older'. Date group headers in Roboto uppercase small."
+    },
+
+    "notification_filters": {
+      "file": "src/components/notifications/NotificationFilters.tsx",
+      "description": "Tab bar + search + priority filter. Search filters by title/body text."
+    },
+
+    "notification_preferences_link": "Banner at top: 'Manage notification preferences in your Profile settings' with link button.",
+
+    "mock_data": {
+      "file": "src/data/mock/notifications.mock.ts",
+      "description": "Generate 50 notification objects. Mix of read/unread (30% unread). Include: 12 alert-type (critical battery/offline), 8 system (maintenance windows, updates), 10 shop-type (new registration, contract renewal), 8 contract-type (expiring soon), 7 visitor-type (milestone 10k visitors today), 5 complaint-type (new high priority complaint). Spread over last 14 days."
+    }
+  },
+
+  "complaints_page": {
+    "file": "src/pages/complaints/ComplaintsPage.tsx",
+    "route": "/dashboard/complaints",
+
+    "header_stats": "Row: Open (count), In Progress, Resolved Today, SLA Breached (red highlight if > 0)",
+
+    "filter_bar": "Search by ticket ID/subject, Status multi-select, Category filter, Priority filter, Assigned to filter, Date range, SLA status filter (All/Breached/At Risk/On Track)",
+
+    "complaints_table": {
+      "columns": ["Ticket ID", "Subject", "Category", "Submitted By", "Priority", "Status", "Assigned To", "SLA Due", "Created", "Actions"],
+      "ticket_id_column": "Monospace font, clickable, opens detail modal",
+      "priority_column": "Colored badge: High (red), Medium (amber), Low (gray)",
+      "status_column": "ComplaintStatusBadge with icons",
+      "sla_column": "Show time remaining. If breached: red text with X icon. If <1hr: amber. Otherwise green. Use date-fns for relative time.",
+      "row_actions": "View Details, Assign, Change Status, Close"
+    },
+
+    "complaint_detail_modal": {
+      "file": "src/pages/complaints/ComplaintDetailModal.tsx",
+      "layout": "Large modal (xl size). Left column (60%): Subject + description, Category + Priority badges, Submitted by info, Linked trolley/shop info (if any), Attachments count. Right column (40%): Status (dropdown to change), Assigned to (user select), SLA indicator, Internal notes textarea (admin only), Action buttons (Resolve, Escalate, Close).",
+      "timeline_tab": "ComplaintTimeline - vertical timeline of all status changes, notes added, assignments. Each entry: actor avatar, action text, timestamp, optional note.",
+      "response_tab": "Compose response to submitter (textarea, templates dropdown). Send button (mock - just shows success toast and adds to timeline)."
+    },
+
+    "mock_data": {
+      "file": "src/data/mock/complaints.mock.ts",
+      "description": "Generate 35 complaint objects. Ticket IDs: CMP-202411-0001 through CMP-202411-0035. Mix: 8 open, 10 in_progress, 5 pending_response, 10 resolved, 2 escalated. 3 with sla_breached=true. Categories: trolley_fault most common (12), then display_issue (8), general (6), navigation_error (5), others split. Include realistic subjects: 'Trolley screen frozen at Gate A3', 'Wrong directions shown to Arrivals', 'Offer not applied at checkout'. Include timeline entries (2-5 per complaint)."
+    }
+  },
+
+  "zustand_stores": {
+    "src/store/alerts.store.ts": "State: alerts (Alert[]), filters, selectedAlert, isLoading. Actions: setAlerts, updateAlert, acknowledgeAlert, resolveAlert, dismissAlert, assignAlert, setFilters. Initialize with alerts.mock.ts. Derive: activeCount, criticalCount.",
+    "src/store/complaints.store.ts": "State: complaints (Complaint[]), filters, selectedComplaint, isLoading. Actions: setComplaints, updateComplaint, resolveComplaint, escalateComplaint, assignComplaint, addTimelineEntry. Derive: openCount, slaBreachedCount."
+  },
+
+  "hooks": {
+    "src/hooks/useHeatmapData.ts": "Custom hook. Args: mode (DataMode), timeRange (TimeRange), categoryFilter (string[]), hourRange ([number, number]). Returns: intensityMap (Record<string, number>) mapping zone IDs to 0-1 intensity values. Recomputes when args change. Reads from heatmap.mock.ts data."
+  },
+
+  "routes_to_add": [
+    "/dashboard/heatmap",
+    "/dashboard/visitors",
+    "/dashboard/alerts",
+    "/dashboard/notifications",
+    "/dashboard/complaints"
+  ],
+
+  "quality_checklist": [
+    "Heatmap zones all show color intensity from blue to red",
+    "Switching Data Mode updates all zone colors with animation",
+    "Hour range slider updates heatmap in real time",
+    "Zone hover shows stats panel",
+    "Visitor trend chart toggles data series on legend click",
+    "Peak hours grid cells colored correctly (dark red = high, light blue = low)",
+    "All 24 hours and 7 days rendered in grid",
+    "Gate traffic chart shows both arrival and departure bars",
+    "Alerts sorted by severity (critical first)",
+    "Bulk select and bulk actions work on alerts",
+    "Alert detail modal timeline shows all history",
+    "Resolve alert updates status in store and reflects immediately in list",
+    "Notifications grouped by date",
+    "Mark all read clears all unread counts",
+    "Notification panel unread count in Navbar matches store",
+    "Complaints SLA column shows correct time remaining",
+    "SLA breached complaints highlighted in red",
+    "Complaint detail modal timeline renders",
+    "All new pages dark-mode compatible",
+    "No TypeScript errors in any new file"
+  ]
+}

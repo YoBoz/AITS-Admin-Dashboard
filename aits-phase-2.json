@@ -1,0 +1,308 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 2,
+  "phase_title": "Core Layout, Navigation Shell, Overview Dashboard and Profile",
+  "phase_description": "Build the persistent application shell: collapsible sidebar, top navbar, breadcrumb system, command palette, and the main Overview Dashboard page with KPI cards, charts, and live stats panels. Also build the Profile page. All pages use real-looking dummy data.",
+  "depends_on_phase": 1,
+  "reference_files_from_phase_1": [
+    "src/providers/ThemeProvider.tsx",
+    "src/providers/AuthProvider.tsx",
+    "src/providers/index.tsx",
+    "src/hooks/useTheme.ts",
+    "src/hooks/useAuth.ts",
+    "src/lib/constants.ts",
+    "src/lib/utils.ts",
+    "src/types/index.ts",
+    "src/types/auth.types.ts",
+    "src/assets/logo.tsx",
+    "src/components/ui/Button.tsx",
+    "src/components/ui/Card.tsx",
+    "src/components/ui/Badge.tsx",
+    "src/components/ui/Skeleton.tsx",
+    "src/routes/index.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/layouts/DashboardLayout.tsx",
+    "src/layouts/Sidebar.tsx",
+    "src/layouts/Navbar.tsx",
+    "src/layouts/Breadcrumb.tsx",
+    "src/layouts/CommandPalette.tsx",
+    "src/layouts/NotificationPanel.tsx",
+    "src/layouts/MobileNav.tsx",
+    "src/pages/dashboard/OverviewPage.tsx",
+    "src/pages/profile/ProfilePage.tsx",
+    "src/components/dashboard/KPICard.tsx",
+    "src/components/dashboard/TrolleyStatusWidget.tsx",
+    "src/components/dashboard/VisitorFlowChart.tsx",
+    "src/components/dashboard/TrolleyBatteryChart.tsx",
+    "src/components/dashboard/ActiveAlertsWidget.tsx",
+    "src/components/dashboard/TopShopsWidget.tsx",
+    "src/components/dashboard/SystemHealthWidget.tsx",
+    "src/components/dashboard/RecentActivityFeed.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/EmptyState.tsx",
+    "src/components/common/LoadingScreen.tsx",
+    "src/components/common/Avatar.tsx",
+    "src/components/common/StatusDot.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/data/mock/overview.mock.ts",
+    "src/data/mock/trolleys.mock.ts",
+    "src/data/mock/profile.mock.ts",
+    "src/store/sidebar.store.ts",
+    "src/store/notifications.store.ts",
+    "src/hooks/useSidebar.ts",
+    "src/hooks/useNotifications.ts",
+    "src/locales/en.json",
+    "src/locales/ar.json",
+    "src/locales/fr.json"
+  ],
+
+  "sidebar": {
+    "file": "src/layouts/Sidebar.tsx",
+    "behavior": "Collapsible. Default expanded (280px). Collapsed state: 72px showing only icons. Collapse toggle button at bottom of sidebar. State persisted in Zustand store (src/store/sidebar.store.ts) and localStorage 'aits-sidebar-collapsed'.",
+    "animation": "framer-motion: width transition 250ms ease. Icon labels fade out when collapsing. Tooltips appear on icon hover when collapsed.",
+    "structure": {
+      "top": "LogoFull (expanded) or LogoIcon (collapsed) with smooth transition",
+      "nav_sections": [
+        {
+          "section": "Core",
+          "items": [
+            { "label": "Overview", "icon": "LayoutDashboard", "route": "/dashboard/overview", "badge": null },
+            { "label": "Terminal Map", "icon": "Map", "route": "/dashboard/map", "badge": null },
+            { "label": "Heatmap", "icon": "Flame", "route": "/dashboard/heatmap", "badge": null }
+          ]
+        },
+        {
+          "section": "Operations",
+          "items": [
+            { "label": "Trolley Management", "icon": "ShoppingCart", "route": "/dashboard/trolleys", "badge": "live" },
+            { "label": "Shop Management", "icon": "Store", "route": "/dashboard/shops", "badge": null },
+            { "label": "Visitor Stats", "icon": "Users", "route": "/dashboard/visitors", "badge": null }
+          ]
+        },
+        {
+          "section": "Engagement",
+          "items": [
+            { "label": "Offers & Contracts", "icon": "Tag", "route": "/dashboard/offers", "badge": null },
+            { "label": "Notifications", "icon": "Bell", "route": "/dashboard/notifications", "badge": "count" },
+            { "label": "Alerts", "icon": "AlertTriangle", "route": "/dashboard/alerts", "badge": "count" },
+            { "label": "Complaints", "icon": "MessageSquareWarning", "route": "/dashboard/complaints", "badge": "count" }
+          ]
+        },
+        {
+          "section": "Administration",
+          "items": [
+            { "label": "Permissions", "icon": "ShieldCheck", "route": "/dashboard/permissions", "badge": null },
+            { "label": "Settings", "icon": "Settings", "route": "/dashboard/settings", "badge": null }
+          ]
+        }
+      ],
+      "bottom": "User avatar + name (hidden when collapsed) + logout button. Show role badge next to name."
+    },
+    "active_state": "Active nav item: left border 3px solid #BE052E, background primary-muted (#BE052E at 8% opacity), text color primary. Hover state: background at 4% opacity.",
+    "section_headers": "Small uppercase Roboto label for each section. Hidden when sidebar collapsed.",
+    "badge_live": "Animated pulsing red dot for 'live' badge",
+    "badge_count": "Red pill badge with number from notifications store"
+  },
+
+  "navbar": {
+    "file": "src/layouts/Navbar.tsx",
+    "height": "64px",
+    "structure": {
+      "left": "Breadcrumb component showing current page path. On mobile: hamburger menu icon.",
+      "center": "Search bar (triggers command palette on click, or Ctrl+K shortcut). Placeholder: 'Search pages, trolleys, shops...'",
+      "right": [
+        "ThemeToggle button (sun/moon)",
+        "LanguageSwitcher dropdown (EN/AR/FR with flag emoji alternatives as text abbreviations)",
+        "Notification bell icon with unread count badge (opens NotificationPanel slide-out)",
+        "User avatar button (opens dropdown: Profile, Settings, Logout)"
+      ]
+    },
+    "styling": "Border-bottom, backdrop-blur on scroll. Sticky top-0 z-40."
+  },
+
+  "command_palette": {
+    "file": "src/layouts/CommandPalette.tsx",
+    "library": "cmdk",
+    "trigger": "Ctrl+K or click search bar",
+    "features": "Search through: all nav pages (with their icons), recent trolleys by IMEI, shops by name. Show keyboard shortcut hints. Groups: Pages, Trolleys, Shops. Navigate with arrow keys, Enter to go to route. Escape to close. Framer-motion scale+opacity entrance animation.",
+    "placeholder": "Type to search pages, trolleys, shops..."
+  },
+
+  "breadcrumb": {
+    "file": "src/layouts/Breadcrumb.tsx",
+    "description": "Auto-generates from current route. Example: Overview, Trolley Management > Trolley Detail. Uses Lexend font size sm. Separator: / in muted color. Last crumb is bold and primary colored."
+  },
+
+  "notification_panel": {
+    "file": "src/layouts/NotificationPanel.tsx",
+    "type": "Slide-out drawer from right side (framer-motion x: 400 -> 0). Width 380px. Overlay backdrop.",
+    "sections": ["Unread (count badge)", "All Notifications"],
+    "notification_item": "Icon (colored by type: alert=red, info=blue, success=green), title, description, time ago, unread dot. Mark as read on click. Mark all read button.",
+    "mock_notifications": "Generate 8-10 diverse mock notifications: trolley battery low, new shop registered, visitor milestone reached, system health warning, new complaint received, offer expiring soon."
+  },
+
+  "dashboard_layout": {
+    "file": "src/layouts/DashboardLayout.tsx",
+    "description": "Root layout for all /dashboard/* routes. Renders Sidebar + main content area. Main content has top Navbar. Content area scrolls independently. Sidebar is fixed. Layout handles sidebar collapsed/expanded width transitions with CSS grid or flexbox, animating the main content margin-left.",
+    "mobile_behavior": "On screens < 1024px: sidebar hidden, show MobileNav (bottom navigation bar with 5 main icons) and hamburger-triggered slide-over sidebar",
+    "page_transition": "Wrap Outlet in framer-motion AnimatePresence with fade transition keyed on location.pathname"
+  },
+
+  "overview_page": {
+    "file": "src/pages/dashboard/OverviewPage.tsx",
+    "route": "/dashboard/overview",
+    "also_default_for": "/dashboard",
+    "layout": "Responsive grid. Title row: 'Terminal Overview' in Montserrat h1 + date/time live clock + 'Terminal 2 - International' badge.",
+
+    "row_1_kpi_cards": {
+      "component": "src/components/dashboard/KPICard.tsx",
+      "description": "Reusable card showing: icon (in primary-colored circle bg), metric title (Roboto uppercase small), large number value (Montserrat bold), trend indicator (arrow up/down + % change vs yesterday), subtitle. Has loading skeleton state. Hover: lift shadow. Entrance: stagger animation from bottom.",
+      "cards": [
+        { "title": "Active Trolleys", "value": "247", "trend": "+12", "trend_type": "up", "icon": "ShoppingCart", "subtitle": "of 280 total", "color": "primary" },
+        { "title": "Visitors Today", "value": "14,832", "trend": "+8.3%", "trend_type": "up", "icon": "Users", "subtitle": "vs 13,694 yesterday", "color": "success" },
+        { "title": "Active Alerts", "value": "7", "trend": "-3", "trend_type": "down_good", "icon": "AlertTriangle", "subtitle": "Requires attention", "color": "warning" },
+        { "title": "Registered Shops", "value": "64", "trend": "+2", "trend_type": "up", "icon": "Store", "subtitle": "Active this month", "color": "info" },
+        { "title": "Avg. Session Time", "value": "34 min", "trend": "+2.1 min", "trend_type": "up", "icon": "Clock", "subtitle": "Per visitor", "color": "primary" },
+        { "title": "Trolley Utilization", "value": "88.2%", "trend": "+4.1%", "trend_type": "up", "icon": "BarChart2", "subtitle": "Fleet efficiency", "color": "success" }
+      ]
+    },
+
+    "row_2": {
+      "visitor_flow_chart": {
+        "component": "src/components/dashboard/VisitorFlowChart.tsx",
+        "description": "Area chart using Recharts showing visitor count by hour for today vs yesterday. X axis: 00:00 to 23:00 hourly. Two data series: 'Today' (primary #BE052E solid line + fill gradient), 'Yesterday' (gray dashed line). Responsive container. Custom tooltip showing both values. Chart title: 'Visitor Flow - Today vs Yesterday'. Time range toggle: 24h / 7D / 30D (changes mock data). Width: 65% of row.",
+        "mock_data": "Generate realistic airport visitor pattern: low 00-05, rising 06-08 (morning rush), plateau 09-12, dip 13-14, peak 15-19 (afternoon/evening), decline 20-23. 24 data points."
+      },
+      "trolley_status_widget": {
+        "component": "src/components/dashboard/TrolleyStatusWidget.tsx",
+        "description": "Donut chart (Recharts) showing trolley fleet status breakdown. Center shows total count. Legend below. Width: 35% of row.",
+        "mock_data": { "In Use": 247, "Idle": 18, "Charging": 9, "Maintenance": 4, "Offline": 2 },
+        "colors": { "In Use": "#BE052E", "Idle": "#10B981", "Charging": "#3B82F6", "Maintenance": "#F59E0B", "Offline": "#6B7280" }
+      }
+    },
+
+    "row_3": {
+      "battery_chart": {
+        "component": "src/components/dashboard/TrolleyBatteryChart.tsx",
+        "description": "Horizontal bar chart (Recharts) showing battery health distribution across trolley fleet. Y axis: battery ranges (0-20%, 21-40%, 41-60%, 61-80%, 81-100%). X axis: count of trolleys. Color coded: red for low, amber for medium, green for high. Title: 'Fleet Battery Distribution'. Width 40%.",
+        "mock_data": { "0-20%": 6, "21-40%": 12, "41-60%": 31, "61-80%": 89, "81-100%": 142 }
+      },
+      "top_shops_widget": {
+        "component": "src/components/dashboard/TopShopsWidget.tsx",
+        "description": "List of top 6 shops by visitor engagement this week. Each row: rank number, shop name (Roboto), category badge, visitor count, trend arrow. Clickable rows navigate to shop detail. Title: 'Top Shops This Week'. Width 35%.",
+        "mock_data": [
+          { "rank": 1, "name": "Duty Free World", "category": "Retail", "visitors": 3421, "trend": "up" },
+          { "rank": 2, "name": "Sky Lounge Premier", "category": "Lounge", "visitors": 2887, "trend": "up" },
+          { "rank": 3, "name": "The Food Court", "category": "Restaurant", "visitors": 2341, "trend": "down" },
+          { "rank": 4, "name": "Starbucks Gate B", "category": "Cafe", "visitors": 1923, "trend": "up" },
+          { "rank": 5, "name": "Tech Haven", "category": "Electronics", "visitors": 1654, "trend": "up" },
+          { "rank": 6, "name": "Pharma Plus", "category": "Pharmacy", "visitors": 1102, "trend": "down" }
+        ]
+      },
+      "system_health": {
+        "component": "src/components/dashboard/SystemHealthWidget.tsx",
+        "description": "Shows system component statuses. Items: API Gateway, Trolley Network, Map Service, Notification Service, Database, Analytics Engine. Each: status dot (green/amber/red), component name, uptime percentage, last checked time. Title: 'System Health'. Width 25%."
+      }
+    },
+
+    "row_4": {
+      "active_alerts": {
+        "component": "src/components/dashboard/ActiveAlertsWidget.tsx",
+        "description": "List of 5 most recent active alerts. Each alert: severity icon (colored), alert title, trolley/location reference, time, resolve button. Severity levels: Critical (red), Warning (amber), Info (blue). Title: 'Active Alerts' with 'View All' link. Width 50%."
+      },
+      "recent_activity": {
+        "component": "src/components/dashboard/RecentActivityFeed.tsx",
+        "description": "Timeline-style feed of last 10 system activities. Each item: colored icon, action description, actor (user or system), timestamp. Activities include: trolley registered, shop updated, offer created, user login, alert resolved, complaint filed. Title: 'Recent Activity'. Width 50%."
+      }
+    }
+  },
+
+  "profile_page": {
+    "file": "src/pages/profile/ProfilePage.tsx",
+    "route": "/dashboard/profile",
+    "layout": "Two column on desktop, single column on mobile.",
+    "left_column": {
+      "profile_card": "Large avatar (80px, with edit overlay on hover), full name in Montserrat h2, role badge, email, terminal assignment, member since date, last login. Edit avatar button. 'Change Password' button (opens modal with current/new/confirm fields)."
+    },
+    "right_column": {
+      "tabs": ["Personal Info", "Preferences", "Activity Log", "Security"],
+      "personal_info_tab": "Form with fields: Full Name, Email (disabled), Phone, Department, Employee ID, Terminal Assignment (select). Save Changes button with loading state.",
+      "preferences_tab": "Theme selector (Light/Dark radio cards with preview). Language selector (dropdown EN/AR/FR). Dashboard layout preference (compact/comfortable). Notification preferences (toggle switches for: Email alerts, Push notifications, Trolley alerts, System updates, Weekly reports). Save button.",
+      "activity_log_tab": "Table showing last 20 login/action events: timestamp, action, IP address, device, status. Sortable columns.",
+      "security_tab": "Two-factor authentication toggle (UI only), active sessions list (2 mock sessions with device info + revoke button), password last changed info, login history summary."
+    }
+  },
+
+  "reusable_components": {
+    "PageHeader": {
+      "file": "src/components/common/PageHeader.tsx",
+      "props": "title: string, subtitle?: string, breadcrumb?: boolean, actions?: ReactNode",
+      "description": "Used at top of every page. Title in Montserrat h1, subtitle in Lexend muted. Right side slot for action buttons. Animated entrance."
+    },
+    "SectionCard": {
+      "file": "src/components/common/SectionCard.tsx",
+      "props": "title: string, subtitle?: string, action?: ReactNode, children, className",
+      "description": "Wrapper card with consistent padding, border, background. Title in Poppins h3. Used for all dashboard widgets."
+    },
+    "DataTable": {
+      "file": "src/components/common/DataTable.tsx",
+      "description": "Generic table component built on @tanstack/react-table. Features: column sorting, pagination (10/25/50 per page), search/filter input, column visibility toggle, row selection checkboxes, loading skeleton rows, empty state, sticky header. Table headers: Roboto uppercase small. Cells: Roboto regular. Alternating row subtle background on hover.",
+      "props": "columns: ColumnDef<T>[], data: T[], isLoading?: boolean, searchable?: boolean, searchPlaceholder?: string, onRowClick?: (row: T) => void"
+    },
+    "StatusDot": {
+      "file": "src/components/common/StatusDot.tsx",
+      "description": "Small colored circle with optional pulse animation. Props: status: 'online'|'offline'|'warning'|'charging'|'maintenance'. Colors mapped to status. Pulse only for 'online'."
+    },
+    "EmptyState": {
+      "file": "src/components/common/EmptyState.tsx",
+      "props": "icon, title, description, action?: ReactNode",
+      "description": "Centered empty state for tables and lists. Icon in muted circle, title Poppins, description Lexend muted, optional CTA button."
+    }
+  },
+
+  "mock_data_files": {
+    "src/data/mock/overview.mock.ts": "Export all dummy data for overview page: kpiData, visitorFlowData (24h), visitorFlowDataWeekly, trolleyStatusData, batteryDistributionData, topShopsData, systemHealthData, alertsData, recentActivityData",
+    "src/data/mock/trolleys.mock.ts": "Export array of 280 trolley objects. Each: id, imei (15-digit numeric string), battery (0-100), status ('active'|'idle'|'charging'|'maintenance'|'offline'), location ({x: number, y: number, zone: string}), health_score (0-100), last_seen (ISO datetime), assigned_gate, firmware_version, total_trips, manufacturer. Generate with realistic variation.",
+    "src/data/mock/profile.mock.ts": "Export currentUserExtended with all profile fields, activityLog array (20 items), activeSessions array (2 items)."
+  },
+
+  "zustand_stores": {
+    "src/store/sidebar.store.ts": "State: isCollapsed (bool), isMobileOpen (bool). Actions: toggle, setCollapsed, openMobile, closeMobile. Persist isCollapsed to localStorage.",
+    "src/store/notifications.store.ts": "State: notifications (array), unreadCount (number). Actions: addNotification, markAsRead, markAllRead, clearAll. Initialize with 8 mock notifications."
+  },
+
+  "locales_update": {
+    "src/locales/en.json": "Extend with all keys for: nav section labels, page titles, KPI labels, common UI strings (save, cancel, loading, error, success, search, filter, export, add new, view all, edit, delete, confirm, etc.)",
+    "src/locales/ar.json": "Arabic translations for same keys. All text in proper Arabic.",
+    "src/locales/fr.json": "French translations for same keys."
+  },
+
+  "routes_update": {
+    "file": "src/routes/index.tsx",
+    "add_routes": [
+      { "path": "/dashboard", "redirect_to": "/dashboard/overview" },
+      { "path": "/dashboard/overview", "component": "OverviewPage" },
+      { "path": "/dashboard/profile", "component": "ProfilePage" }
+    ],
+    "note": "Wrap all /dashboard/* routes in DashboardLayout component which renders Sidebar + Navbar + Outlet"
+  },
+
+  "quality_checklist": [
+    "Sidebar collapse animation smooth at 250ms",
+    "Command palette opens with Ctrl+K and closes with Escape",
+    "All 6 KPI cards render with mock data",
+    "Charts render without errors (no missing recharts imports)",
+    "Visitor flow chart toggles between 24h/7D/30D",
+    "Dark mode applies to ALL new components",
+    "Profile tabs all switch correctly",
+    "DataTable supports sorting and pagination",
+    "Notification panel slides in/out smoothly",
+    "Mobile: bottom navigation works for screens < 1024px",
+    "Breadcrumb shows correct path on all routes",
+    "No console errors or warnings",
+    "All mock data typed correctly with TypeScript interfaces"
+  ]
+}
