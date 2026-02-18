@@ -9,6 +9,7 @@ interface AlertsState {
   isLoading: boolean;
 
   setAlerts: (alerts: Alert[]) => void;
+  addAlert: (alert: Alert) => void;
   setFilters: (filters: Partial<AlertFilters>) => void;
   resetFilters: () => void;
   selectAlert: (alert: Alert | null) => void;
@@ -46,6 +47,9 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   isLoading: false,
 
   setAlerts: (alerts) => set({ alerts }),
+
+  addAlert: (alert) =>
+    set((state) => ({ alerts: [alert, ...state.alerts] })),
 
   setFilters: (filters) =>
     set((state) => ({ filters: { ...state.filters, ...filters } })),

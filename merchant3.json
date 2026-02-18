@@ -1,0 +1,58 @@
+{
+  "phase": 3,
+  "title": "SLA Configuration + Capacity Control + Menu Management",
+  "context": {
+    "previous": "Orders Inbox",
+    "next": "Coupons, Campaigns & Refund System"
+  },
+  "objective": "Provide operational control tools for merchants while maintaining simplified UI.",
+  "sections": [
+    {
+      "name": "SLA Settings",
+      "fields": [
+        "Acceptance SLA (seconds)",
+        "Max concurrent orders",
+        "Busy auto-throttle threshold",
+        "Close store toggle (maintenance mode)"
+      ],
+      "ui_behavior": [
+        "All toggles aligned right (consistent with admin)",
+        "Numeric input with validation",
+        "Changes require Save button confirmation",
+        "Show toast on success"
+      ],
+      "role_access": ["Manager", "Developer"]
+    },
+    {
+      "name": "Menu Management",
+      "structure": [
+        "Categories",
+        "Items",
+        "Modifiers"
+      ],
+      "features": [
+        "Drag & drop ordering",
+        "Availability toggle",
+        "Quick out-of-stock action",
+        "Draft → Publish workflow",
+        "Bulk edit mode"
+      ],
+      "ui_requirements": [
+        "Left panel categories",
+        "Right panel items grid",
+        "Modal for item create/edit",
+        "Global Publish button sticky top right"
+      ],
+      "optimization": [
+        "Lazy load categories",
+        "Virtualized list for large menus"
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "Manager can configure SLA and capacity.",
+    "Menu CRUD works in mock state.",
+    "Draft → Publish changes visible in Orders simulation.",
+    "Close store disables Accept button."
+  ]
+}

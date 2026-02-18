@@ -4,31 +4,40 @@ import type { MerchantUser, MerchantRole, MerchantPermission } from '@/types/mer
 import { ROLE_PERMISSIONS as rolePermissions } from '@/types/merchant.types';
 
 const MOCK_MERCHANT_USERS: Record<string, { password: string; user: MerchantUser }> = {
-  'manager@skylounge.io': {
-    password: 'Manager@123',
+  'manager@demo.ai-ts': {
+    password: 'Password123',
     user: {
-      id: 'mu-1', name: 'Sarah Mitchell', email: 'manager@skylounge.io',
+      id: 'mu-1', name: 'Sarah Mitchell', email: 'manager@demo.ai-ts',
       merchant_role: 'manager', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
       available_roles: ['manager', 'cashier', 'kitchen', 'developer'],
       permissions: rolePermissions.manager,
     },
   },
-  'cashier@skylounge.io': {
-    password: 'Cashier@123',
+  'cashier@demo.ai-ts': {
+    password: 'Password123',
     user: {
-      id: 'mu-2', name: 'James Wilson', email: 'cashier@skylounge.io',
+      id: 'mu-2', name: 'James Wilson', email: 'cashier@demo.ai-ts',
       merchant_role: 'cashier', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
       available_roles: ['cashier'],
       permissions: rolePermissions.cashier,
     },
   },
-  'kitchen@skylounge.io': {
-    password: 'Kitchen@123',
+  'kitchen@demo.ai-ts': {
+    password: 'Password123',
     user: {
-      id: 'mu-3', name: 'Carlos Reyes', email: 'kitchen@skylounge.io',
+      id: 'mu-3', name: 'Carlos Reyes', email: 'kitchen@demo.ai-ts',
       merchant_role: 'kitchen', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
       available_roles: ['kitchen'],
       permissions: rolePermissions.kitchen,
+    },
+  },
+  'developer@demo.ai-ts': {
+    password: 'Password123',
+    user: {
+      id: 'mu-4', name: 'Alex Dev', email: 'developer@demo.ai-ts',
+      merchant_role: 'developer', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
+      available_roles: ['manager', 'cashier', 'kitchen', 'developer'],
+      permissions: rolePermissions.developer,
     },
   },
 };

@@ -15,9 +15,12 @@ export type MerchantPermission =
   | 'campaigns.view'
   | 'campaigns.create'
   | 'coupons.validate'
+  | 'coupons.create'
   | 'refunds.view'
   | 'refunds.request'
-  | 'analytics.view';
+  | 'analytics.view'
+  | 'debug_mode'
+  | 'override_states';
 
 export interface MerchantUser {
   id: string;
@@ -47,26 +50,50 @@ export interface MerchantCapacitySettings {
 }
 
 export const ROLE_PERMISSIONS: Record<MerchantRole, MerchantPermission[]> = {
+  /**
+   * Manager — full order control, menu, capacity (within bounds),
+   * refund up to threshold, create campaigns.
+   */
   manager: [
     'orders.view', 'orders.accept', 'orders.reject', 'orders.prepare', 'orders.ready',
     'menu.view', 'menu.edit', 'menu.publish',
     'sla.view', 'sla.edit', 'capacity.edit',
     'campaigns.view', 'campaigns.create',
-    'coupons.validate',
-    'refunds.view', 'refunds.request', // Managers can refund up to threshold
+    'coupons.validate', 'coupons.create',
+    'refunds.view', 'refunds.request',
     'analytics.view',
   ],
+  /**
+   * Cashier — view orders, accept orders (optional), mark preparing/ready (optional).
+   * Cannot refund, cannot change SLA, cannot edit menu, cannot create campaigns.
+   */
   cashier: [
-    'orders.view', 'orders.accept', 'orders.reject', 'orders.prepare', 'orders.ready',
+    'orders.view', 'orders.accept', 'orders.prepare', 'orders.ready',
     'coupons.validate',
-    // Cashiers CANNOT request refunds — refunds.request is not included
+    // NO: orders.reject, sla.edit, capacity.edit, menu.edit, menu.publish,
+    //     campaigns.create, refunds.request, analytics.view
   ],
+  /**
+   * Kitchen — view preparing/ready, mark preparing/ready ONLY.
+   * No accept, no reject, no menu, no SLA, no refund, no campaigns.
+   */
   kitchen: [
     'orders.view', 'orders.prepare', 'orders.ready',
+    // NO: orders.accept, orders.reject, menu.*, sla.*, capacity.*, campaigns.*,
+    //     coupons.*, refunds.*, analytics.*
   ],
+  /**
+   * Developer — superuser for testing, all permissions + debug.
+   */
   developer: [
-    'orders.view',
+    'orders.view', 'orders.accept', 'orders.reject', 'orders.prepare', 'orders.ready',
     'menu.view', 'menu.edit', 'menu.publish',
+    'sla.view', 'sla.edit', 'capacity.edit',
+    'campaigns.view', 'campaigns.create',
+    'coupons.validate', 'coupons.create',
+    'refunds.view', 'refunds.request',
+    'analytics.view',
+    'debug_mode', 'override_states',
   ],
 };
 

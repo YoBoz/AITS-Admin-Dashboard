@@ -1,0 +1,64 @@
+{
+  "phase": 2,
+  "title": "Orders Inbox (High Performance State Engine)",
+  "context": {
+    "previous": "Merchant Auth & RBAC",
+    "next": "SLA, Capacity & Menu Management"
+  },
+  "objective": "Build real-time optimized order workflow system with SLA timers and state transitions.",
+  "importance": "CRITICAL - Most important merchant feature",
+  "ui_structure": {
+    "tabs": ["New", "Preparing", "Ready", "Completed", "Issues"],
+    "layout": "Kanban-like horizontal scroll OR segmented tabs",
+    "card_design": "Compact, high-contrast, fast-scan format"
+  },
+  "order_card_components": [
+    "Order ID + short code",
+    "SLA countdown timer (red when < 30%)",
+    "Items summary (collapsed expandable)",
+    "Destination gate",
+    "Time since created",
+    "Action buttons depending on state"
+  ],
+  "state_transitions": {
+    "New": ["Accept", "Reject"],
+    "Accepted": ["Start Preparing"],
+    "Preparing": ["Mark Ready"],
+    "Ready": ["Await Runner Pickup"],
+    "Completed": [],
+    "Reject_flow": {
+      "modal_required": true,
+      "fields": [
+        "reasonCode dropdown (Out of stock / Capacity / Closed / Other)",
+        "optional notes"
+      ]
+    }
+  },
+  "technical_requirements": [
+    "Use optimistic UI update for transitions.",
+    "Use Zustand store for order state management.",
+    "Use mock data with random SLA timer simulation.",
+    "Use useEffect to simulate countdown.",
+    "Performance optimized for 100+ orders."
+  ],
+  "sla_logic": {
+    "default_seconds": 120,
+    "visual_behavior": [
+      "Green > 60%",
+      "Amber 30-60%",
+      "Red < 30%",
+      "Blink when 0"
+    ]
+  },
+  "developer_notes": [
+    "Prepare placeholder service layer for future API integration.",
+    "Use async wrapper but call mock functions."
+  ],
+  "acceptance_criteria": [
+    "SLA timer counts down correctly.",
+    "Buttons appear per state and role.",
+    "Reject requires reason modal.",
+    "State transition visually animated.",
+    "Performance remains smooth with 100 orders."
+  ]
+}

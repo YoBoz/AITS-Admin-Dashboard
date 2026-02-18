@@ -1,0 +1,64 @@
+{
+  "phase": 4,
+  "title": "Coupons, Campaign Builder & Refund Governance",
+  "context": {
+    "previous": "SLA & Menu Management",
+    "next": "Future analytics integration"
+  },
+  "objective": "Add commercial controls and refund governance logic with strong RBAC enforcement.",
+  "sections": [
+    {
+      "name": "Coupon Redeem UI",
+      "features": [
+        "Manual code entry",
+        "QR scan placeholder",
+        "Validation status display (Valid / Expired / Invalid)",
+        "Apply result preview"
+      ],
+      "performance": "Instant validation simulation"
+    },
+    {
+      "name": "Campaign Builder",
+      "fields": [
+        "Campaign Name",
+        "Schedule (date range + time window)",
+        "Target zone/gate",
+        "Discount configuration",
+        "Preview summary",
+        "Activate toggle"
+      ],
+      "ui": [
+        "Stepper-based wizard",
+        "Preview before activate required",
+        "Analytics stub panel"
+      ],
+      "role_access": ["Manager", "Developer"]
+    },
+    {
+      "name": "Refund Governance",
+      "rules": [
+        "Cashier cannot refund.",
+        "Manager refund allowed under threshold (configurable e.g. 200 AED).",
+        "Above threshold → Requires Ops Approval (mock approval flow)."
+      ],
+      "refund_modal_fields": [
+        "Partial or Full toggle",
+        "Amount input",
+        "Reason dropdown",
+        "Submit"
+      ],
+      "approval_flow": [
+        "If above threshold, create pending approval item.",
+        "Developer role can approve for testing.",
+        "Visual badge 'Pending Approval'."
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "Coupon validation works visually.",
+    "Campaign builder saves draft & activates.",
+    "Refund enforces role restrictions.",
+    "Threshold logic respected.",
+    "Approval flow simulated."
+  ]
+}

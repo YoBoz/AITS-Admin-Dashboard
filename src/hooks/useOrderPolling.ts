@@ -2,7 +2,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useOrdersStore } from '@/store/orders.store';
 import { useMerchantStore } from '@/store/merchant.store';
 import type { Order, OrderItem, OrderStatus } from '@/types/order.types';
-import type { MerchantSLASettings } from '@/types/merchant.types';
 
 // ---------- helpers ----------
 const PAX_NAMES = ['Alex T.', 'Jordan M.', 'Sam K.', 'Riley P.', 'Morgan B.', 'Casey L.', 'Quinn D.', 'Avery S.'];

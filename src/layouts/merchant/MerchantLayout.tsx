@@ -1,58 +1,69 @@
 import { Outlet, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MerchantSidebar } from './MerchantSidebar';
-import { MerchantNavbar } from './MerchantNavbar';
+import { MerchantTopbar } from './MerchantTopbar';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
-import { useOrderPolling } from '@/hooks/useOrderPolling';
-import { useSidebarStore } from '@/store/sidebar.store';
+import { useState } from 'react';
 
 export function MerchantLayout() {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useMerchantAuth();
-  const { isCollapsed } = useSidebarStore();
-
-  // Start order polling when authenticated
-  useOrderPolling();
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-      </div>
-    );
-  }
+  const { isAuthenticated } = useMerchantAuth();
+  const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   if (!isAuthenticated) {
-    return <Navigate to="/merchant/login" replace />;
+    return <Navigate to="/merchant/login" state={{ from: location.pathname }} replace />;
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <MerchantSidebar />
-
-      {/* Main content — offset by sidebar width */}
-      <div
-        className={`min-h-screen flex flex-col transition-[margin-left] duration-300 ease-in-out ${
-          isCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[240px]'
-        }`}
-      >
-        <MerchantNavbar />
-
-        <main className="flex-1 p-4 lg:p-6" role="main">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
-        </main>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block">
+        <MerchantSidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       </div>
+
+      {/* Mobile sidebar overlay */}
+      <AnimatePresence>
+        {isMobileSidebarOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+              onClick={() => setMobileSidebarOpen(false)}
+            />
+            <motion.div
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed left-0 top-0 z-50 lg:hidden"
+            >
+              <MerchantSidebar isCollapsed={false} onToggle={() => {}} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Main content */}
+      <motion.div
+        initial={false}
+        animate={{
+          marginLeft:
+            typeof window !== 'undefined' && window.innerWidth >= 1024
+              ? isCollapsed ? 72 : 260
+              : 0,
+        }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className="min-h-screen flex flex-col"
+      >
+        <MerchantTopbar onMenuClick={() => setMobileSidebarOpen(true)} />
+
+        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6" role="main">
+          <Outlet />
+        </main>
+      </motion.div>
     </div>
   );
 }

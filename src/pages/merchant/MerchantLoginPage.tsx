@@ -14,7 +14,7 @@ import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { LogoFull } from '@/assets/logo';
 
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email'),
+  email: z.string().min(1, 'Email is required').regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -118,7 +118,7 @@ export default function MerchantLoginPage() {
                   <Label htmlFor="merchant-email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input id="merchant-email" type="email" placeholder="e.g. manager@skylounge.io" className="pl-10" {...register('email')} />
+                    <Input id="merchant-email" type="email" placeholder="e.g. manager@demo.ai-ts" className="pl-10" {...register('email')} />
                   </div>
                   {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
                 </div>
@@ -171,9 +171,10 @@ export default function MerchantLoginPage() {
               <div className="mt-6 rounded-lg border border-border bg-muted/30 p-3">
                 <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-2">Demo Credentials</p>
                 <div className="space-y-1 text-xs text-muted-foreground font-mono">
-                  <p>manager@skylounge.io / Manager@123</p>
-                  <p>cashier@skylounge.io / Cashier@123</p>
-                  <p>kitchen@skylounge.io / Kitchen@123</p>
+                  <p>manager@demo.ai-ts / Password123</p>
+                  <p>cashier@demo.ai-ts / Password123</p>
+                  <p>kitchen@demo.ai-ts / Password123</p>
+                  <p>developer@demo.ai-ts / Password123</p>
                 </div>
               </div>
 

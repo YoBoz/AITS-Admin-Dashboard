@@ -104,3 +104,17 @@
     transform: translateY(0);
   }
 }
+
+/* Masonry grid */
+.masonry-grid {
+  display: flex;
+  margin-left: -12px;
+  width: auto;
+}
+.masonry-grid-column {
+  padding-left: 12px;
+  background-clip: padding-box;
+}
+.masonry-grid-column > * {
+  margin-bottom: 12px;
+}

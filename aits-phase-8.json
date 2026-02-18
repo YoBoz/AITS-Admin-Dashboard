@@ -1,0 +1,722 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 8,
+  "phase_title": "Airport Ops Command Center: Live Fleet Map, Ops Orders Console, Incidents and Policies",
+  "phase_description": "Build the full Airport Operations Command Center within the admin dashboard. Covers: enhanced live fleet map (O-03), device health monitoring (O-04), incident management with runbooks (O-05), gate-change surge handling (O-06), zone policy management and wheel-lock conditions (O-07), SLA dashboards (O-08), the Ops Orders Console (D2) with override workflows, and the venue setup model (O-01). All builds on the admin layout from Phase 2 and the map SVG from Phase 3.",
+  "depends_on_phases": [2, 3, 4, 5, 7],
+  "reference_files_from_previous_phases": [
+    "src/components/map/AirportMapSVG.tsx",
+    "src/components/map/MapLegend.tsx",
+    "src/components/map/MapFilters.tsx",
+    "src/components/map/TrolleyDot.tsx",
+    "src/data/mock/map.mock.ts",
+    "src/data/mock/trolleys.mock.ts",
+    "src/data/mock/alerts.mock.ts",
+    "src/data/mock/reason-codes.mock.ts",
+    "src/types/trolley.types.ts",
+    "src/types/alert.types.ts",
+    "src/types/order.types.ts",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/components/common/Timeline.tsx",
+    "src/components/common/Callout.tsx",
+    "src/components/merchant/ReasonCodeSelect.tsx",
+    "src/store/trolleys.store.ts",
+    "src/store/alerts.store.ts",
+    "src/store/map.store.ts",
+    "src/store/orders.store.ts",
+    "src/hooks/usePermissions.ts",
+    "src/layouts/DashboardLayout.tsx",
+    "src/routes/index.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/pages/ops/LiveFleetPage.tsx",
+    "src/pages/ops/DeviceDetailSidePanel.tsx",
+    "src/pages/ops/DeviceActionModal.tsx",
+    "src/pages/ops/HealthMonitoringPage.tsx",
+    "src/pages/ops/IncidentsPage.tsx",
+    "src/pages/ops/IncidentDetailPage.tsx",
+    "src/pages/ops/CreateIncidentModal.tsx",
+    "src/pages/ops/OpsOrdersConsolePage.tsx",
+    "src/pages/ops/OrderOverrideModal.tsx",
+    "src/pages/ops/GateSurgePage.tsx",
+    "src/pages/ops/PoliciesPage.tsx",
+    "src/pages/ops/PolicyEditorModal.tsx",
+    "src/pages/ops/OverrideLogPage.tsx",
+    "src/pages/ops/SLADashboardPage.tsx",
+    "src/pages/ops/VenueSetupPage.tsx",
+    "src/pages/ops/VenueZoneEditorModal.tsx",
+    "src/components/ops/DeviceStatusCard.tsx",
+    "src/components/ops/DeviceActionButtons.tsx",
+    "src/components/ops/FleetHealthBar.tsx",
+    "src/components/ops/IncidentCard.tsx",
+    "src/components/ops/IncidentSeverityBadge.tsx",
+    "src/components/ops/IncidentTimeline.tsx",
+    "src/components/ops/RunbookPanel.tsx",
+    "src/components/ops/OrderEventTimeline.tsx",
+    "src/components/ops/OverrideConfirmForm.tsx",
+    "src/components/ops/PolicyRuleCard.tsx",
+    "src/components/ops/ZoneRestrictionBadge.tsx",
+    "src/components/ops/GateSurgeAlert.tsx",
+    "src/components/ops/SLAGauge.tsx",
+    "src/components/ops/UptimeChart.tsx",
+    "src/components/ops/AcceptanceTimeDist.tsx",
+    "src/components/ops/VenueFloorPlan.tsx",
+    "src/components/ops/ZoneCard.tsx",
+    "src/data/mock/incidents.mock.ts",
+    "src/data/mock/ops-orders.mock.ts",
+    "src/data/mock/policies.mock.ts",
+    "src/data/mock/venue.mock.ts",
+    "src/data/mock/sla-metrics.mock.ts",
+    "src/types/incident.types.ts",
+    "src/types/policy.types.ts",
+    "src/types/venue.types.ts",
+    "src/types/ops-metrics.types.ts",
+    "src/store/incidents.store.ts",
+    "src/store/policies.store.ts",
+    "src/store/venue.store.ts",
+    "src/hooks/useFleetLive.ts",
+    "src/hooks/useGateSurge.ts"
+  ],
+
+  "new_sidebar_section": {
+    "description": "Add a new 'Command Center' section to the admin Sidebar (src/layouts/Sidebar.tsx) between 'Operations' and 'Engagement' sections. Only visible to ops_operator and above roles (use usePermissions).",
+    "items": [
+      { "label": "Live Fleet", "icon": "Radar", "route": "/dashboard/ops/fleet", "badge": "offline_count" },
+      { "label": "Health Monitor", "icon": "HeartPulse", "route": "/dashboard/ops/health" },
+      { "label": "Incidents", "icon": "Siren", "route": "/dashboard/ops/incidents", "badge": "active_count" },
+      { "label": "Orders Console", "icon": "Terminal", "route": "/dashboard/ops/orders" },
+      { "label": "Gate Surge", "icon": "Zap", "route": "/dashboard/ops/surge" },
+      { "label": "Policies", "icon": "ShieldAlert", "route": "/dashboard/ops/policies" },
+      { "label": "Override Log", "icon": "ClipboardList", "route": "/dashboard/ops/overrides" },
+      { "label": "SLA Dashboard", "icon": "Gauge", "route": "/dashboard/ops/sla" },
+      { "label": "Venue Setup", "icon": "Building2", "route": "/dashboard/ops/venue" }
+    ]
+  },
+
+  "typescript_types": {
+    "src/types/incident.types.ts": {
+      "IncidentSeverity": "'p1_critical' | 'p2_high' | 'p3_medium' | 'p4_low'",
+      "IncidentType": "'zone_breach' | 'device_stuck' | 'kiosk_crash' | 'network_outage' | 'battery_cluster' | 'order_sla_breach' | 'runner_unavailable' | 'payment_failure' | 'security_alert' | 'custom'",
+      "IncidentStatus": "'open' | 'investigating' | 'mitigating' | 'resolved' | 'post_mortem'",
+      "Incident": {
+        "id": "string",
+        "incident_number": "string (INC-YYYYMMDD-XXXX)",
+        "title": "string",
+        "type": "IncidentType",
+        "severity": "IncidentSeverity",
+        "status": "IncidentStatus",
+        "affected_devices": "string[] (trolley ids)",
+        "affected_zones": "string[]",
+        "affected_gates": "string[]",
+        "description": "string",
+        "auto_detected": "boolean",
+        "detected_at": "string (ISO)",
+        "acknowledged_at": "string | null",
+        "resolved_at": "string | null",
+        "assigned_to": "string | null",
+        "resolution_code": "string | null",
+        "resolution_notes": "string | null",
+        "runbook_id": "string | null",
+        "timeline": "IncidentTimelineEntry[]",
+        "linked_alerts": "string[] (alert ids)",
+        "impact_summary": "string",
+        "created_by": "string"
+      },
+      "IncidentTimelineEntry": {
+        "id": "string",
+        "timestamp": "string",
+        "actor": "string",
+        "action_type": "'status_change' | 'note_added' | 'assigned' | 'device_action' | 'escalation' | 'runbook_step'",
+        "content": "string",
+        "new_status": "IncidentStatus | null"
+      },
+      "Runbook": {
+        "id": "string",
+        "name": "string",
+        "incident_type": "IncidentType",
+        "steps": "RunbookStep[]",
+        "estimated_resolution_minutes": "number"
+      },
+      "RunbookStep": {
+        "order": "number",
+        "title": "string",
+        "description": "string",
+        "action_type": "'check' | 'command' | 'escalate' | 'notify' | 'wait'",
+        "is_completed": "boolean"
+      }
+    },
+    "src/types/policy.types.ts": {
+      "PolicyType": "'restricted_zone' | 'wheel_lock_zone' | 'speed_limit' | 'no_entry' | 'time_restricted'",
+      "PolicyStatus": "'active' | 'inactive' | 'scheduled'",
+      "Policy": {
+        "id": "string",
+        "name": "string",
+        "type": "PolicyType",
+        "status": "PolicyStatus",
+        "zone_ids": "string[]",
+        "gate_ids": "string[]",
+        "description": "string",
+        "conditions": "PolicyCondition[]",
+        "actions": "PolicyAction[]",
+        "overrides": "PolicyOverride[]",
+        "created_at": "string",
+        "created_by": "string",
+        "effective_from": "string | null",
+        "effective_to": "string | null",
+        "last_triggered_at": "string | null",
+        "trigger_count": "number"
+      },
+      "PolicyCondition": {
+        "field": "string (e.g. 'zone_id', 'device_speed', 'time_of_day')",
+        "operator": "'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'between'",
+        "value": "string | number | string[]"
+      },
+      "PolicyAction": {
+        "type": "'wheel_lock' | 'alert_ops' | 'notify_device' | 'block_entry' | 'reduce_speed' | 'quarantine'",
+        "params": "Record<string, string | number>"
+      },
+      "PolicyOverride": {
+        "id": "string",
+        "overridden_by": "string",
+        "override_reason": "string",
+        "override_notes": "string | null",
+        "device_id": "string | null",
+        "timestamp": "string",
+        "duration_minutes": "number | null"
+      }
+    },
+    "src/types/venue.types.ts": {
+      "Terminal": {
+        "id": "string",
+        "name": "string",
+        "iata_code": "string",
+        "floors": "Floor[]"
+      },
+      "Floor": {
+        "id": "string",
+        "terminal_id": "string",
+        "floor_number": "number",
+        "name": "string",
+        "zones": "VenueZone[]"
+      },
+      "VenueZone": {
+        "id": "string",
+        "floor_id": "string",
+        "name": "string",
+        "type": "MapZone['type']",
+        "corridors": "Corridor[]",
+        "gates": "Gate[]",
+        "area_sqm": "number",
+        "max_capacity": "number | null",
+        "has_wifi": "boolean",
+        "has_power_outlets": "boolean"
+      },
+      "Gate": {
+        "id": "string",
+        "name": "string (A1, B4...)",
+        "zone_id": "string",
+        "concourse": "string",
+        "is_international": "boolean",
+        "current_flight": "string | null",
+        "passenger_count_estimate": "number"
+      },
+      "Corridor": {
+        "id": "string",
+        "name": "string",
+        "connects_zones": "string[]",
+        "width_meters": "number",
+        "is_restricted": "boolean"
+      }
+    },
+    "src/types/ops-metrics.types.ts": {
+      "SLAMetrics": {
+        "period": "string",
+        "order_acceptance": {
+          "median_seconds": "number",
+          "p95_seconds": "number",
+          "sla_breached_count": "number",
+          "sla_breached_pct": "number",
+          "by_merchant": "{ merchant_name: string; median: number; breach_pct: number }[]"
+        },
+        "delivery": {
+          "median_minutes": "number",
+          "p95_minutes": "number",
+          "sla_breached_count": "number",
+          "on_time_pct": "number"
+        },
+        "device_uptime": {
+          "overall_pct": "number",
+          "by_zone": "Record<string, number>",
+          "offline_incidents_count": "number"
+        },
+        "runner_performance": {
+          "avg_acceptance_seconds": "number",
+          "completion_rate_pct": "number",
+          "fail_reasons": "Record<string, number>"
+        }
+      }
+    }
+  },
+
+  "live_fleet_page": {
+    "file": "src/pages/ops/LiveFleetPage.tsx",
+    "route": "/dashboard/ops/fleet",
+    "description": "Full-screen live fleet map. This is an enhanced version of the Terminal Map (Phase 3) with ops-specific overlays and device control capabilities.",
+
+    "layout": "Map area (78%). Right panel (22%): fleet summary + device list. Map takes full height.",
+
+    "enhanced_map_features": {
+      "device_icons": {
+        "description": "Replace simple TrolleyDot SVG circles with richer device icons on the AirportMapSVG. Each device shows: colored icon (green=online, amber=low battery, red=critical/offline), confidence ring (outer ring opacity = confidence 0-1), a small battery indicator bar below icon.",
+        "implementation": "Pass enhanced trolleyPositions array with status, battery, confidence fields. Render each as SVG group: circle (12px radius) + battery bar (rect below) + confidence ring (circle, stroke-only, opacity = confidence)."
+      },
+      "floor_selector": "Tabs at top of map: Floor 1 (Departures), Floor 2 (Arrivals). Switching tab re-filters trolleyPositions to show only devices on that floor. Animate transition.",
+      "confidence_display": "Devices with confidence < 0.5 show with dashed outline and 'Low Confidence' label on hover tooltip.",
+      "last_seen": "Device tooltip shows 'Last seen: X seconds ago'. Devices last seen > 5 minutes ago shown with red X overlay.",
+      "live_simulation": {
+        "file": "src/hooks/useFleetLive.ts",
+        "description": "useEffect with setInterval every 3 seconds. Randomly moves 10-15 trolleys slightly (x +/- 5-15, y +/- 5-15 within valid zone bounds). Randomly changes battery of 2-3 trolleys by -1. If battery hits 10%: creates new alert in alerts.store. Updates trolleys.store. This creates live-feeling fleet movement.",
+        "also": "Randomly takes 1 trolley offline every 2 minutes (status=offline). Shows alert toast: 'Device [IMEI] went offline in [Zone]'."
+      }
+    },
+
+    "right_panel": {
+      "fleet_summary": {
+        "file": "src/components/ops/FleetHealthBar.tsx",
+        "description": "Compact horizontal stacked bar showing fleet status breakdown (same data as dashboard widget but live-updating). Below: counts for Online / Low Battery / Critical / Offline with colored numbers."
+      },
+      "device_list": "Scrollable list of all devices. Search by IMEI. Filter by status. Each row: IMEI (truncated), zone, battery bar, status dot. Click opens DeviceDetailSidePanel."
+    },
+
+    "device_detail_side_panel": {
+      "file": "src/pages/ops/DeviceDetailSidePanel.tsx",
+      "description": "Replaces right panel content when device selected. Slide animation.",
+      "content": [
+        "Device header: IMEI, serial, status badge, health score ring",
+        "Mini stats: battery, last seen, confidence, today trips",
+        "Current location: zone + gate on mini airport SVG (mini prop from Phase 3)",
+        "Device actions section: DeviceActionButtons",
+        "Last 5 alerts for this device (from alerts.store filtered by trolley_id)",
+        "Close button returns to fleet summary"
+      ],
+      "device_action_buttons": {
+        "file": "src/components/ops/DeviceActionButtons.tsx",
+        "buttons": [
+          { "label": "Lock Device", "icon": "Lock", "action": "lock", "variant": "warning", "confirm": true },
+          { "label": "Unlock Device", "icon": "Unlock", "action": "unlock", "variant": "success" },
+          { "label": "Reboot", "icon": "RotateCcw", "action": "reboot", "variant": "outline", "confirm": true },
+          { "label": "Update App", "icon": "Download", "action": "update_app", "variant": "outline" },
+          { "label": "Mark Maintenance", "icon": "Wrench", "action": "maintenance", "variant": "destructive_outline", "confirm": true },
+          { "label": "Quarantine", "icon": "ShieldOff", "action": "quarantine", "variant": "destructive", "confirm": true, "permission": "settings.security_edit" }
+        ],
+        "action_modal": {
+          "file": "src/pages/ops/DeviceActionModal.tsx",
+          "description": "Confirm modal for device actions. Shows action name, device IMEI, warning message per action type. Required: Reason Code (ops_override reasons). Optional notes. Confirm button. On confirm: updates trolley status in trolleys.store, adds action to incident if one is open for this device, shows success toast."
+        }
+      }
+    }
+  },
+
+  "health_monitoring_page": {
+    "file": "src/pages/ops/HealthMonitoringPage.tsx",
+    "route": "/dashboard/ops/health",
+    "description": "Comprehensive device health dashboard. Covers O-04: battery SoC/temp monitoring, offline alerts, sensor faults.",
+
+    "layout": "PageHeader 'Device Health Monitoring'. 3 rows of widgets.",
+
+    "row_1_overview": {
+      "cards": [
+        { "title": "Fleet Online Rate", "value": "91.8%", "icon": "Wifi", "color": "success" },
+        { "title": "Low Battery Devices", "value": "18", "description": "< 25% charge", "icon": "BatteryLow", "color": "warning" },
+        { "title": "Critical Battery", "value": "6", "description": "< 10% charge", "icon": "BatteryWarning", "color": "error" },
+        { "title": "Sensor Faults", "value": "3", "icon": "AlertOctagon", "color": "error" },
+        { "title": "Avg Battery SoC", "value": "67.3%", "icon": "Battery", "color": "primary" }
+      ]
+    },
+
+    "row_2": {
+      "battery_soc_distribution": "Recharts histogram (vertical bar chart). X axis: battery % ranges (0-10, 11-20, 21-30... 91-100). Y axis: device count. Color gradient from red (low) to green (high). Title: 'Battery SoC Distribution Across Fleet'. Width: 50%.",
+      "offline_timeline": "Recharts AreaChart. X axis: last 24 hours (hourly). Y axis: count of offline devices. Shows when offline spikes occurred. Title: 'Offline Device Count - Last 24h'. Width: 50%."
+    },
+
+    "row_3_device_fault_table": {
+      "title": "Devices Requiring Attention",
+      "description": "DataTable showing all devices with status != 'active' or battery < 25% or health_score < 70. Columns: IMEI, Zone, Status, Battery, Health Score, Last Seen, Fault Type, Action. Fault Type: 'Low Battery' / 'Critical Battery' / 'Offline' / 'Sensor Fault' / 'Maintenance Due'. Action: View on Map (highlights device on fleet map), Create Incident, Device Actions button.",
+      "sorting": "Critical first, then offline, then low battery, then maintenance due"
+    },
+
+    "auto_refresh": "Page auto-refreshes data every 30 seconds from trolleys.store (which is live-updated by useFleetLive hook). Show last-updated timestamp."
+  },
+
+  "incidents_page": {
+    "file": "src/pages/ops/IncidentsPage.tsx",
+    "route": "/dashboard/ops/incidents",
+    "description": "Full incident management covering O-05: zone breach, device stuck, kiosk crash runbooks.",
+
+    "stats_bar": "4 cards: Open (count), Investigating (count), P1 Critical Active (red), Resolved Today (green)",
+
+    "incident_list": {
+      "filter_bar": "Filter by: Severity, Type, Status, Assigned to, Date range",
+      "incident_card": {
+        "file": "src/components/ops/IncidentCard.tsx",
+        "design": "Card with colored left border (P1=red, P2=orange, P3=amber, P4=blue). IncidentSeverityBadge (P1 CRITICAL pulse). Incident number + title. Type badge. Status badge. Affected devices/zones count. Assigned operator. Time open. Action: View, Acknowledge, Assign."
+      }
+    },
+
+    "create_incident_modal": {
+      "file": "src/pages/ops/CreateIncidentModal.tsx",
+      "fields": [
+        "Title (text)",
+        "Type (select from IncidentType options)",
+        "Severity (P1-P4 radio with descriptions)",
+        "Description (textarea)",
+        "Affected Devices (multi-select from trolleys list, searchable by IMEI)",
+        "Affected Zones (multi-select from zones)",
+        "Affected Gates (multi-select)",
+        "Assign To (select from ops users)",
+        "Linked Alerts (multi-select from open alerts)",
+        "Runbook (auto-suggested based on type, or manual select)"
+      ],
+      "auto_create": "When alerts.store creates a critical alert (battery < 10%, device offline for > 15 min), auto-create a P2 incident and show toast with link to incident."
+    },
+
+    "incident_detail_page": {
+      "file": "src/pages/ops/IncidentDetailPage.tsx",
+      "route": "/dashboard/ops/incidents/:id",
+      "layout": "Back button + breadcrumb. Left column (60%), right column (40%).",
+      "left": {
+        "header": "Incident number, title, severity badge, status badge, type badge. Edit title inline.",
+        "description_card": "Full description. Impact summary. Affected: device IMEI chips (clickable -> fleet page), zone chips, gate chips.",
+        "timeline": {
+          "file": "src/components/ops/IncidentTimeline.tsx",
+          "description": "Vertical timeline using Timeline component from Phase 6. Each entry styled by action_type: status_change (colored pill), note_added (comment icon), assigned (user icon), device_action (settings icon), runbook_step (checkbox icon). Add Note form below timeline: textarea + submit button adds new timeline entry."
+        },
+        "linked_alerts": "Expandable section showing all linked alert cards."
+      },
+      "right": {
+        "status_control": "Large status selector (badge buttons for each status). Clicking updates status and adds timeline entry.",
+        "assignment": "Assign To user select. Save button.",
+        "runbook": {
+          "file": "src/components/ops/RunbookPanel.tsx",
+          "description": "If runbook_id set: show runbook title and all steps as a checklist. Each step: action_type icon, title, description, checkbox (mark complete). Completing all steps suggests changing status to 'resolved'. If no runbook: 'Attach Runbook' button + select from runbooks for this incident type."
+        },
+        "resolution": "Only shown when status is 'mitigating'. Resolution code select (dropdown of resolution codes), resolution notes textarea, 'Resolve Incident' button. Confirms, sets status to 'resolved', records timestamp."
+      }
+    },
+
+    "runbooks": {
+      "description": "Define 5 runbooks in incidents.mock.ts for incident types. These are static reference data.",
+      "runbook_definitions": [
+        {
+          "id": "RB-001", "name": "Zone Breach Response", "incident_type": "zone_breach",
+          "steps": [
+            "Identify breaching device IMEI from alert. Navigate to Live Fleet and locate device.",
+            "Check device confidence level. If < 0.3: possible positioning error - do not lock yet.",
+            "If confidence > 0.3 and device is in restricted zone: issue LOCK command via Device Actions.",
+            "Create incident, log device IMEI, zone, and time of breach.",
+            "Notify on-site security team via radio (out of band).",
+            "Monitor device for 5 minutes. If device moves out: unlock. If stays: escalate to P1.",
+            "Document outcome in incident timeline and resolve."
+          ]
+        },
+        {
+          "id": "RB-002", "name": "Device Stuck / Not Moving", "incident_type": "device_stuck",
+          "steps": [
+            "Check last seen timestamp. If > 10 min and battery > 20%: likely physically stuck.",
+            "Check zone. If in corridor: may be blocking passenger flow - prioritize.",
+            "Attempt remote reboot via Device Actions > Reboot.",
+            "If reboot fails or not possible: dispatch maintenance runner to physical location.",
+            "While runner dispatched: mark device as 'maintenance' to remove from active fleet.",
+            "Runner confirms physical status. Document in incident notes.",
+            "If device recovered: unmark maintenance. If hardware fault: escalate to P2 and schedule repair."
+          ]
+        },
+        {
+          "id": "RB-003", "name": "Kiosk App Crash", "incident_type": "kiosk_crash",
+          "steps": [
+            "Identify affected device IMEI from crash alert.",
+            "Attempt remote app update/restart via Device Actions > Update App.",
+            "If restart resolves: monitor for 10 minutes. If no further crashes: resolve incident.",
+            "If crash persists: collect crash logs (note: log collection is out-of-band in backend).",
+            "Escalate to P2 if 3+ devices experiencing same crash pattern (potential software regression).",
+            "Temporary workaround: mark affected devices as 'maintenance' until patch deployed.",
+            "Coordinate with dev team for emergency patch if cluster of crashes."
+          ]
+        },
+        {
+          "id": "RB-004", "name": "Network Outage Response", "incident_type": "network_outage",
+          "steps": [
+            "Identify affected zone/floor from offline cluster on Live Fleet map.",
+            "Check if outage is localized (single zone) or widespread (multiple zones).",
+            "Contact IT/networking team immediately if widespread.",
+            "For localized: check AP status (out of band - via network console).",
+            "Devices will resume connectivity when network restored. No device actions needed.",
+            "Monitor via Live Fleet until devices come back online.",
+            "Document outage duration and affected device count in incident."
+          ]
+        },
+        {
+          "id": "RB-005", "name": "Battery Cluster Low Alert", "incident_type": "battery_cluster",
+          "steps": [
+            "Identify how many devices are below 10% and in which zones.",
+            "Prioritize devices in high-traffic zones (Food Court, Duty Free) for immediate charging.",
+            "Send lock + return-to-dock commands to affected devices via bulk Device Actions.",
+            "Alert maintenance team to escort devices to charging station if they cannot move.",
+            "Monitor battery levels in Health Monitor page.",
+            "Set a reminder note in incident to review fleet charging schedule."
+          ]
+        }
+      ]
+    },
+
+    "mock_incidents_data": {
+      "file": "src/data/mock/incidents.mock.ts",
+      "description": "Generate 20 incidents. Distribution: 2 P1 (open - zone breach, network outage), 4 P2 (investigating - battery cluster, device stuck x2, kiosk crash), 6 P3 (mitigating or resolved today), 8 P4 (resolved, historical). Each has 3-6 timeline entries showing realistic progression. Link incidents to trolley IDs from trolleys.mock.ts and alert IDs from alerts.mock.ts."
+    }
+  },
+
+  "ops_orders_console": {
+    "file": "src/pages/ops/OpsOrdersConsolePage.tsx",
+    "route": "/dashboard/ops/orders",
+    "description": "D2: Ops Orders Console. Full visibility into all orders across all merchants. Override capabilities for exceptional situations.",
+
+    "layout": "PageHeader 'Operations Orders Console'. Split: search/filter bar + table.",
+
+    "search_bar": "Large search input prominent: 'Search by Order #, Passenger Alias, Gate, Merchant...'",
+
+    "orders_table": {
+      "columns": ["Order #", "Merchant", "Status", "Items", "Gate", "SLA Status", "Runner", "Created", "Actions"],
+      "sla_column": "Green checkmark if within SLA, amber if at risk (< 5 min), red X if breached. Show time remaining/elapsed.",
+      "row_expand": "Click row to expand inline: shows full order event timeline (OrderEventTimeline component). Compact horizontal timeline below the row.",
+      "row_actions": "View Full Detail button (opens OrderDetailPanel as modal), Override button"
+    },
+
+    "order_override_modal": {
+      "file": "src/pages/ops/OrderOverrideModal.tsx",
+      "description": "Override actions for exceptional order situations. Very deliberately designed to prevent accidental use.",
+      "override_options": [
+        {
+          "action": "reassign_runner",
+          "label": "Reassign Runner",
+          "description": "Assign a different runner to deliver this order",
+          "fields": ["New Runner (select from available runners)", "Reason Code (ops_override_reasons)", "Notes"]
+        },
+        {
+          "action": "abort_order",
+          "label": "Abort Order",
+          "description": "Immediately cancel the order. This will trigger auto-refund.",
+          "fields": ["Reason Code (required)", "Notes (required)", "Confirm typed: type order number to confirm"],
+          "danger_level": "high"
+        },
+        {
+          "action": "force_refund",
+          "label": "Force Refund",
+          "description": "Issue immediate refund bypassing normal approval flow",
+          "fields": ["Refund Amount (full/partial)", "Reason Code", "Notes (required)"],
+          "danger_level": "medium"
+        },
+        {
+          "action": "convert_to_pickup",
+          "label": "Convert to Self-Pickup",
+          "description": "Change delivery to passenger self-collection at merchant location",
+          "fields": ["Reason Code", "Notes", "Notify passenger toggle"]
+        },
+        {
+          "action": "override_gate_safety",
+          "label": "Override Gate Safety Check",
+          "description": "Override the gate verification for delivery. USE ONLY IN EXCEPTIONAL CIRCUMSTANCES.",
+          "fields": ["Reason Code", "Notes (required)", "Supervisor approval code (text field, mock)"],
+          "danger_level": "critical",
+          "permission": "settings.security_edit"
+        }
+      ],
+      "override_confirm_form": {
+        "file": "src/components/ops/OverrideConfirmForm.tsx",
+        "description": "Shared form component used inside OrderOverrideModal for all override types. Shows: action name with danger badge, warning callout (severity depends on danger_level), reason code select, notes textarea, any action-specific fields. For high/critical: 'I understand the consequences' checkbox required. Submit button disabled until all required fields complete."
+      },
+      "audit_trail": "Every override submitted: adds entry to ops-audit-log (ops_override action), adds event to order event_log, adds entry to override log page."
+    },
+
+    "order_event_timeline": {
+      "file": "src/components/ops/OrderEventTimeline.tsx",
+      "description": "Compact horizontal or vertical timeline of all OrderEvent entries for an order. Used in the row-expanded view (horizontal, small) and in full OrderDetailPanel (vertical, full size). Each event: icon (by action type), actor, action label, timestamp."
+    }
+  },
+
+  "gate_surge_page": {
+    "file": "src/pages/ops/GateSurgePage.tsx",
+    "route": "/dashboard/ops/surge",
+    "description": "O-06: Gate-change surge handling. Monitor and respond to sudden passenger flow changes at gates.",
+
+    "layout": "PageHeader 'Gate Surge Management'. Live status + historical view.",
+
+    "surge_alert_banner": {
+      "file": "src/components/ops/GateSurgeAlert.tsx",
+      "description": "If any gate has passenger_count_estimate > threshold (configurable, default 200): show dismissible amber alert banner listing affected gates. 'Gate B3: Surge detected - 340 estimated passengers. Gate A1: Surge in progress - 287 passengers.' Each gate chip in banner is clickable."
+    },
+
+    "gate_status_grid": "Grid of all gate cards (A1-A8, B1-B8). Each: gate name, concourse, current flight (mock: e.g. EK204 to London), passenger estimate, device count in zone, surge status (Normal/Elevated/Surge). Card color: normal=default, elevated=amber background, surge=red background.",
+
+    "surge_actions_panel": {
+      "description": "When a gate card is clicked or a surge alert is active: show right panel with surge-specific actions.",
+      "actions": [
+        "Notify Devices in Zone: sends mock notification to all trolleys in gate zone. Payload: 'High traffic detected. Please assist passengers to areas.' Success toast.",
+        "Throttle Ads/Offers: toggles ad throttling for devices in gate zone (mock toggle). Shows 'Ads paused for Gate B3 zone devices'.",
+        "Increase Trolley Priority: flags all idle trolleys near the gate as high-priority (they appear in fleet map with star icon).",
+        "Create Incident: pre-fills CreateIncidentModal with type='zone_breach', affected_gates=[selected gate]"
+      ]
+    },
+
+    "surge_hook": {
+      "file": "src/hooks/useGateSurge.ts",
+      "description": "Reads venue.store for gates and their passenger_count_estimate. Computes surge status per gate. Returns: surgeGates (gates above threshold), isSurgeActive (boolean). Gate estimates are periodically randomized by useFleetLive to simulate changing passenger flow."
+    }
+  },
+
+  "policies_page": {
+    "file": "src/pages/ops/PoliciesPage.tsx",
+    "route": "/dashboard/ops/policies",
+    "description": "O-07: Zone policies, wheel-lock conditions, restricted zones.",
+
+    "layout": "PageHeader 'Zone Policies & Rules'. Filter bar. Policies list + map preview.",
+
+    "policies_list": {
+      "filter_bar": "Filter by: Type, Status, Zone, Date",
+      "policy_card": {
+        "file": "src/components/ops/PolicyRuleCard.tsx",
+        "design": "Card. Type badge (Restricted Zone = red, Wheel Lock = orange, Speed Limit = amber, No Entry = red dark, Time Restricted = blue). Policy name. Affected zones/gates as chips. Condition summary: e.g. 'When device enters Zone: Security → Action: Alert Ops + Notify Device'. Status badge. Trigger count. Last triggered time. Edit / Disable / View Override Log buttons."
+      }
+    },
+
+    "policy_editor_modal": {
+      "file": "src/pages/ops/PolicyEditorModal.tsx",
+      "description": "Create/Edit policy. Fields: Name, Type, Status, Effective From/To (optional datetime pickers). Zones multi-select. Gates multi-select. Conditions builder (add/remove conditions: field dropdown + operator + value input). Actions builder (add/remove actions: action type + params). Preview: plain-English summary of policy rule e.g. 'When device enters zone Security AND time is between 00:00-05:00 → Trigger wheel lock AND Alert Ops'. Save button.",
+      "map_preview": "Mini AirportMapSVG (mini mode) showing selected zones highlighted in the policy's type color."
+    },
+
+    "override_log_page": {
+      "file": "src/pages/ops/OverrideLogPage.tsx",
+      "route": "/dashboard/ops/overrides",
+      "description": "Chronological log of all policy overrides. DataTable. Columns: Timestamp, Policy Name, Override By (user), Affected Device, Zone, Reason Code, Notes, Duration, Outcome. Searchable by policy, user, device. Date range filter. Export CSV button."
+    },
+
+    "mock_policies_data": {
+      "file": "src/data/mock/policies.mock.ts",
+      "description": "Generate 8 policies: 2 restricted zones (Security area, Customs area - wheel lock if entered), 1 no_entry (maintenance corridor B), 1 speed_limit (crowded food court area), 2 time_restricted (night mode zones after 23:00), 1 active wheel_lock_zone (restricted airside). Each has 2-5 override entries showing real-use scenarios."
+    }
+  },
+
+  "sla_dashboard": {
+    "file": "src/pages/ops/SLADashboardPage.tsx",
+    "route": "/dashboard/ops/sla",
+    "description": "O-08: SLA dashboards for order acceptance times, delivery ETAs, system uptime.",
+
+    "period_selector": "Tabs: Today / This Week / This Month / Custom Range. All charts react to selection.",
+
+    "row_1_summary": {
+      "cards": [
+        { "title": "Order Acceptance SLA", "value": "94.2%", "trend": "+1.3%", "subtitle": "Within SLA window" },
+        { "title": "Delivery On-Time", "value": "87.6%", "trend": "-2.1%", "subtitle": "Delivered within ETA" },
+        { "title": "System Uptime", "value": "99.1%", "trend": "+0.2%", "subtitle": "Last 30 days" },
+        { "title": "Avg Acceptance Time", "value": "42s", "trend": "-8s", "subtitle": "Median across merchants" }
+      ]
+    },
+
+    "row_2": {
+      "acceptance_time_dist": {
+        "file": "src/components/ops/AcceptanceTimeDist.tsx",
+        "description": "Recharts BarChart. X axis: time buckets (0-30s, 31-60s, 61-90s, 91-120s, 120s+). Y axis: order count. Color: green for within SLA, red for breached. Overlay: dotted vertical line at SLA threshold. Title: 'Order Acceptance Time Distribution'. Width: 50%."
+      },
+      "merchant_sla_table": "DataTable. Columns: Merchant Name, Total Orders, Avg Acceptance (seconds), P95 Acceptance, SLA Breach %, On-Time Delivery %, Rank. Sorted by breach % descending (worst performers first). Row click: could link to merchant detail (Phase 7 shop detail). Width: 50%."
+    },
+
+    "row_3": {
+      "uptime_chart": {
+        "file": "src/components/ops/UptimeChart.tsx",
+        "description": "Recharts AreaChart showing system uptime % over selected period. Y axis: 95-100% range. Color: green fill, red dashes for downtime events. Hover tooltip shows incident linked to any dip. Title: 'System Uptime'. Width: 60%."
+      },
+      "runner_performance": "SectionCard. Metrics: Avg Runner Acceptance (seconds), Completion Rate %, Fail Reason breakdown (small pie chart of runner_fail reasons). Width: 40%."
+    },
+
+    "mock_sla_data": {
+      "file": "src/data/mock/sla-metrics.mock.ts",
+      "description": "Generate SLAMetrics objects for today, this week, this month. Realistic values: order acceptance median 42s, P95 85s, breach 5.8%. Delivery median 18min, P95 32min, on-time 87.6%. Device uptime 99.1%. Include per-merchant breakdown for 6 merchants matching shops.mock.ts."
+    }
+  },
+
+  "venue_setup_page": {
+    "file": "src/pages/ops/VenueSetupPage.tsx",
+    "route": "/dashboard/ops/venue",
+    "description": "O-01: Venue model management. Configure terminals, floors, zones, gates, corridors.",
+
+    "layout": "Tree structure on left (Terminal > Floor > Zone > Gate). Detail editor on right.",
+
+    "venue_floor_plan": {
+      "file": "src/components/ops/VenueFloorPlan.tsx",
+      "description": "Read-only miniature AirportMapSVG with zone labels overlaid from venue.store data. Zones highlighted when selected in tree. Click zone on map selects it in tree."
+    },
+
+    "tree_navigator": "Collapsible tree. Terminal (1 node), Floors (2), Zones per floor (~8), Gates (~16 total). Each node: name, type icon, item count badge. Clicking selects and shows detail on right.",
+
+    "detail_editor": "Context-aware form based on selected node type. Terminal: edit name, IATA code, support email. Floor: name, floor number. Zone: name, type, area_sqm, max_capacity, has_wifi toggle, has_power_outlets toggle, is_restricted toggle. Gate: name, concourse, is_international toggle, current_flight text. All: Save button, shows last modified timestamp.",
+
+    "zone_editor_modal": {
+      "file": "src/pages/ops/VenueZoneEditorModal.tsx",
+      "description": "Full edit modal for zones. Also allows attaching shops to zone (multi-select from shops.store). Link to map for visual positioning (informational only - coordinates are in map.mock.ts)."
+    },
+
+    "mock_venue_data": {
+      "file": "src/data/mock/venue.mock.ts",
+      "description": "Generate Terminal (DXB T2), 2 floors, zones matching AirportMapSVG zone IDs (from map.mock.ts), 16 gates (A1-A8, B1-B8). Each gate: is_international, current_flight (realistic flight numbers). Gate passenger_count_estimate: random 50-350 for surge simulation."
+    }
+  },
+
+  "zustand_stores": {
+    "src/store/incidents.store.ts": "State: incidents (Incident[]), runbooks (Runbook[]), filters, selectedIncidentId, isLoading. Actions: addIncident, updateIncident, resolveIncident, addTimelineEntry, attachRunbook, completeRunbookStep, autoCreateFromAlert. Derive: openCount, p1ActiveCount. Initialize with incidents.mock.ts and runbook_definitions.",
+    "src/store/policies.store.ts": "State: policies (Policy[]), overrideLog (PolicyOverride with enriched data[]). Actions: addPolicy, updatePolicy, togglePolicy, addOverride. Initialize with policies.mock.ts.",
+    "src/store/venue.store.ts": "State: terminal (Terminal), selectedNodeId, selectedNodeType. Actions: updateZone, updateGate, updateFloor, selectNode. Initialize with venue.mock.ts."
+  },
+
+  "routes_to_add": [
+    "/dashboard/ops/fleet",
+    "/dashboard/ops/health",
+    "/dashboard/ops/incidents",
+    "/dashboard/ops/incidents/:id",
+    "/dashboard/ops/orders",
+    "/dashboard/ops/surge",
+    "/dashboard/ops/policies",
+    "/dashboard/ops/overrides",
+    "/dashboard/ops/sla",
+    "/dashboard/ops/venue"
+  ],
+
+  "quality_checklist": [
+    "Live Fleet map updates device positions every 3 seconds (useFleetLive)",
+    "Offline device event creates alert toast and adds to alerts.store",
+    "Device detail panel opens on device click in fleet map",
+    "All 6 device action buttons require reason code and confirmation",
+    "Lock device action updates trolley status to 'offline' and shows feedback",
+    "Health monitor fault table sorted correctly (critical first)",
+    "Incident creation links to trolley IDs and alert IDs",
+    "Runbook panel shows steps as interactive checklist",
+    "Completing all runbook steps suggests resolving incident",
+    "Incident status change adds timeline entry automatically",
+    "Ops Orders Console search works across order number, gate, merchant",
+    "Override modal requires typed order number for 'abort_order'",
+    "All overrides logged to override log page",
+    "Gate surge detection highlights gates with > 200 passenger estimate",
+    "Surge actions dispatch notifications (mock toast confirmation)",
+    "Policy editor generates plain-English rule summary",
+    "SLA dashboard period selector updates all charts",
+    "Merchant SLA table sorted by breach % descending",
+    "Venue tree navigation selects correct node and shows correct editor",
+    "All ops pages permission-gated (ops_operator role minimum)",
+    "Dark mode on all new pages",
+    "No TypeScript errors in new files"
+  ]
+}

@@ -49,3 +49,51 @@ export interface Coordinates {
   lat: number;
   lng: number;
 }
+
+// Phase 8 — Ops Command Center types
+export type {
+  IncidentSeverity,
+  IncidentType,
+  IncidentStatus,
+  TimelineActionType,
+  IncidentTimelineEntry,
+  Incident,
+  RunbookActionType,
+  RunbookStep,
+  Runbook,
+  IncidentFilters,
+} from './incident.types';
+
+export type {
+  PolicyType,
+  PolicyStatus,
+  ConditionOperator,
+  PolicyCondition,
+  PolicyActionType,
+  PolicyAction,
+  PolicyOverride,
+  Policy,
+  PolicyFilters,
+} from './policy.types';
+
+export type {
+  Gate,
+  Corridor,
+  VenueZone,
+  Floor,
+  Terminal,
+  VenueNodeType,
+} from './venue.types';
+
+export type {
+  MerchantSLABreakdown,
+  OrderAcceptanceMetrics,
+  DeliveryMetrics,
+  DeviceUptimeMetrics,
+  RunnerPerformanceMetrics,
+  SLAMetrics,
+  SLAPeriod,
+  FleetHealthSummary,
+  BatteryDistribution,
+  OfflineTimelinePoint,
+} from './ops-metrics.types';

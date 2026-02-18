@@ -5,6 +5,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { RootLayout } from '@/layouts/RootLayout';
 import { MerchantLayout } from '@/layouts/merchant/MerchantLayout';
+import { MerchantProtectedRoute } from './MerchantProtectedRoute';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
@@ -41,8 +42,22 @@ const MerchantLoginPage = lazy(() => import('@/pages/merchant/MerchantLoginPage'
 const OrdersInboxPage = lazy(() => import('@/pages/merchant/OrdersInboxPage'));
 const MenuManagementPage = lazy(() => import('@/pages/merchant/MenuManagementPage'));
 const CouponsPage = lazy(() => import('@/pages/merchant/CouponsPage'));
+const CampaignsPage = lazy(() => import('@/pages/merchant/CampaignsPage'));
+const RefundsPage = lazy(() => import('@/pages/merchant/RefundsPage'));
 const MerchantAnalyticsPage = lazy(() => import('@/pages/merchant/MerchantAnalyticsPage'));
 const SLASettingsPage = lazy(() => import('@/pages/merchant/SLASettingsPage'));
+const MerchantUnauthorizedPage = lazy(() => import('@/pages/merchant/MerchantUnauthorizedPage'));
+
+// Phase 8 — Ops Command Center pages
+const LiveFleetPage = lazy(() => import('@/pages/ops/LiveFleetPage'));
+const HealthMonitoringPage = lazy(() => import('@/pages/ops/HealthMonitoringPage'));
+const IncidentsPage = lazy(() => import('@/pages/ops/IncidentsPage'));
+const IncidentDetailPage = lazy(() => import('@/pages/ops/IncidentDetailPage'));
+const OpsOrdersConsolePage = lazy(() => import('@/pages/ops/OpsOrdersConsolePage'));
+const GateSurgePage = lazy(() => import('@/pages/ops/GateSurgePage'));
+const PoliciesPage = lazy(() => import('@/pages/ops/PoliciesPage'));
+const SLADashboardPage = lazy(() => import('@/pages/ops/SLADashboardPage'));
+const VenueSetupPage = lazy(() => import('@/pages/ops/VenueSetupPage'));
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -212,9 +227,82 @@ export const router = createBrowserRouter([
               </SuspenseWrapper>
             ),
           },
+          // Phase 8 — Ops Command Center routes
+          {
+            path: 'ops/fleet',
+            element: (
+              <SuspenseWrapper>
+                <LiveFleetPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/health',
+            element: (
+              <SuspenseWrapper>
+                <HealthMonitoringPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/incidents',
+            element: (
+              <SuspenseWrapper>
+                <IncidentsPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/incidents/:id',
+            element: (
+              <SuspenseWrapper>
+                <IncidentDetailPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/orders',
+            element: (
+              <SuspenseWrapper>
+                <OpsOrdersConsolePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/surge',
+            element: (
+              <SuspenseWrapper>
+                <GateSurgePage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/policies',
+            element: (
+              <SuspenseWrapper>
+                <PoliciesPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/sla',
+            element: (
+              <SuspenseWrapper>
+                <SLADashboardPage />
+              </SuspenseWrapper>
+            ),
+          },
+          {
+            path: 'ops/venue',
+            element: (
+              <SuspenseWrapper>
+                <VenueSetupPage />
+              </SuspenseWrapper>
+            ),
+          },
         ],
       },
-      // Phase 7 — Merchant routes
+      // Merchant routes
       {
         path: '/merchant/login',
         element: (
@@ -224,53 +312,25 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/merchant/unauthorized',
+        element: (
+          <Suspense fallback={<LoadingScreen />}>
+            <MerchantUnauthorizedPage />
+          </Suspense>
+        ),
+      },
+      {
         path: '/merchant',
         element: <MerchantLayout />,
         children: [
-          {
-            index: true,
-            element: <Navigate to="/merchant/orders" replace />,
-          },
-          {
-            path: 'orders',
-            element: (
-              <SuspenseWrapper>
-                <OrdersInboxPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'menu',
-            element: (
-              <SuspenseWrapper>
-                <MenuManagementPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'coupons',
-            element: (
-              <SuspenseWrapper>
-                <CouponsPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'analytics',
-            element: (
-              <SuspenseWrapper>
-                <MerchantAnalyticsPage />
-              </SuspenseWrapper>
-            ),
-          },
-          {
-            path: 'settings',
-            element: (
-              <SuspenseWrapper>
-                <SLASettingsPage />
-              </SuspenseWrapper>
-            ),
-          },
+          { index: true, element: <Navigate to="/merchant/orders" replace /> },
+          { path: 'orders', element: <MerchantProtectedRoute requiredPermission="orders.view"><SuspenseWrapper><OrdersInboxPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'menu', element: <MerchantProtectedRoute requiredPermission="menu.view"><SuspenseWrapper><MenuManagementPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'campaigns', element: <MerchantProtectedRoute requiredPermission="campaigns.view"><SuspenseWrapper><CampaignsPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'coupons', element: <MerchantProtectedRoute requiredPermission="coupons.validate"><SuspenseWrapper><CouponsPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'refunds', element: <MerchantProtectedRoute requiredPermission="refunds.view"><SuspenseWrapper><RefundsPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'analytics', element: <MerchantProtectedRoute requiredPermission="analytics.view"><SuspenseWrapper><MerchantAnalyticsPage /></SuspenseWrapper></MerchantProtectedRoute> },
+          { path: 'settings', element: <MerchantProtectedRoute requiredPermission="sla.view"><SuspenseWrapper><SLASettingsPage /></SuspenseWrapper></MerchantProtectedRoute> },
         ],
       },
       {

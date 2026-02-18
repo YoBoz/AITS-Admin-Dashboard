@@ -1,0 +1,114 @@
+{
+  "phase": 1,
+  "title": "Merchant Authentication, Layout & RBAC Integration",
+  "context": {
+    "previous": "Extends existing Ai-TS Admin Dashboard infrastructure",
+    "next": "Orders Inbox Implementation"
+  },
+  "objective": "Create merchant dashboard access layer separated by login, role switching, and permission-based rendering while reusing core layout and design tokens.",
+  "requirements": {
+    "integration_mode": "Same codebase, separate route group: /merchant/*",
+    "theme_consistency": "Reuse global ThemeProvider, colors (#BE052E), fonts, modal system",
+    "layout_variation": "Merchant layout is simplified, performance-first, fewer nav items"
+  },
+  "roles": [
+    {
+      "role": "Manager",
+      "permissions": [
+        "view_orders",
+        "accept_orders",
+        "reject_orders",
+        "manage_menu",
+        "manage_campaigns",
+        "configure_sla",
+        "refund_within_threshold",
+        "view_analytics"
+      ]
+    },
+    {
+      "role": "Cashier",
+      "permissions": [
+        "view_orders",
+        "accept_orders",
+        "mark_ready"
+      ]
+    },
+    {
+      "role": "Kitchen",
+      "permissions": [
+        "view_orders",
+        "start_preparing",
+        "mark_ready"
+      ]
+    },
+    {
+      "role": "Developer",
+      "permissions": [
+        "view_all",
+        "override_states",
+        "debug_mode"
+      ]
+    }
+  ],
+  "dummy_login_credentials": [
+    {
+      "email": "manager@demo.ai-ts",
+      "password": "Password123",
+      "role": "Manager"
+    },
+    {
+      "email": "cashier@demo.ai-ts",
+      "password": "Password123",
+      "role": "Cashier"
+    },
+    {
+      "email": "kitchen@demo.ai-ts",
+      "password": "Password123",
+      "role": "Kitchen"
+    },
+    {
+      "email": "developer@demo.ai-ts",
+      "password": "Password123",
+      "role": "Developer"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "merchant_login_page",
+      "description": "Create dedicated /merchant/login page.",
+      "requirements": [
+        "Reuse global auth pattern but separate namespace.",
+        "After login redirect to /merchant/orders.",
+        "Store role claims in merchantAuthStore (Zustand).",
+        "Role switch dropdown in profile (Developer & Manager only)."
+      ]
+    },
+    {
+      "id": "merchant_layout",
+      "description": "Create MerchantLayout.",
+      "requirements": [
+        "Simplified sidebar: Orders, Menu, Campaigns, Coupons, Refunds, Settings.",
+        "Highlight Orders tab strongly (default route).",
+        "Remove heavy analytics visuals.",
+        "Compact topbar with store status badge.",
+        "SLA countdown global indicator in topbar."
+      ]
+    },
+    {
+      "id": "rbac_engine",
+      "description": "Implement claims-based access wrapper.",
+      "requirements": [
+        "Create <RequirePermission permission='...'> wrapper.",
+        "Hide UI elements if permission missing.",
+        "Disable buttons with tooltip explaining permission restriction.",
+        "Route guard redirect to /merchant/unauthorized."
+      ]
+    }
+  ],
+  "acceptance_criteria": [
+    "Merchant login separate from Admin login.",
+    "Each role sees only allowed buttons.",
+    "Role switching works for Manager & Developer.",
+    "Theme identical to Admin dashboard."
+  ]
+}

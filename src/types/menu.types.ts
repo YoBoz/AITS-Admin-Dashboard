@@ -14,9 +14,12 @@ export interface ModifierGroup {
   options: ModifierOption[];
 }
 
+export type DietType = 'veg' | 'non-veg' | 'egg';
+
 export interface MenuItem {
   id: string;
   category_id: string;
+  subcategory_id: string | null;
   name: string;
   description: string;
   price: number;
@@ -27,8 +30,16 @@ export interface MenuItem {
   prep_time_minutes: number;
   allergens: string[];
   tags: string[];
+  diet_type: DietType;
   modifier_groups: ModifierGroup[];
   status: 'draft' | 'published';
+  sort_order: number;
+}
+
+export interface MenuSubcategory {
+  id: string;
+  category_id: string;
+  name: string;
   sort_order: number;
 }
 
@@ -38,5 +49,6 @@ export interface MenuCategory {
   description: string | null;
   sort_order: number;
   is_available: boolean;
+  subcategories: MenuSubcategory[];
   items: MenuItem[];
 }
