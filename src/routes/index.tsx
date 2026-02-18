@@ -38,10 +38,10 @@ const ServerErrorPage = lazy(() => import('@/pages/errors/ServerErrorPage'));
 
 // Phase 7 — Merchant pages
 const MerchantLoginPage = lazy(() => import('@/pages/merchant/MerchantLoginPage'));
-const MerchantRoleSwitcher = lazy(() => import('@/pages/merchant/MerchantRoleSwitcher'));
 const OrdersInboxPage = lazy(() => import('@/pages/merchant/OrdersInboxPage'));
 const MenuManagementPage = lazy(() => import('@/pages/merchant/MenuManagementPage'));
 const CouponsPage = lazy(() => import('@/pages/merchant/CouponsPage'));
+const MerchantAnalyticsPage = lazy(() => import('@/pages/merchant/MerchantAnalyticsPage'));
 const SLASettingsPage = lazy(() => import('@/pages/merchant/SLASettingsPage'));
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
@@ -256,18 +256,18 @@ export const router = createBrowserRouter([
             ),
           },
           {
-            path: 'settings',
+            path: 'analytics',
             element: (
               <SuspenseWrapper>
-                <SLASettingsPage />
+                <MerchantAnalyticsPage />
               </SuspenseWrapper>
             ),
           },
           {
-            path: 'switch-role',
+            path: 'settings',
             element: (
               <SuspenseWrapper>
-                <MerchantRoleSwitcher />
+                <SLASettingsPage />
               </SuspenseWrapper>
             ),
           },

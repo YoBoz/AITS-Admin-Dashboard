@@ -53,13 +53,13 @@ export const ROLE_PERMISSIONS: Record<MerchantRole, MerchantPermission[]> = {
     'sla.view', 'sla.edit', 'capacity.edit',
     'campaigns.view', 'campaigns.create',
     'coupons.validate',
-    'refunds.view', 'refunds.request',
+    'refunds.view', 'refunds.request', // Managers can refund up to threshold
     'analytics.view',
   ],
   cashier: [
     'orders.view', 'orders.accept', 'orders.reject', 'orders.prepare', 'orders.ready',
     'coupons.validate',
-    'refunds.view',
+    // Cashiers CANNOT request refunds — refunds.request is not included
   ],
   kitchen: [
     'orders.view', 'orders.prepare', 'orders.ready',
@@ -68,4 +68,14 @@ export const ROLE_PERMISSIONS: Record<MerchantRole, MerchantPermission[]> = {
     'orders.view',
     'menu.view', 'menu.edit', 'menu.publish',
   ],
+};
+
+// Refund threshold configuration
+export const REFUND_CONFIG = {
+  /** Max auto-approve amount (AED) — above this requires ops approval */
+  maxAutoApprove: 50,
+  /** Manager daily refund limit */
+  dailyLimitManager: 10,
+  /** Amount threshold requiring ops approval even for managers */
+  opsApprovalThreshold: 100,
 };

@@ -116,7 +116,7 @@ export function DataTable<T>({
       {/* Table */}
       <div className="rounded-md border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id} className="border-b bg-muted/50">
@@ -124,7 +124,7 @@ export function DataTable<T>({
                     <th
                       key={header.id}
                       className={cn(
-                        'px-4 py-3 text-left font-roboto text-xs font-semibold uppercase tracking-wider text-muted-foreground',
+                        'px-3 py-2.5 text-left font-roboto text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap',
                         header.column.getCanSort() && 'cursor-pointer select-none hover:text-foreground'
                       )}
                       onClick={header.column.getToggleSortingHandler()}
@@ -156,7 +156,7 @@ export function DataTable<T>({
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        className="px-4 py-3 font-roboto text-sm text-foreground"
+                        className="px-3 py-2.5 font-roboto text-xs text-foreground"
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>

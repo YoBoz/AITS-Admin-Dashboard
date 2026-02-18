@@ -4,10 +4,12 @@ import { MerchantSidebar } from './MerchantSidebar';
 import { MerchantNavbar } from './MerchantNavbar';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
 import { useOrderPolling } from '@/hooks/useOrderPolling';
+import { useSidebarStore } from '@/store/sidebar.store';
 
 export function MerchantLayout() {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useMerchantAuth();
+  const { isCollapsed } = useSidebarStore();
 
   // Start order polling when authenticated
   useOrderPolling();
@@ -26,13 +28,15 @@ export function MerchantLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sidebar — 240px */}
-      <div className="hidden lg:block">
-        <MerchantSidebar />
-      </div>
+      {/* Sidebar */}
+      <MerchantSidebar />
 
       {/* Main content — offset by sidebar width */}
-      <div className="lg:ml-[240px] min-h-screen flex flex-col transition-[margin] duration-250 ease-in-out">
+      <div
+        className={`min-h-screen flex flex-col transition-[margin-left] duration-300 ease-in-out ${
+          isCollapsed ? 'lg:ml-[72px]' : 'lg:ml-[240px]'
+        }`}
+      >
         <MerchantNavbar />
 
         <main className="flex-1 p-4 lg:p-6" role="main">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useOrdersStore } from '@/store/orders.store';
 import { useMerchantStore } from '@/store/merchant.store';
 import type { Order, OrderItem, OrderStatus } from '@/types/order.types';
+import type { MerchantSLASettings } from '@/types/merchant.types';
 
 // ---------- helpers ----------
 const PAX_NAMES = ['Alex T.', 'Jordan M.', 'Sam K.', 'Riley P.', 'Morgan B.', 'Casey L.', 'Quinn D.', 'Avery S.'];
@@ -21,7 +22,7 @@ function randomEl<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function generateOrder(shopId: string): Order {
+function generateOrder(shopId: string, slaSeconds: number = 90): Order {
   orderSeq++;
   const now = new Date();
   const itemCount = Math.random() > 0.6 ? Math.floor(Math.random() * 3) + 2 : 1;
@@ -52,7 +53,7 @@ function generateOrder(shopId: string): Order {
     preparing_started_at: null,
     ready_at: null,
     delivered_at: null,
-    sla_accept_by: new Date(now.getTime() + 90_000).toISOString(),
+    sla_accept_by: new Date(now.getTime() + slaSeconds * 1000).toISOString(),
     sla_deliver_by: new Date(now.getTime() + 1_800_000).toISOString(),
     passenger_alias: randomEl(PAX_NAMES),
     passenger_phone: '+971-50-555-' + String(Math.floor(Math.random() * 9000) + 1000),
@@ -87,7 +88,7 @@ function generateOrder(shopId: string): Order {
 // ---------- hook ----------
 export function useOrderPolling() {
   const { addOrder, updateOrderStatus, orders, isPolling, startPolling, stopPolling } = useOrdersStore();
-  const { merchantUser, isStoreOpen } = useMerchantStore();
+  const { merchantUser, isStoreOpen, slaSettings } = useMerchantStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef(0);
 
@@ -96,14 +97,36 @@ export function useOrderPolling() {
 
     tickRef.current++;
     const shopId = merchantUser.shop_id;
+    const now = Date.now();
+    const slaSeconds = slaSettings.acceptance_sla_seconds;
 
-    // Every 15s (tick 1, 2, 3...) — add a new order
+    // Auto-reject orders that exceeded SLA acceptance window
+    const expiredOrders = orders.filter(
+      (o) => o.status === 'new' && o.sla_accept_by && new Date(o.sla_accept_by).getTime() < now
+    );
+    expiredOrders.forEach((order) => {
+      updateOrderStatus(order.id, 'rejected', {
+        reject_reason: 'SLA Timeout',
+        reject_notes: 'Auto-rejected: acceptance window expired',
+        event_log: [
+          ...order.event_log,
+          {
+            timestamp: new Date().toISOString(),
+            actor: 'System',
+            action: 'Auto-rejected',
+            details: 'SLA acceptance window expired — passenger notified',
+          },
+        ],
+      });
+    });
+
+    // Every 15s (tick 1, 2, 3...) — add a new order using configured SLA
     if (tickRef.current % 1 === 0) {
-      const order = generateOrder(shopId);
+      const order = generateOrder(shopId, slaSeconds);
       addOrder(order);
       // 30 % chance of a second order
       if (Math.random() < 0.3) {
-        const bonus = generateOrder(shopId);
+        const bonus = generateOrder(shopId, slaSeconds);
         addOrder(bonus);
       }
     }
@@ -116,7 +139,7 @@ export function useOrderPolling() {
         updateOrderStatus(target.id, 'preparing');
       }
     }
-  }, [merchantUser, isStoreOpen, addOrder, updateOrderStatus, orders]);
+  }, [merchantUser, isStoreOpen, slaSettings, addOrder, updateOrderStatus, orders]);
 
   useEffect(() => {
     if (!merchantUser || !isStoreOpen) {

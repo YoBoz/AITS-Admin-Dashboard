@@ -11,7 +11,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/merchant/coupons': 'Coupons & Campaigns',
   '/merchant/analytics': 'Analytics',
   '/merchant/settings': 'SLA Settings',
-  '/merchant/switch-role': 'Switch Role',
 };
 
 export function MerchantNavbar() {

@@ -76,7 +76,7 @@ export default function ComplaintsPage() {
       cell: ({ row }) => (
         <button
           onClick={() => { selectComplaint(row.original); setDetailOpen(true); }}
-          className="text-xs font-mono text-brand hover:underline"
+          className="text-[10px] font-mono text-brand hover:underline whitespace-nowrap"
         >
           {row.original.ticket_id}
         </button>
@@ -86,7 +86,7 @@ export default function ComplaintsPage() {
       accessorKey: 'subject',
       header: 'Subject',
       cell: ({ getValue }) => (
-        <span className="text-xs font-lexend text-foreground truncate block max-w-[180px]">
+        <span className="text-[11px] font-lexend text-foreground truncate block max-w-[140px]">
           {getValue<string>()}
         </span>
       ),
@@ -95,21 +95,21 @@ export default function ComplaintsPage() {
       accessorKey: 'category',
       header: 'Category',
       cell: ({ getValue }) => (
-        <span className="text-[10px] font-lexend capitalize">{getValue<string>().replace('_', ' ')}</span>
+        <span className="text-[10px] font-lexend capitalize whitespace-nowrap">{getValue<string>().replace('_', ' ')}</span>
       ),
     },
     {
       header: 'Submitted By',
       accessorFn: (row) => row.submitted_by.name,
       cell: ({ getValue }) => (
-        <span className="text-xs font-lexend">{getValue<string>()}</span>
+        <span className="text-[11px] font-lexend truncate block max-w-[110px]">{getValue<string>()}</span>
       ),
     },
     {
       accessorKey: 'priority',
       header: 'Priority',
       cell: ({ getValue }) => (
-        <Badge variant={priorityVariant[getValue<string>()] || 'secondary'} className="text-[10px]">
+        <Badge variant={priorityVariant[getValue<string>()] || 'secondary'} className="text-[10px] px-1.5 py-0">
           {getValue<string>()}
         </Badge>
       ),
@@ -123,7 +123,7 @@ export default function ComplaintsPage() {
       header: 'Assigned To',
       accessorFn: (row) => row.assigned_to || '—',
       cell: ({ getValue }) => (
-        <span className="text-xs font-lexend text-muted-foreground">{getValue<string>()}</span>
+        <span className="text-[11px] font-lexend text-muted-foreground truncate block max-w-[100px]">{getValue<string>()}</span>
       ),
     },
     {
@@ -167,7 +167,7 @@ export default function ComplaintsPage() {
   ], [selectComplaint]);
 
   return (
-    <div className="space-y-4 max-w-[1280px] mx-auto">
+    <div className="space-y-4">
       <PageHeader title="Complaints" subtitle="Track and manage visitor complaints" />
 
       {/* Stats row */}
@@ -232,8 +232,10 @@ export default function ComplaintsPage() {
       </SearchFilter>
 
       {/* Table */}
-      <SectionCard title={`Complaints (${filteredComplaints.length})`} contentClassName="p-0">
-        <DataTable columns={columns} data={filteredComplaints} />
+      <SectionCard title={`Complaints (${filteredComplaints.length})`} contentClassName="p-0 pb-4">
+        <div className="px-4 pt-4">
+          <DataTable columns={columns} data={filteredComplaints} />
+        </div>
       </SectionCard>
 
       <ComplaintDetailModal

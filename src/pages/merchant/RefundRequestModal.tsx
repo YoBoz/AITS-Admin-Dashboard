@@ -5,9 +5,12 @@ import { RefundRulesBanner } from '@/components/merchant/RefundRulesBanner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Badge } from '@/components/ui/Badge';
 import { useOrdersStore } from '@/store/orders.store';
+import { useMerchantAuth } from '@/hooks/useMerchantAuth';
+import { REFUND_CONFIG } from '@/types/merchant.types';
 import type { Order } from '@/types/order.types';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, AlertTriangle } from 'lucide-react';
 
 interface RefundRequestModalProps {
   open: boolean;
@@ -17,12 +20,17 @@ interface RefundRequestModalProps {
 
 export function RefundRequestModal({ open, onOpenChange, order }: RefundRequestModalProps) {
   const { requestRefund } = useOrdersStore();
+  const { merchantRole } = useMerchantAuth();
   const [amount, setAmount] = useState(order.total.toString());
   const [reasonCode, setReasonCode] = useState('');
   const [notes, setNotes] = useState('');
 
   const parsedAmount = parseFloat(amount) || 0;
   const isValid = reasonCode && parsedAmount > 0 && parsedAmount <= order.total;
+  
+  // Check if ops approval is required
+  const requiresOpsApproval = parsedAmount > REFUND_CONFIG.opsApprovalThreshold;
+  const isAutoApproved = parsedAmount <= REFUND_CONFIG.maxAutoApprove;
 
   const handleConfirm = () => {
     if (!isValid) return;
@@ -52,15 +60,28 @@ export function RefundRequestModal({ open, onOpenChange, order }: RefundRequestM
           </Button>
           <Button onClick={handleConfirm} disabled={!isValid}>
             <RotateCcw className="h-4 w-4 mr-1" />
-            Submit Refund Request
+            {requiresOpsApproval ? 'Submit for Approval' : 'Submit Refund Request'}
           </Button>
         </div>
       }
     >
       <div className="space-y-5">
+        {/* Ops Approval Warning */}
+        {requiresOpsApproval && (
+          <div className="flex items-start gap-2 rounded-lg border border-status-warning/50 bg-status-warning/5 p-3">
+            <AlertTriangle className="h-4 w-4 text-status-warning mt-0.5" />
+            <div className="text-xs">
+              <p className="font-medium text-foreground">Operations Approval Required</p>
+              <p className="text-muted-foreground mt-0.5">
+                Refunds above AED {REFUND_CONFIG.opsApprovalThreshold} require ops team approval.
+              </p>
+            </div>
+          </div>
+        )}
+        
         <RefundRulesBanner
-          maxAutoApprove={20}
-          dailyLimit={10}
+          maxAutoApprove={REFUND_CONFIG.maxAutoApprove}
+          dailyLimit={REFUND_CONFIG.dailyLimitManager}
           todayTotal={3}
         />
 

@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Store,
-  ArrowLeftRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LogoIcon } from '@/assets/logo';
@@ -19,7 +18,7 @@ import { Avatar, AvatarFallback } from '@/components/common/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import type { LucideIcon } from 'lucide-react';
 import type { MerchantPermission } from '@/types/merchant.types';
-import { useState } from 'react';
+import { useSidebarStore } from '@/store/sidebar.store';
 
 interface MerchantNavItem {
   label: string;
@@ -39,8 +38,8 @@ const NAV_ITEMS: MerchantNavItem[] = [
 export function MerchantSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { merchantUser, merchantRole, logout, canDo } = useMerchantAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { merchantUser, merchantRole, logout } = useMerchantAuth();
+  const { isCollapsed, toggle: toggleCollapsed } = useSidebarStore();
 
   const isActive = (route: string) =>
     location.pathname === route || location.pathname.startsWith(route + '/');
@@ -50,16 +49,15 @@ export function MerchantSidebar() {
     navigate('/merchant/login');
   };
 
-  const filteredItems = NAV_ITEMS.filter(
-    (item) => !item.permission || canDo(item.permission)
-  );
+  // Show all nav items (permission filtering can be added back if needed)
+  const filteredItems = NAV_ITEMS;
 
   return (
     <motion.aside
       initial={false}
       animate={{ width: isCollapsed ? 72 : 240 }}
       transition={{ duration: 0.25, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card overflow-hidden"
+      className="hidden lg:flex fixed left-0 top-0 z-40 h-screen flex-col border-r border-border bg-card overflow-hidden"
     >
       {/* Logo + Shop Name */}
       <div className="flex h-16 items-center gap-3 px-4 border-b border-border shrink-0">
@@ -105,11 +103,11 @@ export function MerchantSidebar() {
               key={item.route}
               onClick={() => navigate(item.route)}
               className={cn(
-                'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-lexend transition-all',
+                'group relative flex w-full items-center gap-3 rounded-lg py-2.5 text-sm font-lexend transition-all',
                 active
-                  ? 'bg-brand/8 text-brand border-l-[3px] border-brand'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-[3px] border-transparent',
-                isCollapsed && 'justify-center px-0'
+                  ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-4 border-transparent px-3',
+                isCollapsed && 'justify-center px-0 border-l-0'
               )}
               title={isCollapsed ? item.label : undefined}
             >
@@ -158,17 +156,6 @@ export function MerchantSidebar() {
           </AnimatePresence>
         </div>
 
-        {/* Switch role */}
-        {!isCollapsed && merchantUser && merchantUser.available_roles.length > 1 && (
-          <button
-            onClick={() => navigate('/merchant/switch-role')}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-          >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
-            Switch Role
-          </button>
-        )}
-
         {/* Logout */}
         <button
           onClick={handleLogout}
@@ -190,7 +177,7 @@ export function MerchantSidebar() {
 
         {/* Collapse toggle */}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={toggleCollapsed}
           className="flex w-full items-center justify-center gap-2 rounded-lg py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}

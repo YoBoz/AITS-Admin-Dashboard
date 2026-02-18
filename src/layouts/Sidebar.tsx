@@ -101,7 +101,7 @@ export function Sidebar() {
       className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card overflow-hidden"
     >
       {/* Logo */}
-      <div className="flex h-16 items-center px-4 border-b border-border shrink-0">
+      <div className="flex h-20 items-center justify-center px-4 border-b border-border shrink-0">
         <AnimatePresence mode="wait">
           {isCollapsed ? (
             <motion.div
@@ -110,9 +110,9 @@ export function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
-              className="mx-auto"
+              className="flex items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-8 w-8 object-contain" />
+              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-10 object-contain" />
             </motion.div>
           ) : (
             <motion.div
@@ -121,8 +121,9 @@ export function Sidebar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
+              className="flex items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-auto object-contain" />
+              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-14 w-auto object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -153,11 +154,11 @@ export function Sidebar() {
                   <button
                     onClick={() => navigate(item.route)}
                     className={cn(
-                      'group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-lexend transition-all duration-150',
+                      'group relative flex w-full items-center gap-3 rounded-lg py-2 text-sm font-lexend transition-all duration-150',
                       active
-                        ? 'bg-brand/8 text-brand border-l-[3px] border-brand'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-[3px] border-transparent',
-                      isCollapsed && 'justify-center px-0'
+                        ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-4 border-transparent px-3',
+                      isCollapsed && 'justify-center px-0 border-l-0'
                     )}
                   >
                     <span className="relative">

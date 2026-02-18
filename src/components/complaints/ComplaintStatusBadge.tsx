@@ -3,6 +3,11 @@ import type { ComplaintStatus } from '@/types/complaint.types';
 import {
   Circle, Clock, MessageSquare, CheckCircle, XCircle, AlertTriangle,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/Tooltip';
 
 interface ComplaintStatusBadgeProps {
   status: ComplaintStatus;
@@ -45,15 +50,22 @@ const config: Record<ComplaintStatus, { icon: React.ReactNode; label: string; cl
 export function ComplaintStatusBadge({ status, className }: ComplaintStatusBadgeProps) {
   const cfg = config[status];
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold font-lexend',
-        cfg.classes,
-        className
-      )}
-    >
-      {cfg.icon}
-      {cfg.label}
-    </span>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          className={cn(
+            'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold font-lexend max-w-[100px]',
+            cfg.classes,
+            className
+          )}
+        >
+          {cfg.icon}
+          <span className="truncate">{cfg.label}</span>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="text-xs">{cfg.label}</p>
+      </TooltipContent>
+    </Tooltip>
   );
 }
