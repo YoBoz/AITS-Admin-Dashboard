@@ -109,7 +109,7 @@ function getStatusIcon(status: OrderStatus) {
   }
 }
 
-export default function OpsOrdersConsolePage() {
+export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -158,17 +158,19 @@ export default function OpsOrdersConsolePage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <ClipboardList className="h-6 w-6 text-primary" />
-            Operations Console
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Unified order management and tracking
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <ClipboardList className="h-6 w-6 text-primary" />
+              Operations Console
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Unified order management and tracking
+            </p>
+          </div>
+        )}
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <Badge variant="outline" className="gap-1">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             Live Updates

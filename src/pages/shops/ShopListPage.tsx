@@ -40,7 +40,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   );
 }
 
-export default function ShopListPage() {
+export default function ShopListPage({ embedded }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { filters, setFilters, getFilteredShops, getStats, deleteShop } = useShopsStore();
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -148,16 +148,27 @@ export default function ShopListPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <PageHeader
-        title="Shop & Company Management"
-        subtitle="Manage shops, contracts, and company relationships"
-        actions={
+      {!embedded && (
+        <PageHeader
+          title="Shop & Company Management"
+          subtitle="Manage shops, contracts, and company relationships"
+          actions={
+            <Button onClick={() => setAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Shop
+            </Button>
+          }
+        />
+      )}
+
+      {embedded && (
+        <div className="flex justify-end">
           <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Shop
           </Button>
-        }
-      />
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

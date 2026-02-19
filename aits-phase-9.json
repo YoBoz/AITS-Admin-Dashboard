@@ -1,0 +1,540 @@
+{
+  "project": "Ai-TS Admin Dashboard",
+  "phase": 9,
+  "phase_title": "Security & Compliance, Content Management, Audit Logs and Data Retention",
+  "phase_description": "Build all Security & Compliance journeys (S-01 to S-05): consent audit trail, incident quarantine, PII/DSAR flows, payment compliance boundaries, immutable audit logs. Build Admin/CMS journeys (C-01 to C-07): enhanced content management (banners, multilingual copy, recommended tiles), merchant directory with approvals, global offer/coupon rules, data retention policy configuration, and consent configuration. Extend the existing permissions/audit work from Phase 5.",
+  "depends_on_phases": [3, 4, 5, 7, 8],
+  "reference_files_from_previous_phases": [
+    "src/pages/permissions/PermissionsPage.tsx",
+    "src/pages/permissions/AuditLogTab.tsx",
+    "src/pages/permissions/UsersTab.tsx",
+    "src/pages/settings/DataSettingsTab.tsx",
+    "src/pages/settings/SecuritySettingsTab.tsx",
+    "src/pages/settings/SettingsPage.tsx",
+    "src/pages/shops/ShopListPage.tsx",
+    "src/pages/shops/ShopDetailPage.tsx",
+    "src/pages/offers/OffersPage.tsx",
+    "src/pages/ops/DeviceActionModal.tsx",
+    "src/components/common/DataTable.tsx",
+    "src/components/common/FormModal.tsx",
+    "src/components/common/ConfirmDialog.tsx",
+    "src/components/common/Timeline.tsx",
+    "src/components/common/Callout.tsx",
+    "src/components/common/FileUpload.tsx",
+    "src/components/common/PageHeader.tsx",
+    "src/components/common/SectionCard.tsx",
+    "src/components/ops/OverrideConfirmForm.tsx",
+    "src/store/permissions.store.ts",
+    "src/store/settings.store.ts",
+    "src/store/incidents.store.ts",
+    "src/store/trolleys.store.ts",
+    "src/data/mock/audit.mock.ts",
+    "src/data/mock/shops.mock.ts",
+    "src/data/mock/policies.mock.ts",
+    "src/types/permissions.types.ts",
+    "src/types/trolley.types.ts",
+    "src/hooks/usePermissions.ts",
+    "src/lib/export.ts",
+    "src/routes/index.tsx",
+    "src/layouts/Sidebar.tsx"
+  ],
+
+  "output_files_this_phase": [
+    "src/pages/compliance/CompliancePage.tsx",
+    "src/pages/compliance/ConsentAuditTab.tsx",
+    "src/pages/compliance/DeviceQuarantineTab.tsx",
+    "src/pages/compliance/DSARFlowTab.tsx",
+    "src/pages/compliance/PaymentComplianceTab.tsx",
+    "src/pages/compliance/ImmutableAuditTab.tsx",
+    "src/pages/compliance/QuarantineDeviceModal.tsx",
+    "src/pages/compliance/DSARRequestModal.tsx",
+    "src/pages/cms/ContentManagementPage.tsx",
+    "src/pages/cms/BannersTab.tsx",
+    "src/pages/cms/RecommendedTilesTab.tsx",
+    "src/pages/cms/MultilingualCopyTab.tsx",
+    "src/pages/cms/BannerEditorModal.tsx",
+    "src/pages/cms/TileEditorModal.tsx",
+    "src/pages/merchant-directory/MerchantDirectoryPage.tsx",
+    "src/pages/merchant-directory/MerchantApprovalModal.tsx",
+    "src/pages/merchant-directory/MerchantDetailModal.tsx",
+    "src/pages/global-rules/GlobalRulesPage.tsx",
+    "src/pages/global-rules/CouponRulesTab.tsx",
+    "src/pages/global-rules/FraudLimitsTab.tsx",
+    "src/pages/global-rules/ExpiryRulesTab.tsx",
+    "src/components/compliance/ConsentRecord.tsx",
+    "src/components/compliance/ConsentStatusBadge.tsx",
+    "src/components/compliance/DSARStatusBadge.tsx",
+    "src/components/compliance/AuditExportPanel.tsx",
+    "src/components/compliance/QuarantineStatusCard.tsx",
+    "src/components/compliance/PaymentBoundaryCard.tsx",
+    "src/components/cms/BannerPreviewCard.tsx",
+    "src/components/cms/TilePreviewCard.tsx",
+    "src/components/cms/LanguageTabBar.tsx",
+    "src/components/cms/CopyEditorRow.tsx",
+    "src/components/merchant-directory/MerchantApprovalCard.tsx",
+    "src/components/global-rules/RuleRow.tsx",
+    "src/data/mock/compliance.mock.ts",
+    "src/data/mock/content.mock.ts",
+    "src/data/mock/merchant-directory.mock.ts",
+    "src/data/mock/global-rules.mock.ts",
+    "src/types/compliance.types.ts",
+    "src/types/content.types.ts",
+    "src/types/global-rules.types.ts",
+    "src/store/compliance.store.ts",
+    "src/store/content.store.ts",
+    "src/store/global-rules.store.ts"
+  ],
+
+  "new_sidebar_sections": {
+    "description": "Add two new sections to admin Sidebar.",
+    "section_compliance": {
+      "section_label": "Compliance",
+      "requires_permission": "permissions.audit_view",
+      "items": [
+        { "label": "Compliance Center", "icon": "ShieldCheck", "route": "/dashboard/compliance" },
+        { "label": "Global Rules", "icon": "ScrollText", "route": "/dashboard/global-rules" }
+      ]
+    },
+    "section_cms": {
+      "section_label": "Content",
+      "requires_permission": "settings.general_edit",
+      "items": [
+        { "label": "Content Management", "icon": "LayoutTemplate", "route": "/dashboard/cms" },
+        { "label": "Merchant Directory", "icon": "BuildingStorefront", "route": "/dashboard/merchant-directory" }
+      ]
+    }
+  },
+
+  "typescript_types": {
+    "src/types/compliance.types.ts": {
+      "ConsentRecord": {
+        "id": "string",
+        "session_id": "string",
+        "passenger_alias": "string (PAX-XXXX)",
+        "consent_type": "'analytics' | 'marketing' | 'location' | 'payment_data' | 'all'",
+        "status": "'granted' | 'declined' | 'withdrawn' | 'pending'",
+        "granted_at": "string | null (ISO)",
+        "withdrawn_at": "string | null",
+        "scope": "string[] (what was consented to)",
+        "device_id": "string (trolley IMEI)",
+        "ip_hash": "string (hashed, never raw IP for PII compliance)",
+        "version": "string (consent form version e.g. v2.1)",
+        "source": "'trolley_tab' | 'web' | 'app'"
+      },
+      "QuarantinedDevice": {
+        "device_id": "string",
+        "device_imei": "string",
+        "quarantine_reason": "'suspicious_behavior' | 'security_breach' | 'policy_violation' | 'hardware_fault' | 'manual'",
+        "quarantined_at": "string",
+        "quarantined_by": "string",
+        "notes": "string",
+        "status": "'active_quarantine' | 'under_investigation' | 'cleared' | 'decommissioned'",
+        "incident_id": "string | null",
+        "cleared_at": "string | null",
+        "cleared_by": "string | null",
+        "clearance_notes": "string | null",
+        "behavioral_flags": "string[]"
+      },
+      "DSARRequest": {
+        "id": "string",
+        "ticket_id": "string (DSAR-YYYYMMDD-XXXX)",
+        "type": "'access' | 'deletion' | 'rectification' | 'portability' | 'restriction'",
+        "status": "'received' | 'verifying' | 'processing' | 'completed' | 'rejected' | 'withdrawn'",
+        "submitted_by_alias": "string (passenger alias or email hash)",
+        "submitted_at": "string",
+        "due_by": "string (ISO - 30 days from submission under GDPR)",
+        "data_categories": "string[]",
+        "data_found": "boolean | null",
+        "response_notes": "string | null",
+        "completed_at": "string | null",
+        "assigned_to": "string | null",
+        "timeline": "DSARTimelineEntry[]"
+      },
+      "DSARTimelineEntry": {
+        "timestamp": "string",
+        "actor": "string",
+        "action": "string",
+        "note": "string | null"
+      },
+      "PaymentComplianceBoundary": {
+        "id": "string",
+        "name": "string",
+        "type": "'tokenization_requirement' | 'refund_limit' | 'currency_restriction' | 'transaction_cap'",
+        "scope": "'global' | 'per_merchant' | 'per_session'",
+        "value": "number | null",
+        "currency": "string | null",
+        "is_active": "boolean",
+        "description": "string",
+        "last_updated": "string",
+        "updated_by": "string"
+      },
+      "ImmutableAuditEntry": {
+        "id": "string",
+        "hash": "string (SHA-256 of entry content, mock: random hex string)",
+        "prev_hash": "string (chain link to previous entry)",
+        "timestamp": "string",
+        "actor_id": "string",
+        "actor_name": "string",
+        "actor_role": "string",
+        "action_category": "'consent' | 'security' | 'payment' | 'policy' | 'data_access' | 'override' | 'config_change'",
+        "action": "string",
+        "entity_type": "string",
+        "entity_id": "string",
+        "data_before": "string | null (JSON stringified, redacted PII)",
+        "data_after": "string | null",
+        "ip_hash": "string",
+        "session_id": "string",
+        "chain_valid": "boolean (always true in mock - represents integrity check)"
+      }
+    },
+    "src/types/content.types.ts": {
+      "Banner": {
+        "id": "string",
+        "name": "string",
+        "status": "'draft' | 'scheduled' | 'active' | 'inactive'",
+        "placement": "'home_hero' | 'gate_notification' | 'category_header' | 'interstitial'",
+        "content": "Record<string, { title: string; body: string; cta_text: string; cta_link: string }> (keyed by language code: en, ar, fr)",
+        "image_url": "string | null",
+        "target_zones": "string[]",
+        "target_gates": "string[]",
+        "start_date": "string | null",
+        "end_date": "string | null",
+        "priority": "number",
+        "created_at": "string",
+        "created_by": "string"
+      },
+      "RecommendedTile": {
+        "id": "string",
+        "type": "'shop' | 'offer' | 'category' | 'navigation'",
+        "entity_id": "string | null (shop_id, offer_id, etc.)",
+        "title": "Record<string, string> (by language)",
+        "subtitle": "Record<string, string>",
+        "image_url": "string | null",
+        "position": "number",
+        "placement": "'home_grid' | 'sidebar_widget' | 'post_checkin'",
+        "target_gates": "string[]",
+        "is_active": "boolean"
+      },
+      "CopyEntry": {
+        "key": "string (e.g. 'onboarding.welcome_title')",
+        "category": "string",
+        "translations": "Record<string, string> (by language code)",
+        "last_updated": "string",
+        "updated_by": "string",
+        "is_published": "boolean",
+        "notes": "string | null"
+      }
+    },
+    "src/types/global-rules.types.ts": {
+      "CouponRule": {
+        "id": "string",
+        "name": "string",
+        "rule_type": "'max_discount_pct' | 'min_order_value' | 'max_uses_per_user' | 'stacking_policy' | 'expiry_max_days' | 'blackout_dates'",
+        "value": "number | string | string[]",
+        "scope": "'global' | 'per_category' | 'per_merchant'",
+        "is_active": "boolean",
+        "description": "string",
+        "updated_at": "string",
+        "updated_by": "string"
+      },
+      "FraudLimit": {
+        "id": "string",
+        "name": "string",
+        "limit_type": "'max_refunds_per_day' | 'max_refund_pct_of_order' | 'suspicious_coupon_velocity' | 'max_orders_per_session' | 'block_repeated_refund_passenager'",
+        "threshold": "number",
+        "action": "'flag' | 'block' | 'require_ops_approval' | 'alert_only'",
+        "is_active": "boolean",
+        "triggered_count_today": "number",
+        "description": "string"
+      }
+    }
+  },
+
+  "compliance_page": {
+    "file": "src/pages/compliance/CompliancePage.tsx",
+    "route": "/dashboard/compliance",
+    "access": "super_admin, terminal_admin",
+    "description": "Central compliance hub. Tabbed page.",
+    "tabs": ["Consent Audit", "Device Quarantine", "DSAR Requests", "Payment Compliance", "Immutable Audit Log"],
+
+    "consent_audit_tab": {
+      "file": "src/pages/compliance/ConsentAuditTab.tsx",
+      "description": "S-01: Prove opt-in status, scope, timestamp for any session/device.",
+      "layout": "Search bar prominent at top: 'Search by Session ID, Passenger Alias, Device IMEI'. Filters: Consent Type, Status, Date Range. Table below.",
+      "consent_table": {
+        "columns": ["Session ID", "Passenger Alias", "Device IMEI", "Consent Type", "Status", "Granted At", "Scope", "Version", "Source", "Actions"],
+        "scope_column": "Comma-separated chip list of consented scopes (truncated, tooltip for full list)",
+        "status_column": "ConsentStatusBadge: Granted (green), Declined (red), Withdrawn (amber), Pending (gray)",
+        "actions_column": "View Full Record button (opens ConsentRecord detail modal)"
+      },
+      "consent_record_modal": {
+        "file": "src/components/compliance/ConsentRecord.tsx",
+        "description": "Modal showing full consent record. Fields in labeled rows: all ConsentRecord fields. Scope as full chip list. Hash proof section: 'Consent record hash: [SHA-256 mock]' in monospace, copy button. Export as PDF button (mock - shows toast). Proves consent for regulatory review."
+      },
+      "summary_stats": "Row of 3 stats above table: Total Consent Records (period), Granted Rate (%), Withdrawn Today."
+    },
+
+    "device_quarantine_tab": {
+      "file": "src/pages/compliance/DeviceQuarantineTab.tsx",
+      "description": "S-02: Suspicious device behavior → quarantine workflow.",
+      "layout": "Active Quarantines section (cards grid) + Historical table below.",
+      "quarantine_card": {
+        "file": "src/components/compliance/QuarantineStatusCard.tsx",
+        "design": "Card with red header. Device IMEI large. Reason badge. Status: Active/Under Investigation/Cleared. Quarantined by + timestamp. Behavioral flags as red chip list. Action buttons: View Incident, Investigate, Clear Quarantine."
+      },
+      "quarantine_device_modal": {
+        "file": "src/pages/compliance/QuarantineDeviceModal.tsx",
+        "description": "Trigger from Device Actions in Live Fleet (Phase 8) or from this tab. Fields: Device IMEI (auto-filled or searchable), Quarantine Reason (select), Behavioral Flags observed (multi-select chips: erratic movement, zone breach, signal spoofing suspected, repeated policy violations, unauthorized firmware), Notes (required). Links to existing Incident (optional). Submit triggers: sets trolley status to 'offline', creates QuarantinedDevice record, adds to incidents.store if linked.",
+        "access": "Requires permission: settings.security_edit"
+      },
+      "historical_table": "DataTable of cleared/decommissioned quarantine records. Columns: IMEI, Reason, Quarantined At, Duration, Cleared By, Outcome."
+    },
+
+    "dsar_tab": {
+      "file": "src/pages/compliance/DSARFlowTab.tsx",
+      "description": "S-03: PII minimization + deletion request handling (Data Subject Access Request).",
+      "layout": "Stats row (Open, Overdue, Completed this month) + filter bar + table.",
+      "dsar_table": {
+        "columns": ["Ticket ID", "Type", "Submitted By (alias/hash)", "Status", "Submitted At", "Due By", "Assigned To", "Actions"],
+        "due_by_column": "Green if > 7 days left, amber if < 7 days, red if overdue. Use date-fns.",
+        "status_column": "DSARStatusBadge with icon per status",
+        "row_click": "Opens DSAR detail panel/modal"
+      },
+      "dsar_request_modal": {
+        "file": "src/pages/compliance/DSARRequestModal.tsx",
+        "description": "View + process a DSAR request. Sections: Request Info (type, submitted by alias, submitted at, due by, data categories requested). Processing section (status dropdown, Assign To user, Response Notes textarea, data_found toggle). Timeline showing all processing steps. Export Response button (mock). Special 'Mark as Completed' button with confirm. Warning callout: 'DSAR responses are logged in the Immutable Audit Log and cannot be edited after completion.'"
+      },
+      "create_dsar_button": "Ops/Admin can create DSAR on behalf of submitter. Fields: Type, submitter alias/email hash (not raw email), data categories."
+    },
+
+    "payment_compliance_tab": {
+      "file": "src/pages/compliance/PaymentComplianceTab.tsx",
+      "description": "S-04: Payment compliance boundaries, tokenization requirements, refund controls.",
+      "layout": "Grid of PaymentBoundaryCard components.",
+      "payment_boundary_card": {
+        "file": "src/components/compliance/PaymentBoundaryCard.tsx",
+        "design": "Card with lock icon. Boundary name. Type badge. Scope badge. Value/limit display. Active toggle (super_admin only). Description. Last updated by + timestamp.",
+        "non_editable_types": "tokenization_requirement and currency_restriction cards show as 'read-only, set by compliance team' with lock icon."
+      },
+      "boundaries": [
+        { "name": "Card Data Tokenization", "type": "tokenization_requirement", "description": "All payment card data must be tokenized before storage. Raw PANs never stored in this system.", "is_active": true, "scope": "global" },
+        { "name": "Manager Refund Threshold", "type": "refund_limit", "description": "Merchant managers can approve refunds up to this amount without ops approval.", "value": 50, "currency": "AED", "scope": "per_merchant" },
+        { "name": "Session Transaction Cap", "type": "transaction_cap", "description": "Maximum order value per single passenger session.", "value": 500, "currency": "AED", "scope": "per_session" },
+        { "name": "Accepted Currencies", "type": "currency_restriction", "description": "Currencies accepted for payment processing.", "scope": "global" }
+      ]
+    },
+
+    "immutable_audit_tab": {
+      "file": "src/pages/compliance/ImmutableAuditTab.tsx",
+      "description": "S-05: Immutable audit logs for regulators and airport security.",
+      "layout": "Header with chain integrity status indicator. Filter bar. Table.",
+      "chain_integrity_banner": "Green banner: 'Audit chain integrity verified. All [N] entries are tamper-evident.' If any chain_valid=false (never in mock): red banner with alert. Verify Now button (re-runs mock check, shows loading then success).",
+      "filter_bar": "Search by actor, action, entity. Filter by action_category. Filter by date range. Note: No delete or edit available on this table.",
+      "audit_table": {
+        "columns": ["Hash (short)", "Timestamp", "Actor", "Role", "Category", "Action", "Entity", "Details"],
+        "hash_column": "First 8 chars of hash in monospace + copy icon. Tooltip: full hash + prev_hash.",
+        "category_column": "Colored badge per category.",
+        "details_column": "Expandable: shows data_before / data_after as JSON diff view (simple two-column table).",
+        "note": "No pagination - use virtual scrolling. No sort on timestamp (immutable order). Only forward scroll."
+      },
+      "export_panel": {
+        "file": "src/components/compliance/AuditExportPanel.tsx",
+        "description": "Panel below filter bar. Export for regulators: date range picker, format select (CSV/JSON), category filter. Export button generates file with all fields including hashes. Note: 'Exported files are signed with the Ai-TS compliance key in production.' (informational label only in mock)."
+      },
+      "mock_data": "ImmutableAuditEntry[] of 80 entries covering last 90 days. Mix of: 25 consent actions, 15 security events (quarantine, device actions), 10 payment compliance events (refund approved, threshold updated), 15 policy changes, 10 DSAR events, 5 rbac_changes. Each entry has correct prev_hash chain (entry N's prev_hash = entry N-1's hash)."
+    }
+  },
+
+  "content_management_page": {
+    "file": "src/pages/cms/ContentManagementPage.tsx",
+    "route": "/dashboard/cms",
+    "description": "C-03: Banners, recommended tiles, multilingual copy editor.",
+    "tabs": ["Banners", "Recommended Tiles", "Multilingual Copy"],
+
+    "banners_tab": {
+      "file": "src/pages/cms/BannersTab.tsx",
+      "description": "Manage display banners shown on trolley tablets.",
+      "layout": "Filter bar (placement, status, language). Grid of BannerPreviewCard.",
+      "banner_preview_card": {
+        "file": "src/components/cms/BannerPreviewCard.tsx",
+        "design": "Card shaped like a horizontal banner (16:5 ratio). Shows current-language title and CTA text over a gradient background (if no image) or image thumbnail. Status badge top-right. Below card: name, placement badge, date range, language completion indicator (e.g. EN AR FR with colored dots: green=complete, amber=partial, red=missing)."
+      },
+      "banner_editor_modal": {
+        "file": "src/pages/cms/BannerEditorModal.tsx",
+        "description": "Large modal (xl). Left: form fields. Right: live preview panel (BannerPreviewCard updating as user types).",
+        "fields": [
+          "Banner Name (internal)",
+          "Placement (select)",
+          "Status + schedule dates",
+          "Priority (number)",
+          "Target Zones / Target Gates (multi-select)",
+          "Image Upload (optional)",
+          "Language tabs (EN / AR / FR) - each tab has: Title, Body, CTA Text, CTA Link fields",
+          "Language completion checker: shows which languages are complete"
+        ]
+      }
+    },
+
+    "recommended_tiles_tab": {
+      "file": "src/pages/cms/RecommendedTilesTab.tsx",
+      "description": "Manage the grid of recommended tiles on trolley tablet home screen.",
+      "layout": "Drag-to-reorder grid of TilePreviewCard (using sort order). Add Tile button. Placement filter tabs.",
+      "tile_preview_card": {
+        "file": "src/components/cms/TilePreviewCard.tsx",
+        "design": "Square card (1:1 ratio). Image or placeholder. Title overlay. Type badge (Shop / Offer / Category / Navigation). Position number badge top-left. Drag handle top-right. Active/Inactive toggle. Edit / Remove buttons."
+      },
+      "tile_editor_modal": {
+        "file": "src/pages/cms/TileEditorModal.tsx",
+        "fields": ["Type (radio)", "Entity link (select shop/offer based on type)", "Title (per language tabs)", "Subtitle (per language tabs)", "Image Upload", "Placement", "Target Gates", "Position (number)", "Active toggle"]
+      }
+    },
+
+    "multilingual_copy_tab": {
+      "file": "src/pages/cms/MultilingualCopyTab.tsx",
+      "description": "Edit all user-facing text strings that appear on trolley tablets. Not the admin dashboard strings (those are in locales/*.json) but the passenger-facing copy.",
+      "layout": "Categories list on left (Onboarding, Navigation, Orders, Offers, Help, Error Messages). Copy entries table on right.",
+      "language_tab_bar": {
+        "file": "src/components/cms/LanguageTabBar.tsx",
+        "description": "Tabs: English | Arabic | French. Shows completion percentage per language (e.g. 'French: 87% complete'). Active language is being edited."
+      },
+      "copy_editor_row": {
+        "file": "src/components/cms/CopyEditorRow.tsx",
+        "description": "Each row in the copy table: key (read-only, monospace), EN reference text (read-only, shows English as reference always), current language input field (editable textarea inline), published/draft badge, save row button. Unsaved changes highlighted amber."
+      },
+      "bulk_actions": "Export all copy to JSON (for developer handoff). Import from JSON. Publish All Drafts button."
+    }
+  },
+
+  "merchant_directory_page": {
+    "file": "src/pages/merchant-directory/MerchantDirectoryPage.tsx",
+    "route": "/dashboard/merchant-directory",
+    "description": "C-04: Merchant directory management + approvals. This is the admin-side view of all merchants. Enhanced version of the Shops page from Phase 3 with approval workflow and performance metrics.",
+
+    "tabs": ["Active Merchants", "Pending Approval", "Suspended"],
+
+    "pending_approval_tab": {
+      "layout": "List of MerchantApprovalCard components. Each card shows the merchant application details.",
+      "approval_card": {
+        "file": "src/components/merchant-directory/MerchantApprovalCard.tsx",
+        "design": "Card: company name + logo placeholder. Submitted by + submitted at. Category. Location requested. Contact details. Documents submitted count. Days pending. Actions: Review & Approve (opens MerchantApprovalModal), Reject (confirm dialog with rejection reason text), Request More Info (opens note dialog)."
+      },
+      "approval_modal": {
+        "file": "src/pages/merchant-directory/MerchantApprovalModal.tsx",
+        "description": "Full review modal. Left: merchant application details (all fields), submitted documents list (mock filenames with open icons). Right: Review form: SLA defaults (acceptance_sla_seconds input, max_concurrent_orders, refund_threshold). Contract terms (auto-generated from global templates, editable). Approval notes. Approve / Reject buttons. On approve: merchant added to shops.store with status 'active', a welcome mock notification sent."
+      }
+    },
+
+    "active_merchants_tab": {
+      "description": "Same DataTable as ShopListPage but with additional columns: Acceptance SLA, Refund Threshold, Orders This Month, SLA Breach %, Performance Score. Performance Score: calculated as weighted average of on-time rate + acceptance rate (color coded: green > 90, amber 70-90, red < 70). Row actions: Edit Defaults, Suspend (confirm), View in Merchant Portal (link to shop detail from Phase 3)."
+    },
+
+    "merchant_detail_modal": {
+      "file": "src/pages/merchant-directory/MerchantDetailModal.tsx",
+      "description": "Quick view modal for any merchant. Tabs: Info, SLA Config, Performance, Contract. Info: all shop fields. SLA Config: editable SLA defaults. Performance: mini charts (acceptance time trend, SLA breach rate trend over 30 days). Contract: ContractTimeline component from Phase 3."
+    }
+  },
+
+  "global_rules_page": {
+    "file": "src/pages/global-rules/GlobalRulesPage.tsx",
+    "route": "/dashboard/global-rules",
+    "description": "C-05: Global offer/coupon templates, expiry rules, stacking rules, fraud limits.",
+    "tabs": ["Coupon Rules", "Fraud Limits", "Expiry Templates"],
+    "access": "super_admin, terminal_admin",
+
+    "coupon_rules_tab": {
+      "file": "src/pages/global-rules/CouponRulesTab.tsx",
+      "description": "List of global CouponRule records. Each rule: RuleRow component.",
+      "rule_row": {
+        "file": "src/components/global-rules/RuleRow.tsx",
+        "design": "Compact card-style row: rule name, type badge, scope badge, current value prominently shown, Active toggle, Edit button. Inline editing via modal."
+      },
+      "example_rules": [
+        "Max Discount: 40% of order value (global)",
+        "Min Order Value: AED 15 for any coupon to apply (global)",
+        "Max Uses Per User Per Day: 2 (global)",
+        "Coupon Stacking: Not allowed (global - 'first coupon wins')",
+        "Category Override: Lounges may offer up to 50% discount (per_category)"
+      ]
+    },
+
+    "fraud_limits_tab": {
+      "file": "src/pages/global-rules/FraudLimitsTab.tsx",
+      "description": "List of FraudLimit records. Each shows threshold, action (with color: flag=blue, block=red, require_ops_approval=amber). Triggered today count (red badge if > 0). Toggle active. Edit limit value inline.",
+      "example_limits": [
+        "Max 3 refunds per passenger session (action: block)",
+        "Refund cannot exceed 100% of order value (action: block)",
+        "Coupon use velocity: flag if same code used > 5 times in 1 hour (action: flag + alert_ops)",
+        "Max 4 orders per passenger session (action: require_ops_approval above this)",
+        "Block passenger alias after 3 fraud flags in 7 days (action: block)"
+      ]
+    },
+
+    "expiry_rules_tab": {
+      "file": "src/pages/global-rules/ExpiryRulesTab.tsx",
+      "description": "Configure coupon and offer expiry templates. Rules like: session-based coupons expire when trolley session ends, max campaign duration 90 days, contract-linked offers expire with contract. Simple form-based editor."
+    }
+  },
+
+  "extend_settings_data_tab": {
+    "description": "Extend the DataSettingsTab from Phase 5 (src/pages/settings/DataSettingsTab.tsx) with a new 'Privacy & Consent Configuration' section.",
+    "new_section": {
+      "title": "Privacy & Consent Configuration",
+      "rows": [
+        { "label": "Consent Form Version", "type": "text (read-only)", "value": "v2.1", "note": "Version shown to passengers. Update requires legal approval." },
+        { "label": "Consent Categories Enabled", "type": "multi-select checkboxes", "options": ["Analytics", "Marketing", "Location Tracking", "Payment Data"], "all_required": ["Analytics (required, cannot disable)"] },
+        { "label": "Consent Expiry (days)", "type": "number", "default": 90, "help": "After this period, passenger must re-consent on next session." },
+        { "label": "PII Retention Period (days)", "type": "number", "default": 30, "help": "Raw PII fields are anonymized/deleted after this period. Cannot be less than 14 days." },
+        { "label": "DSAR Response SLA (days)", "type": "number", "default": 30, "help": "Target days for responding to Data Subject Access Requests. GDPR requires max 30 days." }
+      ]
+    }
+  },
+
+  "extend_permissions_audit": {
+    "description": "Extend AuditLogTab (Phase 5, src/pages/permissions/AuditLogTab.tsx) to include a link to the Immutable Audit Log in Compliance Center for security-sensitive action categories.",
+    "addition": "Add a callout at top: 'Security, consent, and payment audit events are stored in the tamper-evident Immutable Audit Log. View in Compliance Center.' with link button."
+  },
+
+  "mock_data": {
+    "src/data/mock/compliance.mock.ts": "Generate: 120 ConsentRecord entries (last 30 days, 82% granted, 10% declined, 8% withdrawn). 5 QuarantinedDevice entries (3 active quarantine, 2 cleared). 8 DSARRequest entries (2 open/verifying, 3 processing, 3 completed). 80 ImmutableAuditEntry entries with proper hash chain (each entry's prev_hash = previous hash, first entry has prev_hash='genesis'). PaymentComplianceBoundary as defined above.",
+    "src/data/mock/content.mock.ts": "Generate: 6 Banner objects (2 active, 1 scheduled, 1 draft, 2 inactive). 8 RecommendedTile objects across 2 placements. 25 CopyEntry objects across 5 categories (Onboarding, Navigation, Orders, Offers, Help). All have EN translations complete, AR at 80% complete, FR at 65% complete.",
+    "src/data/mock/merchant-directory.mock.ts": "Generate: 3 pending_approval merchants (new applications with realistic company names, categories, submitted documents listed). Use existing shops.mock.ts for active merchants. Add performance scores and this-month order counts to each.",
+    "src/data/mock/global-rules.mock.ts": "Generate CouponRule and FraudLimit arrays as described in the example_rules and example_limits sections."
+  },
+
+  "zustand_stores": {
+    "src/store/compliance.store.ts": "State: consentRecords, quarantinedDevices, dsarRequests, immutableAuditLog, paymentBoundaries. Actions: addConsentRecord, quarantineDevice, clearQuarantine, createDSAR, updateDSARStatus, addImmutableEntry. All initialize from compliance.mock.ts.",
+    "src/store/content.store.ts": "State: banners, recommendedTiles, copyEntries, activeLanguage. Actions: CRUD for banners/tiles, updateCopyEntry, publishCopyEntry, setActiveLanguage.",
+    "src/store/global-rules.store.ts": "State: couponRules, fraudLimits, expiryRules. Actions: updateRule, toggleRule, updateFraudLimit, toggleFraudLimit."
+  },
+
+  "routes_to_add": [
+    "/dashboard/compliance",
+    "/dashboard/cms",
+    "/dashboard/merchant-directory",
+    "/dashboard/global-rules"
+  ],
+
+  "quality_checklist": [
+    "Compliance page only accessible to super_admin and terminal_admin",
+    "Consent audit search by session ID returns correct record",
+    "ConsentRecord modal shows all fields including hash proof",
+    "Quarantine device modal links to incident if incident_id provided",
+    "DSAR table highlights overdue requests in red",
+    "DSAR completion adds entry to immutable audit log",
+    "Immutable audit chain integrity banner shows green",
+    "Hash column shows first 8 chars in monospace with copy icon",
+    "Audit export downloads file with all entries",
+    "Payment boundary tokenization card is read-only",
+    "Banner editor live preview updates as user types in EN tab",
+    "Language completion dots show correct status (green/amber/red)",
+    "Multilingual copy tab shows EN as reference and edits target language",
+    "Merchant pending approval cards each have approve/reject actions",
+    "Approve action adds merchant to shops.store with active status",
+    "Global coupon rules active toggles work and persist in store",
+    "Fraud limit triggered count shown (red badge if > 0)",
+    "Settings data tab new Privacy section renders",
+    "All new pages dark mode compatible",
+    "All access restrictions enforced via usePermissions",
+    "No TypeScript errors in new files"
+  ]
+}

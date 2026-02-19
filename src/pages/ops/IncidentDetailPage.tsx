@@ -85,7 +85,7 @@ export default function IncidentDetailPage() {
         <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">Incident Not Found</h2>
         <p className="text-muted-foreground mb-4">The incident you're looking for doesn't exist.</p>
-        <Button onClick={() => navigate('/dashboard/ops/incidents')}>
+        <Button onClick={() => navigate('/dashboard/alerts?tab=incidents')}>
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Incidents
         </Button>
@@ -149,7 +149,7 @@ export default function IncidentDetailPage() {
           <Button 
             variant="ghost" 
             className="mb-2 -ml-2"
-            onClick={() => navigate('/dashboard/ops/incidents')}
+            onClick={() => navigate('/dashboard/alerts?tab=incidents')}
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Incidents

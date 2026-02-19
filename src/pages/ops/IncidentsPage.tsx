@@ -38,8 +38,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { IncidentSeverity, IncidentStatus, IncidentType } from '@/types/incident.types';
+import { cn } from '@/lib/utils';
 
-export default function IncidentsPage() {
+export default function IncidentsPage({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { 
     incidents, 
@@ -107,16 +108,18 @@ export default function IncidentsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <AlertTriangle className="h-6 w-6 text-primary" />
-            Incidents
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Track and manage operational incidents
-          </p>
-        </div>
+      <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4", embedded && "justify-end")}>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <AlertTriangle className="h-6 w-6 text-primary" />
+              Incidents
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Track and manage operational incidents
+            </p>
+          </div>
+        )}
         
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>

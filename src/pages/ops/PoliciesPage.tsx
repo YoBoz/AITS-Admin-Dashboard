@@ -41,7 +41,11 @@ import {
 } from 'lucide-react';
 import { Policy, PolicyType, PolicyStatus } from '@/types/policy.types';
 
-export default function PoliciesPage() {
+interface PoliciesPageProps {
+  embedded?: boolean;
+}
+
+export default function PoliciesPage({ embedded }: PoliciesPageProps) {
   const { policies, addPolicy, togglePolicy } = usePoliciesStore();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<PolicyType | 'all'>('all');
@@ -103,95 +107,104 @@ export default function PoliciesPage() {
     });
   };
 
+  const createDialog = (
+    <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <Plus className="h-4 w-4 mr-1" />
+          Create Policy
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Policy</DialogTitle>
+          <DialogDescription>
+            Define a new operational policy
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Policy Name</Label>
+            <Input
+              placeholder="e.g., Gate Area Restriction"
+              value={newPolicy.name}
+              onChange={(e) => setNewPolicy({ ...newPolicy, name: e.target.value })}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select 
+              value={newPolicy.type} 
+              onValueChange={(v: string) => setNewPolicy({ ...newPolicy, type: v as PolicyType })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="restricted_zone">Restricted Zone</SelectItem>
+                <SelectItem value="no_entry">No Entry</SelectItem>
+                <SelectItem value="speed_limit">Speed Limit</SelectItem>
+                <SelectItem value="time_restricted">Time Restricted</SelectItem>
+                <SelectItem value="wheel_lock_zone">Wheel Lock</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Zone (optional)</Label>
+            <Input
+              placeholder="e.g., Terminal 2, Gate A1"
+              value={newPolicy.zone}
+              onChange={(e) => setNewPolicy({ ...newPolicy, zone: e.target.value })}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              placeholder="Describe what this policy enforces..."
+              value={newPolicy.description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewPolicy({ ...newPolicy, description: e.target.value })}
+              rows={3}
+            />
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleCreatePolicy} disabled={!newPolicy.name}>
+            Create Policy
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            Policies
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Manage zone restrictions and operational policies
-          </p>
+      {!embedded ? (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Shield className="h-6 w-6 text-primary" />
+              Policies
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Manage zone restrictions and operational policies
+            </p>
+          </div>
+          {createDialog}
         </div>
-        
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-1" />
-              Create Policy
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Policy</DialogTitle>
-              <DialogDescription>
-                Define a new operational policy
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Policy Name</Label>
-                <Input
-                  placeholder="e.g., Gate Area Restriction"
-                  value={newPolicy.name}
-                  onChange={(e) => setNewPolicy({ ...newPolicy, name: e.target.value })}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select 
-                  value={newPolicy.type} 
-                  onValueChange={(v: string) => setNewPolicy({ ...newPolicy, type: v as PolicyType })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="restricted_zone">Restricted Zone</SelectItem>
-                    <SelectItem value="no_entry">No Entry</SelectItem>
-                    <SelectItem value="speed_limit">Speed Limit</SelectItem>
-                    <SelectItem value="time_restricted">Time Restricted</SelectItem>
-                    <SelectItem value="wheel_lock_zone">Wheel Lock</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Zone (optional)</Label>
-                <Input
-                  placeholder="e.g., Terminal 2, Gate A1"
-                  value={newPolicy.zone}
-                  onChange={(e) => setNewPolicy({ ...newPolicy, zone: e.target.value })}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea
-                  placeholder="Describe what this policy enforces..."
-                  value={newPolicy.description}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewPolicy({ ...newPolicy, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreatePolicy} disabled={!newPolicy.name}>
-                Create Policy
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      ) : (
+        <div className="flex justify-end">
+          {createDialog}
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

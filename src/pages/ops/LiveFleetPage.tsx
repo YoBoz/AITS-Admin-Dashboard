@@ -3,10 +3,12 @@
 // Real-time map with device positions & status
 // ──────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useTrolleysStore } from '@/store/trolleys.store';
 import { useFleetLive } from '@/hooks/useFleetLive';
+import { useTheme } from '@/hooks/useTheme';
 import { FleetHealthBar, DeviceStatusCard } from '@/components/ops';
+import { AirportMapSVG } from '@/components/map/AirportMapSVG';
 import type { Trolley } from '@/types/trolley.types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -37,19 +39,38 @@ import {
   AlertTriangle,
   ShoppingCart,
   Maximize2,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type DeviceFilter = 'all' | 'online' | 'offline' | 'low-battery' | 'moving' | 'idle';
 
-export default function LiveFleetPage() {
+interface LiveFleetPageProps {
+  embedded?: boolean;
+  initialDeviceId?: string | null;
+}
+
+export default function LiveFleetPage({ embedded = false, initialDeviceId = null }: LiveFleetPageProps) {
   const { trolleys } = useTrolleysStore();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   useFleetLive(); // Enable live simulation
   
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<DeviceFilter>('all');
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(initialDeviceId);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
+  const [activeLayers] = useState(['zones', 'trolleys', 'gates', 'pois']);
+
+  // Sync selectedDeviceId when initialDeviceId prop changes (e.g. navigation from fleet overview)
+  useEffect(() => {
+    if (initialDeviceId && initialDeviceId !== selectedDeviceId) {
+      setSelectedDeviceId(initialDeviceId);
+    }
+  }, [initialDeviceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Ref for scrollable device list — used to stop event propagation
+  const deviceListRef = useRef<HTMLDivElement>(null);
 
   // Filter trolleys based on search and filter
   const filteredDevices = trolleys.filter((trolley: Trolley) => {
@@ -86,10 +107,46 @@ export default function LiveFleetPage() {
     ? trolleys.find((t: Trolley) => t.id === selectedDeviceId) 
     : null;
 
+  const handleDeviceClick = useCallback((id: string) => {
+    setSelectedDeviceId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const handleTrolleyClickOnMap = useCallback((trolleyId: string) => {
+    setSelectedDeviceId((prev) => (prev === trolleyId ? null : trolleyId));
+  }, []);
+
+  // Scroll selected device card into view when selection changes
+  useEffect(() => {
+    if (selectedDeviceId && deviceListRef.current) {
+      const el = deviceListRef.current.querySelector(`[data-device-id="${selectedDeviceId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [selectedDeviceId]);
+
+  // Prevent wheel events on the device list from propagating to the page
+  useEffect(() => {
+    const el = deviceListRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      const atTop = scrollTop === 0 && e.deltaY < 0;
+      const atBottom = scrollTop + clientHeight >= scrollHeight - 1 && e.deltaY > 0;
+      // Only stop propagation if there's room to scroll in the direction
+      if (!atTop && !atBottom) {
+        e.stopPropagation();
+      }
+    };
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      {!embedded && (
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 flex-shrink-0">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Map className="h-6 w-6 text-primary" />
@@ -111,12 +168,15 @@ export default function LiveFleetPage() {
           </Button>
         </div>
       </div>
+      )}
 
       {/* Fleet Health Bar */}
-      <FleetHealthBar className="mb-6" />
+      <div className="flex-shrink-0">
+        <FleetHealthBar className="mb-6" />
+      </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 flex-shrink-0">
         <Card className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setFilter('online')}>
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
@@ -174,11 +234,67 @@ export default function LiveFleetPage() {
         </Card>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
-        {/* Device List */}
-        <Card className="lg:col-span-1 flex flex-col min-h-0">
-          <CardHeader className="pb-3">
+      {/* Main Content — Map + Device Panel side-by-side, no page scroll */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0 overflow-hidden">
+        {/* Map — always fills available space */}
+        <Card className={cn(
+          'flex-1 flex flex-col min-h-[400px] order-1 lg:order-2 overflow-hidden',
+          isMapFullscreen && 'fixed inset-4 z-50'
+        )}>
+          <CardHeader className="pb-3 flex-row items-center justify-between flex-shrink-0">
+            <div>
+              <CardTitle className="text-base">Fleet Map</CardTitle>
+              <CardDescription>
+                {selectedDevice ? `Tracking: ${selectedDevice.imei}` : 'Click a device to track'}
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <Layers className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={() => setIsMapFullscreen(!isMapFullscreen)}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="flex-1 relative min-h-0 p-2">
+            {/* Shared Airport Map — consistent with Terminal Map & Heatmap views */}
+            <div className="absolute inset-0 overflow-hidden rounded-lg">
+              <AirportMapSVG
+                activeLayers={activeLayers}
+                selectedTrolleyId={selectedDeviceId}
+                highlightTrolleyId={selectedDeviceId}
+                isDark={isDark}
+                onTrolleyClick={handleTrolleyClickOnMap}
+              />
+            </div>
+            
+            {/* Selected device info overlay on map */}
+            {selectedDevice && (
+              <div className="absolute bottom-3 left-3 right-3 max-w-sm">
+                <div className="relative">
+                  <button
+                    className="absolute -top-2 -right-2 z-10 p-1 rounded-full bg-background border shadow-sm hover:bg-muted"
+                    onClick={() => setSelectedDeviceId(null)}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <DeviceStatusCard device={selectedDevice} isSelected />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Device Panel — fixed width, capped height, isolated scroll */}
+        <Card className="lg:w-80 xl:w-96 flex flex-col order-2 lg:order-1 h-[360px] lg:h-auto lg:max-h-full overflow-hidden">
+          <CardHeader className="pb-3 flex-shrink-0">
             <CardTitle className="text-base">Devices</CardTitle>
             <CardDescription>
               {filteredDevices.length} of {trolleys.length} devices
@@ -186,7 +302,7 @@ export default function LiveFleetPage() {
           </CardHeader>
           
           {/* Filters */}
-          <div className="px-4 pb-3 space-y-2">
+          <div className="px-4 pb-3 space-y-2 flex-shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -212,15 +328,19 @@ export default function LiveFleetPage() {
             </Select>
           </div>
           
-          {/* Device List */}
-          <CardContent className="flex-1 overflow-y-auto space-y-2 pt-0">
+          {/* Scrollable device list — isolated scroll container */}
+          <div
+            ref={deviceListRef}
+            className="flex-1 overflow-y-auto overscroll-contain min-h-0 px-4 pb-4 space-y-2"
+          >
             {filteredDevices.map((trolley: Trolley) => (
-              <DeviceStatusCard
-                key={trolley.id}
-                device={trolley}
-                isSelected={trolley.id === selectedDeviceId}
-                onClick={() => setSelectedDeviceId(trolley.id)}
-              />
+              <div key={trolley.id} data-device-id={trolley.id}>
+                <DeviceStatusCard
+                  device={trolley}
+                  isSelected={trolley.id === selectedDeviceId}
+                  onClick={() => handleDeviceClick(trolley.id)}
+                />
+              </div>
             ))}
             
             {filteredDevices.length === 0 && (
@@ -229,57 +349,7 @@ export default function LiveFleetPage() {
                 <p className="text-sm">No devices match your filters</p>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Map Placeholder */}
-        <Card className={cn(
-          'lg:col-span-2 flex flex-col min-h-[400px]',
-          isMapFullscreen && 'fixed inset-4 z-50 lg:col-span-1'
-        )}>
-          <CardHeader className="pb-3 flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Fleet Map</CardTitle>
-              <CardDescription>
-                {selectedDevice ? `Tracking: ${selectedDevice.imei}` : 'Click a device to track'}
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className="h-8 w-8">
-                <Layers className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-8 w-8"
-                onClick={() => setIsMapFullscreen(!isMapFullscreen)}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="flex-1 relative">
-            {/* Map placeholder - would integrate with actual map component */}
-            <div className="absolute inset-0 bg-muted/30 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Map className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
-                <p className="text-muted-foreground text-sm">
-                  Interactive fleet map
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {trolleys.length} devices tracked
-                </p>
-              </div>
-            </div>
-            
-            {/* Device markers would go here */}
-            {selectedDevice && (
-              <div className="absolute bottom-4 left-4 right-4">
-                <DeviceStatusCard device={selectedDevice} />
-              </div>
-            )}
-          </CardContent>
+          </div>
         </Card>
       </div>
     </div>

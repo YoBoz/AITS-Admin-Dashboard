@@ -60,7 +60,7 @@ function StatsCard({ icon, label, value, color }: { icon: React.ReactNode; label
   );
 }
 
-export default function ComplaintsPage() {
+export default function ComplaintsPage({ embedded = false }: { embedded?: boolean }) {
   const store = useComplaintsStore();
   const { filters, setFilters, getFilteredComplaints, selectComplaint, selectedComplaint } = store;
   const stats = store.getStats();
@@ -168,7 +168,7 @@ export default function ComplaintsPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Complaints" subtitle="Track and manage visitor complaints" />
+      {!embedded && <PageHeader title="Complaints" subtitle="Track and manage visitor complaints" />}
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">

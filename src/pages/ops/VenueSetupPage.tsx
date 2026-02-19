@@ -43,7 +43,7 @@ import {
 import { cn } from '@/lib/utils';
 import { VenueZone, Gate } from '@/types/venue.types';
 
-export default function VenueSetupPage() {
+export default function VenueSetupPage({ embedded }: { embedded?: boolean }) {
   const { terminal, selectedNodeId, selectNode, updateZone, getAllGates, getAllZones } = useVenueStore();
   
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
@@ -91,17 +91,19 @@ export default function VenueSetupPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-primary" />
-            Venue Setup
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Configure terminal structure, zones, and gates
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Building2 className="h-6 w-6 text-primary" />
+              Venue Setup
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Configure terminal structure, zones, and gates
+            </p>
+          </div>
+        )}
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <Select value={selectedFloor} onValueChange={setSelectedFloor}>
             <SelectTrigger className="w-40">
               <Layers className="h-4 w-4 mr-2" />

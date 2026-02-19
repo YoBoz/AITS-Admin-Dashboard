@@ -17,7 +17,7 @@ const notificationItems: Array<{
   { type: 'visitor', icon: 'Users', titleTmpl: 'Peak Visitor Alert', bodyTmpl: 'Visitor count in {z} exceeded threshold ({n} visitors). Consider deploying additional trolleys.', linkTmpl: '/dashboard/visitors' },
   { type: 'contract', icon: 'FileText', titleTmpl: 'Contract Renewal Due – {s}', bodyTmpl: 'Contract for {s} due for renewal by {date}. Current status: pending review.', linkTmpl: '/dashboard/offers' },
   { type: 'offer', icon: 'Tag', titleTmpl: 'New Offer Submitted by {s}', bodyTmpl: '{s} submitted a new promotional offer for review. Campaign: "{campaign}".', linkTmpl: '/dashboard/offers' },
-  { type: 'complaint', icon: 'MessageCircle', titleTmpl: 'New Complaint: {subj}', bodyTmpl: 'A new complaint ({ticket}) has been submitted regarding {cat}. SLA: {sla}h.', linkTmpl: '/dashboard/complaints' },
+  { type: 'complaint', icon: 'MessageCircle', titleTmpl: 'New Complaint: {subj}', bodyTmpl: 'A new complaint ({ticket}) has been submitted regarding {cat}. SLA: {sla}h.', linkTmpl: '/dashboard/alerts?tab=complaints' },
   { type: 'alert', icon: 'Battery', titleTmpl: 'Battery Warning – {n} trolleys below 20%', bodyTmpl: '{n} trolleys have battery levels below 20%. Charging schedule may need adjustment.', linkTmpl: '/dashboard/alerts' },
   { type: 'system', icon: 'Shield', titleTmpl: 'Security: Unusual Login Attempt', bodyTmpl: 'Detected login attempt from unrecognized IP ({ip}) at {time}. Access was blocked.', linkTmpl: null },
   { type: 'visitor', icon: 'TrendingUp', titleTmpl: 'Weekly Visitor Report Ready', bodyTmpl: 'The weekly visitor analytics report for {week} is ready. Total visitors: {n}.', linkTmpl: '/dashboard/visitors' },

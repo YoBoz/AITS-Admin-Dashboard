@@ -10,6 +10,7 @@ import {
   Eye,
   Wrench,
   Trash2,
+  Radio,
 } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,6 +32,10 @@ import type { Trolley, TrolleyStatus } from '@/types/trolley.types';
 
 import AddTrolleyModal from './AddTrolleyModal';
 
+interface TrolleyListPageProps {
+  embedded?: boolean;
+}
+
 function StatCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ElementType; color: string }) {
   return (
     <Card className="flex items-center gap-3 p-4">
@@ -45,7 +50,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: n
   );
 }
 
-export default function TrolleyListPage() {
+export default function TrolleyListPage({ embedded = false }: TrolleyListPageProps) {
   const navigate = useNavigate();
   const {
     filters,
@@ -147,6 +152,15 @@ export default function TrolleyListPage() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
+              onClick={() => navigate(`/dashboard/trolleys?tab=live-tracking&device=${row.original.id}`)}
+              title="Track Location"
+            >
+              <Radio className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
               onClick={() => navigate(`/dashboard/trolleys/${row.original.id}`)}
               title="View Details"
             >
@@ -186,16 +200,26 @@ export default function TrolleyListPage() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <PageHeader
-        title="Trolley Management"
-        subtitle="Monitor and manage the trolley fleet"
-        actions={
+      {!embedded && (
+        <PageHeader
+          title="Trolley Management"
+          subtitle="Monitor and manage the trolley fleet"
+          actions={
+            <Button onClick={() => setAddModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Trolley
+            </Button>
+          }
+        />
+      )}
+      {embedded && (
+        <div className="flex justify-end">
           <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Trolley
           </Button>
-        }
-      />
+        </div>
+      )}
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

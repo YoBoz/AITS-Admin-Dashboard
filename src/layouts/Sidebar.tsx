@@ -11,21 +11,13 @@ import {
   Tag,
   Bell,
   AlertTriangle,
-  MessageSquareWarning,
   ShieldCheck,
   Settings,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
-  // Phase 8 - Command Center
-  Radio,
-  Activity,
-  Siren,
-  ClipboardList,
+  // Phase 8 - Operations
   Plane,
-  Shield,
-  Target,
-  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar.store';
@@ -67,19 +59,7 @@ const navSections: NavSection[] = [
       { label: 'nav.trolleyManagement', icon: ShoppingCart, route: '/dashboard/trolleys', badge: 'live' },
       { label: 'nav.shopManagement', icon: Store, route: '/dashboard/shops', badge: null },
       { label: 'nav.visitorStats', icon: Users, route: '/dashboard/visitors', badge: null },
-    ],
-  },
-  {
-    section: 'nav.commandCenter',
-    items: [
-      { label: 'nav.liveFleet', icon: Radio, route: '/dashboard/ops/fleet', badge: 'live' },
-      { label: 'nav.healthMonitor', icon: Activity, route: '/dashboard/ops/health', badge: null },
-      { label: 'nav.incidents', icon: Siren, route: '/dashboard/ops/incidents', badge: 'count' },
-      { label: 'nav.ordersConsole', icon: ClipboardList, route: '/dashboard/ops/orders', badge: null },
       { label: 'nav.gateSurge', icon: Plane, route: '/dashboard/ops/surge', badge: null },
-      { label: 'nav.policies', icon: Shield, route: '/dashboard/ops/policies', badge: null },
-      { label: 'nav.slaDashboard', icon: Target, route: '/dashboard/ops/sla', badge: null },
-      { label: 'nav.venueSetup', icon: Building2, route: '/dashboard/ops/venue', badge: null },
     ],
   },
   {
@@ -87,14 +67,13 @@ const navSections: NavSection[] = [
     items: [
       { label: 'nav.offersContracts', icon: Tag, route: '/dashboard/offers', badge: null },
       { label: 'nav.notifications', icon: Bell, route: '/dashboard/notifications', badge: 'count' },
-      { label: 'nav.alerts', icon: AlertTriangle, route: '/dashboard/alerts', badge: 'count' },
-      { label: 'nav.complaints', icon: MessageSquareWarning, route: '/dashboard/complaints', badge: 'count' },
+      { label: 'nav.alertsAndIssues', icon: AlertTriangle, route: '/dashboard/alerts', badge: 'count' },
     ],
   },
   {
     section: 'nav.administration',
     items: [
-      { label: 'nav.permissions', icon: ShieldCheck, route: '/dashboard/permissions', badge: null },
+      { label: 'nav.adminHub', icon: ShieldCheck, route: '/dashboard/admin', badge: null },
       { label: 'nav.settings', icon: Settings, route: '/dashboard/settings', badge: null },
     ],
   },

@@ -54,14 +54,14 @@ export function DashboardLayout() {
         initial={false}
         animate={{ marginLeft: typeof window !== 'undefined' && window.innerWidth >= 1024 ? (isCollapsed ? 72 : 260) : 0 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="min-h-screen flex flex-col"
+        className="h-screen flex flex-col overflow-hidden"
       >
         <Navbar
           onSearchClick={() => setCommandPaletteOpen(true)}
           onNotificationClick={() => setNotificationPanelOpen(true)}
         />
 
-        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6" role="main">
+        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 min-h-0 overflow-auto" role="main">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -69,6 +69,7 @@ export function DashboardLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
+              className="h-full"
             >
               <Outlet />
             </motion.div>

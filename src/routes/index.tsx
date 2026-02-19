@@ -14,9 +14,9 @@ const OverviewPage = lazy(() => import('@/pages/dashboard/OverviewPage'));
 const ProfilePage = lazy(() => import('@/pages/profile/ProfilePage'));
 
 // Phase 3 pages
-const TrolleyListPage = lazy(() => import('@/pages/trolleys/TrolleyListPage'));
+const TrolleyHubPage = lazy(() => import('@/pages/trolleys/TrolleyHubPage'));
 const TrolleyDetailPage = lazy(() => import('@/pages/trolleys/TrolleyDetailPage'));
-const ShopListPage = lazy(() => import('@/pages/shops/ShopListPage'));
+const ShopHubPage = lazy(() => import('@/pages/shops/ShopHubPage'));
 const ShopDetailPage = lazy(() => import('@/pages/shops/ShopDetailPage'));
 const TerminalMapPage = lazy(() => import('@/pages/map/TerminalMapPage'));
 const OffersPage = lazy(() => import('@/pages/offers/OffersPage'));
@@ -24,12 +24,10 @@ const OffersPage = lazy(() => import('@/pages/offers/OffersPage'));
 // Phase 4 pages
 const HeatmapPage = lazy(() => import('@/pages/heatmap/HeatmapPage'));
 const VisitorStatsPage = lazy(() => import('@/pages/visitors/VisitorStatsPage'));
-const AlertsPage = lazy(() => import('@/pages/alerts/AlertsPage'));
+const AlertsHubPage = lazy(() => import('@/pages/alerts/AlertsHubPage'));
 const NotificationsPage = lazy(() => import('@/pages/notifications/NotificationsPage'));
-const ComplaintsPage = lazy(() => import('@/pages/complaints/ComplaintsPage'));
 
 // Phase 5 pages
-const PermissionsPage = lazy(() => import('@/pages/permissions/PermissionsPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 
 // Phase 6 error pages
@@ -48,16 +46,12 @@ const MerchantAnalyticsPage = lazy(() => import('@/pages/merchant/MerchantAnalyt
 const SLASettingsPage = lazy(() => import('@/pages/merchant/SLASettingsPage'));
 const MerchantUnauthorizedPage = lazy(() => import('@/pages/merchant/MerchantUnauthorizedPage'));
 
-// Phase 8 — Ops Command Center pages
-const LiveFleetPage = lazy(() => import('@/pages/ops/LiveFleetPage'));
-const HealthMonitoringPage = lazy(() => import('@/pages/ops/HealthMonitoringPage'));
-const IncidentsPage = lazy(() => import('@/pages/ops/IncidentsPage'));
+// Phase 8 — Ops Command Center pages (fleet & health moved to Trolley Hub, incidents moved to Alerts Hub, SLA & venue & orders moved to Shop Hub, policies moved to Admin Hub)
 const IncidentDetailPage = lazy(() => import('@/pages/ops/IncidentDetailPage'));
-const OpsOrdersConsolePage = lazy(() => import('@/pages/ops/OpsOrdersConsolePage'));
 const GateSurgePage = lazy(() => import('@/pages/ops/GateSurgePage'));
-const PoliciesPage = lazy(() => import('@/pages/ops/PoliciesPage'));
-const SLADashboardPage = lazy(() => import('@/pages/ops/SLADashboardPage'));
-const VenueSetupPage = lazy(() => import('@/pages/ops/VenueSetupPage'));
+
+// Phase 9 — Compliance, Global Rules, Permissions, Policies → Administration Hub
+const AdminHubPage = lazy(() => import('@/pages/administration/AdminHubPage'));
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -127,7 +121,7 @@ export const router = createBrowserRouter([
             path: 'trolleys',
             element: (
               <SuspenseWrapper>
-                <TrolleyListPage />
+                <TrolleyHubPage />
               </SuspenseWrapper>
             ),
           },
@@ -143,7 +137,7 @@ export const router = createBrowserRouter([
             path: 'shops',
             element: (
               <SuspenseWrapper>
-                <ShopListPage />
+                <ShopHubPage />
               </SuspenseWrapper>
             ),
           },
@@ -191,7 +185,7 @@ export const router = createBrowserRouter([
             path: 'alerts',
             element: (
               <SuspenseWrapper>
-                <AlertsPage />
+                <AlertsHubPage />
               </SuspenseWrapper>
             ),
           },
@@ -205,19 +199,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'complaints',
-            element: (
-              <SuspenseWrapper>
-                <ComplaintsPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/alerts?tab=complaints" replace />,
           },
           {
             path: 'permissions',
-            element: (
-              <SuspenseWrapper>
-                <PermissionsPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/admin?tab=permissions" replace />,
           },
           {
             path: 'settings',
@@ -227,30 +213,18 @@ export const router = createBrowserRouter([
               </SuspenseWrapper>
             ),
           },
-          // Phase 8 — Ops Command Center routes
+          // Phase 8 — Ops routes (fleet & health redirected to Trolley Hub, incidents redirected to Alerts Hub)
           {
             path: 'ops/fleet',
-            element: (
-              <SuspenseWrapper>
-                <LiveFleetPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/trolleys?tab=live-tracking" replace />,
           },
           {
             path: 'ops/health',
-            element: (
-              <SuspenseWrapper>
-                <HealthMonitoringPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/trolleys?tab=health" replace />,
           },
           {
             path: 'ops/incidents',
-            element: (
-              <SuspenseWrapper>
-                <IncidentsPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/alerts?tab=incidents" replace />,
           },
           {
             path: 'ops/incidents/:id',
@@ -262,11 +236,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'ops/orders',
-            element: (
-              <SuspenseWrapper>
-                <OpsOrdersConsolePage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/shops?tab=orders" replace />,
           },
           {
             path: 'ops/surge',
@@ -278,27 +248,40 @@ export const router = createBrowserRouter([
           },
           {
             path: 'ops/policies',
-            element: (
-              <SuspenseWrapper>
-                <PoliciesPage />
-              </SuspenseWrapper>
-            ),
+            element: <Navigate to="/dashboard/admin?tab=policies" replace />,
           },
           {
             path: 'ops/sla',
+            element: <Navigate to="/dashboard/shops?tab=sla" replace />,
+          },
+          {
+            path: 'ops/venue',
+            element: <Navigate to="/dashboard/shops?tab=venue" replace />,
+          },
+          // Phase 9 — Administration Hub (Compliance, Global Rules, Permissions, Policies)
+          {
+            path: 'admin',
             element: (
               <SuspenseWrapper>
-                <SLADashboardPage />
+                <AdminHubPage />
               </SuspenseWrapper>
             ),
           },
           {
-            path: 'ops/venue',
-            element: (
-              <SuspenseWrapper>
-                <VenueSetupPage />
-              </SuspenseWrapper>
-            ),
+            path: 'compliance',
+            element: <Navigate to="/dashboard/admin?tab=compliance" replace />,
+          },
+          {
+            path: 'global-rules',
+            element: <Navigate to="/dashboard/admin?tab=global-rules" replace />,
+          },
+          {
+            path: 'cms',
+            element: <Navigate to="/dashboard/shops?tab=content" replace />,
+          },
+          {
+            path: 'merchant-directory',
+            element: <Navigate to="/dashboard/shops?tab=merchants" replace />,
           },
         ],
       },

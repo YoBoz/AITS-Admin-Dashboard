@@ -4,13 +4,13 @@
 
 import type { SLAMetrics, MerchantSLABreakdown, BatteryDistribution, OfflineTimelinePoint } from '@/types/ops-metrics.types';
 
-// Merchant SLA breakdown data
+// Merchant SLA breakdown data — names aligned with shops.mock.ts
 const merchantsSLA: MerchantSLABreakdown[] = [
-  { merchant_id: 'SHOP-001', merchant_name: 'Costa Coffee', median: 38, breach_pct: 3.2, total_orders: 245, p95_acceptance: 72, on_time_delivery_pct: 91.2 },
-  { merchant_id: 'SHOP-003', merchant_name: 'McDonald\'s', median: 52, breach_pct: 8.4, total_orders: 412, p95_acceptance: 98, on_time_delivery_pct: 84.6 },
-  { merchant_id: 'SHOP-004', merchant_name: 'Dubai Duty Free', median: 35, breach_pct: 2.1, total_orders: 189, p95_acceptance: 65, on_time_delivery_pct: 94.8 },
-  { merchant_id: 'SHOP-005', merchant_name: 'WHSmith', median: 41, breach_pct: 4.5, total_orders: 156, p95_acceptance: 78, on_time_delivery_pct: 89.3 },
-  { merchant_id: 'SHOP-012', merchant_name: 'Shake Shack', median: 58, breach_pct: 9.8, total_orders: 287, p95_acceptance: 105, on_time_delivery_pct: 82.1 },
+  { merchant_id: 'SHOP-001', merchant_name: 'Starbucks Terminal A', median: 38, breach_pct: 3.2, total_orders: 245, p95_acceptance: 72, on_time_delivery_pct: 91.2 },
+  { merchant_id: 'SHOP-003', merchant_name: 'McDonald\'s Airside', median: 52, breach_pct: 8.4, total_orders: 412, p95_acceptance: 98, on_time_delivery_pct: 84.6 },
+  { merchant_id: 'SHOP-004', merchant_name: 'Duty Free Electronics', median: 35, breach_pct: 2.1, total_orders: 189, p95_acceptance: 65, on_time_delivery_pct: 94.8 },
+  { merchant_id: 'SHOP-005', merchant_name: 'Zara Travel Collection', median: 41, breach_pct: 4.5, total_orders: 156, p95_acceptance: 78, on_time_delivery_pct: 89.3 },
+  { merchant_id: 'SHOP-012', merchant_name: 'Burger King Departures', median: 58, breach_pct: 9.8, total_orders: 287, p95_acceptance: 105, on_time_delivery_pct: 82.1 },
   { merchant_id: 'SHOP-018', merchant_name: 'Paul Bakery', median: 44, breach_pct: 5.6, total_orders: 198, p95_acceptance: 82, on_time_delivery_pct: 88.4 },
 ];
 

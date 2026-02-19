@@ -15,15 +15,21 @@ const tabs = [
   { key: 'audit', label: 'Audit Log', icon: FileText },
 ];
 
-export default function PermissionsPage() {
+interface PermissionsPageProps {
+  embedded?: boolean;
+}
+
+export default function PermissionsPage({ embedded }: PermissionsPageProps) {
   const [activeTab, setActiveTab] = useState('users');
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Access Control & Permissions"
-        subtitle="Manage users, roles, and granular permissions"
-      />
+      {!embedded && (
+        <PageHeader
+          title="Access Control & Permissions"
+          subtitle="Manage users, roles, and granular permissions"
+        />
+      )}
 
       {/* Tab Bar */}
       <div className="flex items-center gap-1 border-b border-border">

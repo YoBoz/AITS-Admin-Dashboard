@@ -36,7 +36,7 @@ const typeOptions: { value: AlertType | 'all'; label: string }[] = [
   { value: 'unusual_activity', label: 'Unusual' },
 ];
 
-export default function AlertsPage() {
+export default function AlertsPage({ embedded = false }: { embedded?: boolean }) {
   const store = useAlertsStore();
   const { filters, setFilters, getFilteredAlerts, acknowledgeAlert, resolveAlert, dismissAlert, bulkUpdateStatus, selectAlert, selectedAlert } = store;
   const stats = store.getStats();
@@ -102,19 +102,28 @@ export default function AlertsPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Alerts"
-        subtitle="Monitor and manage system alerts"
-        actions={
-          selectedIds.size > 0 ? (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-lexend">{selectedIds.size} selected</span>
-              <Button size="sm" variant="outline" onClick={handleBulkAcknowledge}>Acknowledge</Button>
-              <Button size="sm" onClick={handleBulkResolve}>Resolve</Button>
-            </div>
-          ) : undefined
-        }
-      />
+      {!embedded && (
+        <PageHeader
+          title="Alerts"
+          subtitle="Monitor and manage system alerts"
+          actions={
+            selectedIds.size > 0 ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground font-lexend">{selectedIds.size} selected</span>
+                <Button size="sm" variant="outline" onClick={handleBulkAcknowledge}>Acknowledge</Button>
+                <Button size="sm" onClick={handleBulkResolve}>Resolve</Button>
+              </div>
+            ) : undefined
+          }
+        />
+      )}
+      {embedded && selectedIds.size > 0 && (
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-xs text-muted-foreground font-lexend">{selectedIds.size} selected</span>
+          <Button size="sm" variant="outline" onClick={handleBulkAcknowledge}>Acknowledge</Button>
+          <Button size="sm" onClick={handleBulkResolve}>Resolve</Button>
+        </div>
+      )}
 
       <AlertStatsBar
         critical={stats.critical}

@@ -49,7 +49,7 @@ import {
   Bar,
 } from 'recharts';
 import { cn } from '@/lib/utils';
-import { todaySLAMetrics, weekSLAMetrics, monthSLAMetrics } from '@/data/mock/sla-metrics.mock';
+import { todaySLAMetrics, weekSLAMetrics, monthSLAMetrics, acceptanceTimeDistribution } from '@/data/mock/sla-metrics.mock';
 import type { SLAMetrics, MerchantSLABreakdown } from '@/types/ops-metrics.types';
 
 const slaData: Record<Period, SLAMetrics> = {
@@ -60,7 +60,7 @@ const slaData: Record<Period, SLAMetrics> = {
 
 type Period = 'today' | 'week' | 'month';
 
-export default function SLADashboardPage() {
+export default function SLADashboardPage({ embedded }: { embedded?: boolean }) {
   const [period, setPeriod] = useState<Period>('today');
   
   const metrics = slaData[period];
@@ -71,14 +71,12 @@ export default function SLADashboardPage() {
   const prepTimeTrend = period === 'today' ? -1.2 : period === 'week' ? -0.5 : 0.3;
   const deliveryTrend = period === 'today' ? 1.8 : period === 'week' ? 2.1 : 1.2;
 
-  // Acceptance time distribution data
-  const acceptanceDistribution = [
-    { range: '<1min', count: 45, color: '#22c55e' },
-    { range: '1-3min', count: 30, color: '#84cc16' },
-    { range: '3-5min', count: 15, color: '#eab308' },
-    { range: '5-10min', count: 8, color: '#f97316' },
-    { range: '>10min', count: 2, color: '#ef4444' },
-  ];
+  // Acceptance time distribution from shared mock data
+  const acceptanceDistribution = acceptanceTimeDistribution.map((d) => ({
+    range: d.bucket,
+    count: d.count,
+    color: d.within_sla ? '#22c55e' : '#ef4444',
+  }));
 
   // SLA trend over time
   const slaTrend = [
@@ -95,17 +93,19 @@ export default function SLADashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Target className="h-6 w-6 text-primary" />
-            SLA Dashboard
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Service Level Agreement performance metrics
-          </p>
-        </div>
+        {!embedded && (
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Target className="h-6 w-6 text-primary" />
+              SLA Dashboard
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Service Level Agreement performance metrics
+            </p>
+          </div>
+        )}
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <Select value={period} onValueChange={(v: string) => setPeriod(v as Period)}>
             <SelectTrigger className="w-32">
               <Calendar className="h-4 w-4 mr-2" />

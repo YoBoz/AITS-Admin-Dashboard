@@ -76,7 +76,7 @@ const offlineTimeline = [
   { date: 'Sun', offline: 1, restored: 1 },
 ];
 
-export default function HealthMonitoringPage() {
+export default function HealthMonitoringPage({ embedded = false }: { embedded?: boolean }) {
   const { trolleys } = useTrolleysStore();
   useFleetLive(); // Enable live simulation
   const [timeRange, setTimeRange] = useState('24h');
@@ -94,6 +94,7 @@ export default function HealthMonitoringPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
+      {!embedded && (
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -119,6 +120,22 @@ export default function HealthMonitoringPage() {
           </Select>
         </div>
       </div>
+      )}
+      {embedded && (
+        <div className="flex justify-end">
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1h">Last Hour</SelectItem>
+              <SelectItem value="24h">Last 24h</SelectItem>
+              <SelectItem value="7d">Last 7 Days</SelectItem>
+              <SelectItem value="30d">Last 30 Days</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Fleet Health Bar */}
       <FleetHealthBar />

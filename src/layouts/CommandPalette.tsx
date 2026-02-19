@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Map, Flame, ShoppingCart, Store, Users,
   Tag, Bell, AlertTriangle, MessageSquareWarning, ShieldCheck,
-  Settings, Search,
+  Settings, Search, Target, MapPin, LayoutTemplate, Building2, ClipboardList,
+  ScrollText, Shield, Plane,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
@@ -26,12 +27,23 @@ const pageItems: CmdItem[] = [
   { label: 'Heatmap', icon: Flame, route: '/dashboard/heatmap', group: 'Pages' },
   { label: 'Trolley Management', icon: ShoppingCart, route: '/dashboard/trolleys', group: 'Pages' },
   { label: 'Shop Management', icon: Store, route: '/dashboard/shops', group: 'Pages' },
+  { label: 'Merchants', icon: Building2, route: '/dashboard/shops?tab=merchants', group: 'Pages' },
+  { label: 'SLA Dashboard', icon: Target, route: '/dashboard/shops?tab=sla', group: 'Pages' },
+  { label: 'Venue Setup', icon: MapPin, route: '/dashboard/shops?tab=venue', group: 'Pages' },
+  { label: 'Content Management', icon: LayoutTemplate, route: '/dashboard/shops?tab=content', group: 'Pages' },
+  { label: 'Orders Console', icon: ClipboardList, route: '/dashboard/shops?tab=orders', group: 'Pages' },
   { label: 'Visitor Stats', icon: Users, route: '/dashboard/visitors', group: 'Pages' },
   { label: 'Offers & Contracts', icon: Tag, route: '/dashboard/offers', group: 'Pages' },
   { label: 'Notifications', icon: Bell, route: '/dashboard/notifications', group: 'Pages' },
-  { label: 'Alerts', icon: AlertTriangle, route: '/dashboard/alerts', group: 'Pages' },
-  { label: 'Complaints', icon: MessageSquareWarning, route: '/dashboard/complaints', group: 'Pages' },
-  { label: 'Permissions', icon: ShieldCheck, route: '/dashboard/permissions', group: 'Pages' },
+  { label: 'Alerts & Issues', icon: AlertTriangle, route: '/dashboard/alerts', group: 'Pages' },
+  { label: 'Complaints', icon: MessageSquareWarning, route: '/dashboard/alerts?tab=complaints', group: 'Pages' },
+  { label: 'Incidents', icon: AlertTriangle, route: '/dashboard/alerts?tab=incidents', group: 'Pages' },
+  { label: 'Gate Surge', icon: Plane, route: '/dashboard/ops/surge', group: 'Pages' },
+  { label: 'Administration', icon: ShieldCheck, route: '/dashboard/admin', group: 'Pages' },
+  { label: 'Compliance Center', icon: ShieldCheck, route: '/dashboard/admin?tab=compliance', group: 'Pages' },
+  { label: 'Global Rules', icon: ScrollText, route: '/dashboard/admin?tab=global-rules', group: 'Pages' },
+  { label: 'Permissions', icon: Users, route: '/dashboard/admin?tab=permissions', group: 'Pages' },
+  { label: 'Policies', icon: Shield, route: '/dashboard/admin?tab=policies', group: 'Pages' },
   { label: 'Settings', icon: Settings, route: '/dashboard/settings', group: 'Pages' },
 ];
 

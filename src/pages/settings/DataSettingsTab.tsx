@@ -162,6 +162,51 @@ export default function DataSettingsTab({ onDirty }: Props) {
         </SettingRow>
       </SettingsSection>
 
+      {/* Privacy & Consent (Phase 9) */}
+      <SettingsSection title="Privacy & Consent">
+        <SettingRow label="Consent Form Version" description="Current version shown to visitors">
+          <span className="text-sm font-mono font-medium bg-muted/50 px-2 py-0.5 rounded">v2.1</span>
+        </SettingRow>
+        <SettingRow label="Consent Categories">
+          <div className="flex flex-wrap gap-1.5">
+            {['analytics', 'marketing', 'personalisation', 'functional'].map((cat) => (
+              <span key={cat} className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                {cat}
+              </span>
+            ))}
+          </div>
+        </SettingRow>
+        <SettingRow label="Consent Expiry" description="Days before consent must be re-confirmed">
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              defaultValue={365}
+              className="w-20 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-lexend text-center"
+              min={30}
+            />
+            <span className="text-xs text-muted-foreground">days</span>
+          </div>
+        </SettingRow>
+        <SettingRow label="PII Retention Period" description="How long personally identifiable data is kept">
+          <select defaultValue="2y" className={selectCls}>
+            <option value="1y">1 year</option>
+            <option value="2y">2 years</option>
+            <option value="5y">5 years</option>
+          </select>
+        </SettingRow>
+        <SettingRow label="DSAR SLA" description="Maximum days to fulfill a data subject access request">
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              defaultValue={30}
+              className="w-20 rounded-md border border-border bg-background px-3 py-1.5 text-sm font-lexend text-center"
+              min={1}
+            />
+            <span className="text-xs text-muted-foreground">days</span>
+          </div>
+        </SettingRow>
+      </SettingsSection>
+
       {/* System Maintenance */}
       <SettingsSection title="System Maintenance">
         <div className="space-y-3">

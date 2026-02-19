@@ -123,12 +123,13 @@ export interface TopShopData {
   trend: 'up' | 'down';
 }
 
+// Top shops — names aligned with shops.mock.ts (SHOP-001 through SHOP-007)
 export const topShopsData: TopShopData[] = [
-  { rank: 1, name: 'Duty Free World', category: 'Retail', visitors: 3421, trend: 'up' },
-  { rank: 2, name: 'Sky Lounge Premier', category: 'Lounge', visitors: 2887, trend: 'up' },
-  { rank: 3, name: 'The Food Court', category: 'Restaurant', visitors: 2341, trend: 'down' },
-  { rank: 4, name: 'Starbucks Gate B', category: 'Cafe', visitors: 1923, trend: 'up' },
-  { rank: 5, name: 'Tech Haven', category: 'Electronics', visitors: 1654, trend: 'up' },
+  { rank: 1, name: 'Starbucks Terminal A', category: 'Cafe', visitors: 3421, trend: 'up' },
+  { rank: 2, name: 'Sky Lounge Premium', category: 'Lounge', visitors: 2887, trend: 'up' },
+  { rank: 3, name: 'McDonald\'s Airside', category: 'Restaurant', visitors: 2341, trend: 'down' },
+  { rank: 4, name: 'Duty Free Electronics', category: 'Electronics', visitors: 1923, trend: 'up' },
+  { rank: 5, name: 'Zara Travel Collection', category: 'Fashion', visitors: 1654, trend: 'up' },
   { rank: 6, name: 'Pharma Plus', category: 'Pharmacy', visitors: 1102, trend: 'down' },
 ];
 
