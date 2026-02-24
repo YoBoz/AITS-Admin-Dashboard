@@ -16,7 +16,8 @@ export interface Trolley {
   status: TrolleyStatus;
   battery: number;
   health_score: number;
-  location: { x: number; y: number; zone: string; gate?: string };
+  location: { x: number; y: number; zone: string; gate?: string; floor?: number };
+  location_confidence?: number; // 0-100 percentage
   last_seen: string;
   assigned_gate: string;
   firmware_version: string;

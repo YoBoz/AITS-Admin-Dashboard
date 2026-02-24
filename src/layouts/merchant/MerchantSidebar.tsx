@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ClipboardList, UtensilsCrossed, Megaphone, Ticket, ReceiptText, Settings,
-  LogOut, ChevronsLeft, ChevronsRight,
+  LayoutDashboard, ClipboardList, UtensilsCrossed, Megaphone, Ticket, ReceiptText, Settings,
+  LogOut, ChevronsLeft, ChevronsRight, Gauge, Truck, BarChart3, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
@@ -27,12 +27,17 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  { label: 'Dashboard', icon: LayoutDashboard, route: '/merchant/dashboard', requiredPermission: 'dashboard.view' },
   { label: 'Orders', icon: ClipboardList, route: '/merchant/orders', highlight: true, requiredPermission: 'orders.view' },
   { label: 'Menu', icon: UtensilsCrossed, route: '/merchant/menu', requiredPermission: 'menu.view' },
-  { label: 'Campaigns', icon: Megaphone, route: '/merchant/campaigns', requiredPermission: 'campaigns.view' },
+  { label: 'Capacity & SLA', icon: Gauge, route: '/merchant/capacity-sla', requiredPermission: 'sla.view' },
+  { label: 'Delivery Settings', icon: Truck, route: '/merchant/delivery', requiredPermission: 'delivery.view' },
   { label: 'Coupons', icon: Ticket, route: '/merchant/coupons', requiredPermission: 'coupons.validate' },
+  { label: 'Campaigns', icon: Megaphone, route: '/merchant/campaigns', requiredPermission: 'campaigns.view' },
   { label: 'Refunds', icon: ReceiptText, route: '/merchant/refunds', requiredPermission: 'refunds.view' },
-  { label: 'Settings', icon: Settings, route: '/merchant/settings', requiredPermission: 'sla.view' },
+  { label: 'Reports', icon: BarChart3, route: '/merchant/reports', requiredPermission: 'reports.view' },
+  { label: 'Staff & Roles', icon: Users, route: '/merchant/staff', requiredPermission: 'staff.view' },
+  { label: 'Settings', icon: Settings, route: '/merchant/settings', requiredPermission: 'settings.view' },
 ];
 
 export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps) {

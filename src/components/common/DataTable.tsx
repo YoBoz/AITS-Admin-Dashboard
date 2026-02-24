@@ -1,5 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useMemo } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -40,36 +39,10 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const initialPage = Math.max(0, Number(searchParams.get('page') || 1) - 1);
-  const initialPageSize = Number(searchParams.get('pageSize')) || defaultPageSize;
-
   const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: initialPage,
-    pageSize: initialPageSize,
+    pageIndex: 0,
+    pageSize: defaultPageSize,
   });
-
-  const onPaginationChange = useCallback(
-    (updater: PaginationState | ((old: PaginationState) => PaginationState)) => {
-      setPagination((prev) => {
-        const next = typeof updater === 'function' ? updater(prev) : updater;
-        // Only update URL params if values actually changed
-        if (next.pageIndex !== prev.pageIndex || next.pageSize !== prev.pageSize) {
-          setSearchParams(
-            (sp) => {
-              sp.set('page', String(next.pageIndex + 1));
-              sp.set('pageSize', String(next.pageSize));
-              return sp;
-            },
-            { replace: true }
-          );
-        }
-        return next;
-      });
-    },
-    [setSearchParams]
-  );
 
   const table = useReactTable({
     data,
@@ -77,7 +50,7 @@ export function DataTable<T>({
     state: { sorting, globalFilter, pagination },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -180,14 +153,14 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground font-lexend">
           <span>Rows per page</span>
           <select
             value={pagination.pageSize}
             onChange={(e) => {
               const newSize = Number(e.target.value);
-              onPaginationChange({ pageIndex: 0, pageSize: newSize });
+              setPagination({ pageIndex: 0, pageSize: newSize });
             }}
             className="h-8 rounded border bg-background px-2 text-sm"
           >
@@ -200,7 +173,7 @@ export function DataTable<T>({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground font-lexend">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            Page {pagination.pageIndex + 1} of {table.getPageCount() || 1}
           </span>
           <Button
             variant="outline"

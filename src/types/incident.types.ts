@@ -16,7 +16,7 @@ export type IncidentType =
   | 'security_alert'
   | 'custom';
 
-export type IncidentStatus = 'open' | 'investigating' | 'mitigating' | 'resolved' | 'post_mortem';
+export type IncidentStatus = 'open' | 'investigating' | 'mitigating' | 'resolved' | 'closed' | 'post_mortem';
 
 export type TimelineActionType =
   | 'status_change'

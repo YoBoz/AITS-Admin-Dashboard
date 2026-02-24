@@ -1,0 +1,222 @@
+{
+  "role": "system",
+  "objective": "Perform a full gap analysis between the current codebase and the specified Command Center and Admin/Ops Dashboard requirements. Identify implemented features, partially implemented features, missing features, and any extra/unnecessary features. Propose concrete implementation tasks or deprecation actions where required.",
+  "instructions": [
+    "1. Parse the entire codebase (frontend, backend, API routes, database schema, RBAC, logs, analytics modules).",
+    "2. Map each requirement section explicitly to existing modules, components, services, controllers, and database tables.",
+    "3. Classify each requirement as: IMPLEMENTED, PARTIAL, MISSING, or EXTRA.",
+    "4. For PARTIAL items, specify what is incomplete (UI, API, logging, validation, RBAC enforcement, etc.).",
+    "5. For MISSING items, propose required backend endpoints, database schema changes, UI components, and permission rules.",
+    "6. For EXTRA features not in requirements, flag whether they should be retained or hidden behind feature flags.",
+    "7. Verify all override and sensitive actions enforce: reason_code (required), audit logging, RBAC permission checks.",
+    "8. Verify all force/override/device actions are logged in audit logs.",
+    "9. Validate SLA analytics calculations against event timeline data.",
+    "10. Ensure developer endpoints match required API contracts.",
+    "11. Output findings strictly in the structured JSON format defined below."
+  ],
+  "requirements": {
+    "command_center": {
+      "layout": {
+        "main_sections": true,
+        "left_nav_sub_sections": [
+          "Live Map",
+          "Fleet Monitoring",
+          "Runners",
+          "Orders",
+          "Incidents",
+          "Gate Management",
+          "Policy Controls",
+          "Merchant Management",
+          "SLA Analytics",
+          "Reports",
+          "RBAC",
+          "Audit Logs"
+        ]
+      },
+      "live_fleet_map": {
+        "features": [
+          "Device dots",
+          "Runner icons",
+          "Confidence indicator",
+          "Floor selector"
+        ],
+        "device_click_panel": [
+          "Battery",
+          "Connectivity",
+          "Last seen",
+          "Version",
+          "Location confidence"
+        ]
+      },
+      "incident_console": {
+        "create_fields": [
+          "Order ID",
+          "Device ID",
+          "Type",
+          "Severity",
+          "Assigned operator",
+          "Notes"
+        ],
+        "actions": [
+          "Reassign runner",
+          "Abort order",
+          "Force refund",
+          "Convert to pickup"
+        ],
+        "audit_required": true
+      },
+      "policy_control": {
+        "restricted_zones": [
+          "Delivery blocked",
+          "Device locked"
+        ],
+        "wheel_lock_logic": {
+          "conditions": [
+            "No active session",
+            "Safe zone confirmed"
+          ]
+        },
+        "overrides_require_logging": true
+      },
+      "sla_dashboard": {
+        "metrics": [
+          "Acceptance time",
+          "Delivery time",
+          "Delay rate",
+          "Refund rate",
+          "Merchant SLA compliance",
+          "Runner performance",
+          "Device uptime"
+        ]
+      }
+    },
+    "admin_ops_dashboard": {
+      "live_map": {
+        "device_actions": [
+          "lock",
+          "unlock",
+          "reboot",
+          "update app",
+          "mark as maintenance"
+        ],
+        "api": [
+          "GET /ops/devices",
+          "POST /ops/devices/{id}/action"
+        ]
+      },
+      "orders_console": {
+        "features": [
+          "Search order",
+          "Full event timeline",
+          "Override actions"
+        ],
+        "override_actions": [
+          "reassign runner",
+          "abort order",
+          "force refund",
+          "convert to pickup",
+          "override gate safety"
+        ],
+        "override_requirements": [
+          "reason_code required",
+          "optional notes",
+          "audit log entry"
+        ],
+        "api": [
+          "POST /ops/orders/{id}/override"
+        ]
+      },
+      "incidents": {
+        "features": [
+          "Incident list",
+          "Create manual incident",
+          "Assign operator",
+          "Close incident with resolution code",
+          "Action log timeline"
+        ],
+        "api": [
+          "GET /ops/incidents",
+          "POST /ops/incidents",
+          "PUT /ops/incidents/{id}"
+        ]
+      },
+      "merchant_management": {
+        "features": [
+          "Approvals",
+          "SLA defaults",
+          "Refund thresholds",
+          "Performance metrics"
+        ],
+        "api": [
+          "GET /ops/merchants/{id}",
+          "PUT /ops/merchants/{id}"
+        ]
+      },
+      "policies": {
+        "features": [
+          "Restricted zones editor",
+          "Rule editor",
+          "Override log view"
+        ],
+        "api": [
+          "CRUD /ops/policies/*"
+        ]
+      },
+      "rbac_audit": {
+        "features": [
+          "Roles",
+          "Permissions matrix",
+          "Audit log search (actor, action, time, entity)"
+        ],
+        "api": [
+          "CRUD /ops/rbac/*",
+          "GET /ops/audit"
+        ]
+      },
+      "sla_analytics": {
+        "features": [
+          "Merchant acceptance distribution",
+          "Delivery SLA completion",
+          "Runner performance",
+          "Device uptime"
+        ],
+        "api": [
+          "GET /ops/analytics/*"
+        ]
+      }
+    }
+  },
+  "expected_output_format": {
+    "summary": {
+      "implemented": "number",
+      "partial": "number",
+      "missing": "number",
+      "extra": "number"
+    },
+    "sections": [
+      {
+        "name": "Section name",
+        "status": "IMPLEMENTED | PARTIAL | MISSING | EXTRA",
+        "frontend_status": "details",
+        "backend_status": "details",
+        "database_status": "details",
+        "rbac_status": "details",
+        "audit_logging_status": "details",
+        "gaps": ["gap1", "gap2"],
+        "recommended_actions": ["action1", "action2"]
+      }
+    ],
+    "extra_features_not_in_scope": [
+      {
+        "feature": "name",
+        "reason_flagged": "explanation",
+        "recommendation": "retain | hide | remove"
+      }
+    ],
+    "security_validation": {
+      "override_reason_enforced": true,
+      "audit_logging_verified": true,
+      "rbac_enforced_on_sensitive_actions": true
+    }
+  }
+}

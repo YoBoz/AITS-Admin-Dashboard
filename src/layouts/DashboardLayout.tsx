@@ -61,7 +61,7 @@ export function DashboardLayout() {
           onNotificationClick={() => setNotificationPanelOpen(true)}
         />
 
-        <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6 min-h-0 overflow-auto" role="main">
+        <main className="flex-1 p-4 lg:p-6 pb-24 lg:pb-10 min-h-0 overflow-auto" role="main">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

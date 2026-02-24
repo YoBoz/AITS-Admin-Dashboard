@@ -2,22 +2,33 @@ import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+/** Map each URL segment to the i18n key matching the sidebar label */
 const routeLabels: Record<string, string> = {
-  dashboard: 'nav.dashboard',
-  overview: 'nav.overview',
-  map: 'nav.terminalMap',
-  heatmap: 'nav.heatmap',
-  trolleys: 'nav.trolleyManagement',
-  shops: 'nav.shopManagement',
-  visitors: 'nav.visitorStats',
-  offers: 'nav.offersContracts',
-  notifications: 'nav.notifications',
-  alerts: 'nav.alerts',
-  complaints: 'nav.complaints',
-  permissions: 'nav.permissions',
-  settings: 'nav.settings',
+  // Sidebar nav items (must match Sidebar.tsx labels exactly)
+  overview: 'nav.dashboard',
+  map: 'nav.liveMap',
+  fleet: 'nav.fleetMonitoring',
+  runners: 'nav.runners',
+  orders: 'nav.orders',
+  incidents: 'nav.incidents',
+  gates: 'nav.gateManagement',
+  policies: 'nav.policyControls',
+  shops: 'nav.merchantManagement',
+  sla: 'nav.slaAnalytics',
+  reports: 'nav.reports',
+  permissions: 'nav.rbac',
+  'audit-logs': 'nav.auditLogs',
+  // Supplemental pages
   profile: 'nav.profile',
+  heatmap: 'nav.heatmap',
+  trolleys: 'nav.fleetMonitoring',
 };
+
+/** Convert a URL segment like "audit-logs" → "Audit logs" (sentence case) */
+function toSentenceCase(seg: string): string {
+  const words = seg.replace(/-/g, ' ').replace(/_/g, ' ');
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
 
 export function Breadcrumb() {
   const { t } = useTranslation();
@@ -30,7 +41,7 @@ export function Breadcrumb() {
 
   // Build crumb list from remaining segments
   const crumbs = pageSegments.map((seg, idx) => ({
-    label: t(routeLabels[seg] || seg),
+    label: routeLabels[seg] ? t(routeLabels[seg]) : toSentenceCase(seg),
     path: '/dashboard/' + pageSegments.slice(0, idx + 1).join('/'),
     isLast: idx === pageSegments.length - 1,
   }));

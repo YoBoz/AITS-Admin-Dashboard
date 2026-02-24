@@ -5,11 +5,13 @@
 import type { Order, OrderStatus, OrderEvent } from '@/types/order.types';
 
 const merchants = [
-  { id: 'SHOP-001', name: 'Costa Coffee' },
-  { id: 'SHOP-003', name: "McDonald's" },
-  { id: 'SHOP-004', name: 'Dubai Duty Free' },
-  { id: 'SHOP-005', name: 'WHSmith' },
-  { id: 'SHOP-012', name: 'Shake Shack' },
+  { id: 'sky-lounge-premier', name: 'Sky Lounge Premier' },
+  { id: 'SHOP-001', name: 'Starbucks Terminal A' },
+  { id: 'SHOP-002', name: 'Hudson News' },
+  { id: 'SHOP-003', name: "McDonald's Airside" },
+  { id: 'SHOP-004', name: 'Duty Free Electronics' },
+  { id: 'SHOP-009', name: 'Costa Coffee' },
+  { id: 'SHOP-012', name: 'Burger King Departures' },
   { id: 'SHOP-018', name: 'Paul Bakery' },
 ];
 

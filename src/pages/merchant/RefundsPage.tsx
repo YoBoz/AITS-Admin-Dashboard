@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/Label';
 import { Badge } from '@/components/ui/Badge';
 import { useRefundStore, type RefundRequest } from '@/store/refund.store';
 import { reasonCodes } from '@/data/mock/reason-codes.mock';
+import { REFUND_CONFIG } from '@/types/merchant.types';
 
 // ─── Status config ────────────────────────────────────────────────────
 const STATUS_CFG: Record<RefundRequest['status'], { variant: 'warning' | 'success' | 'destructive'; icon: typeof Clock; label: string }> = {
@@ -25,7 +26,7 @@ const STATUS_CFG: Record<RefundRequest['status'], { variant: 'warning' | 'succes
 
 // ─── Request Refund Modal ─────────────────────────────────────────────
 function RequestRefundModal({ onClose }: { onClose: () => void }) {
-  const { submitRefund, threshold } = useRefundStore();
+  const { submitRefund, threshold, refunds } = useRefundStore();
   const { merchantUser } = useMerchantAuth();
 
   const [form, setForm] = useState({
@@ -39,9 +40,20 @@ function RequestRefundModal({ onClose }: { onClose: () => void }) {
 
   const update = (u: Partial<typeof form>) => setForm((f) => ({ ...f, ...u }));
 
+  // Count today's refunds by this user
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayRefundCount = refunds.filter(
+    (r) => r.requestedBy === (merchantUser?.email ?? '') && new Date(r.requestedAt) >= todayStart
+  ).length;
+
   const selectedReasonCode = reasonCodes.refund_reasons.find((r) => r.code === form.reason);
   const requiresNotes = selectedReasonCode?.requires_notes ?? false;
-  const willNeedApproval = form.amount > threshold;
+
+  const exceedsOpsThreshold = form.amount > threshold;
+  const exceedsAutoApprove = form.amount > REFUND_CONFIG.maxAutoApprove;
+  const exceedsDailyLimit = todayRefundCount >= REFUND_CONFIG.dailyLimitManager;
+  const willNeedApproval = exceedsOpsThreshold || exceedsAutoApprove || exceedsDailyLimit;
 
   const canSubmit = !!form.orderNumber.trim() && !!form.reason && form.amount > 0
     && form.amount <= form.orderTotal
@@ -149,8 +161,17 @@ function RequestRefundModal({ onClose }: { onClose: () => void }) {
         {willNeedApproval && (
           <div className="flex items-start gap-2 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3">
             <ShieldAlert className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-            <div className="text-[11px] text-amber-700 dark:text-amber-400">
-              Amount exceeds {threshold} AED threshold. This refund will require <b>ops approval</b>.
+            <div className="text-[11px] text-amber-700 dark:text-amber-400 space-y-0.5">
+              {exceedsOpsThreshold && (
+                <p>Amount exceeds <b>{threshold} AED</b> ops threshold.</p>
+              )}
+              {exceedsAutoApprove && !exceedsOpsThreshold && (
+                <p>Amount exceeds <b>{REFUND_CONFIG.maxAutoApprove} AED</b> auto-approve limit.</p>
+              )}
+              {exceedsDailyLimit && (
+                <p>Daily refund limit reached (<b>{REFUND_CONFIG.dailyLimitManager}</b> per day).</p>
+              )}
+              <p className="font-semibold">This refund will require ops approval.</p>
             </div>
           </div>
         )}

@@ -11,6 +11,8 @@ import { useOrderPolling } from '@/hooks/useOrderPolling';
 import { orderService } from '@/services/merchant-orders.service';
 import { OrderCard } from '@/components/merchant/OrderCard';
 import { RejectOrderModal } from '@/components/merchant/RejectOrderModal';
+import { RefundOrderModal } from '@/components/merchant/RefundOrderModal';
+import type { Order } from '@/types/order.types';
 import type { LucideIcon } from 'lucide-react';
 
 // ─── Tab Config ───────────────────────────────────────────────────────
@@ -58,6 +60,9 @@ export default function OrdersInboxPage() {
     open: false, orderId: '', orderNumber: '',
   });
   const [rejectLoading, setRejectLoading] = useState(false);
+
+  // Refund modal state
+  const [refundOrder, setRefundOrder] = useState<Order | null>(null);
 
   // Filter orders by current tab
   const filteredOrders = useMemo(() => {
@@ -125,6 +130,10 @@ export default function OrdersInboxPage() {
   const handleMarkPickedUp = useCallback((id: string) => {
     withTransition(id, () => orderService.markPickedUp(id, 'runner-auto', 'Ali R.'));
   }, [withTransition]);
+
+  const handleRefund = useCallback((order: Order) => {
+    setRefundOrder(order);
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -232,6 +241,7 @@ export default function OrdersInboxPage() {
                 onStartPreparing={handleStartPreparing}
                 onMarkReady={handleMarkReady}
                 onMarkPickedUp={handleMarkPickedUp}
+                onRefund={handleRefund}
                 isTransitioning={transitioningIds.has(order.id)}
               />
             ))}
@@ -246,6 +256,13 @@ export default function OrdersInboxPage() {
         onClose={() => setRejectModal({ open: false, orderId: '', orderNumber: '' })}
         onConfirm={handleRejectConfirm}
         isLoading={rejectLoading}
+      />
+
+      {/* Refund Modal */}
+      <RefundOrderModal
+        open={!!refundOrder}
+        order={refundOrder}
+        onClose={() => setRefundOrder(null)}
       />
     </div>
   );

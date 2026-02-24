@@ -9,6 +9,7 @@ import { useFleetLive } from '@/hooks/useFleetLive';
 import { useTheme } from '@/hooks/useTheme';
 import { FleetHealthBar, DeviceStatusCard } from '@/components/ops';
 import { AirportMapSVG } from '@/components/map/AirportMapSVG';
+import { trolleyPositions } from '@/data/mock/map.mock';
 import type { Trolley } from '@/types/trolley.types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -61,11 +62,26 @@ export default function LiveFleetPage({ embedded = false, initialDeviceId = null
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(initialDeviceId);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [activeLayers] = useState(['zones', 'trolleys', 'gates', 'pois']);
+  const [selectedFloor, setSelectedFloor] = useState<number>(1);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+
+  // Lookup trolley floor from map positions
+  const getTrolleyFloor = useCallback((trolleyId: string): number | null => {
+    const pos = trolleyPositions.find((t) => t.trolley_id === trolleyId);
+    return pos?.floor ?? null;
+  }, []);
 
   // Sync selectedDeviceId when initialDeviceId prop changes (e.g. navigation from fleet overview)
   useEffect(() => {
     if (initialDeviceId && initialDeviceId !== selectedDeviceId) {
       setSelectedDeviceId(initialDeviceId);
+      // Auto-switch floor to match the trolley's location
+      const floor = getTrolleyFloor(initialDeviceId);
+      if (floor && floor !== selectedFloor) {
+        setSelectedFloor(floor);
+      }
+      // Zoom in to pinpoint the trolley
+      setZoomLevel(1.6);
     }
   }, [initialDeviceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -108,11 +124,30 @@ export default function LiveFleetPage({ embedded = false, initialDeviceId = null
     : null;
 
   const handleDeviceClick = useCallback((id: string) => {
-    setSelectedDeviceId((prev) => (prev === id ? null : id));
-  }, []);
+    setSelectedDeviceId((prev) => {
+      if (prev === id) {
+        setZoomLevel(1);
+        return null;
+      }
+      // Auto-switch floor and zoom in
+      const floor = getTrolleyFloor(id);
+      if (floor && floor !== selectedFloor) {
+        setSelectedFloor(floor);
+      }
+      setZoomLevel(1.6);
+      return id;
+    });
+  }, [getTrolleyFloor, selectedFloor]);
 
   const handleTrolleyClickOnMap = useCallback((trolleyId: string) => {
-    setSelectedDeviceId((prev) => (prev === trolleyId ? null : trolleyId));
+    setSelectedDeviceId((prev) => {
+      if (prev === trolleyId) {
+        setZoomLevel(1);
+        return null;
+      }
+      setZoomLevel(1.6);
+      return trolleyId;
+    });
   }, []);
 
   // Scroll selected device card into view when selection changes
@@ -249,6 +284,17 @@ export default function LiveFleetPage({ embedded = false, initialDeviceId = null
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
+              {/* Floor Selector */}
+              <Select value={String(selectedFloor)} onValueChange={(v) => setSelectedFloor(Number(v))}>
+                <SelectTrigger className="w-28 h-8 text-xs">
+                  <SelectValue placeholder="Floor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Departures</SelectItem>
+                  <SelectItem value="2">Arrivals</SelectItem>
+                  <SelectItem value="3">VIP & Exec</SelectItem>
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="icon" className="h-8 w-8">
                 <Layers className="h-4 w-4" />
               </Button>
@@ -265,14 +311,25 @@ export default function LiveFleetPage({ embedded = false, initialDeviceId = null
           
           <CardContent className="flex-1 relative min-h-0 p-2">
             {/* Shared Airport Map — consistent with Terminal Map & Heatmap views */}
-            <div className="absolute inset-0 overflow-hidden rounded-lg">
-              <AirportMapSVG
-                activeLayers={activeLayers}
-                selectedTrolleyId={selectedDeviceId}
-                highlightTrolleyId={selectedDeviceId}
-                isDark={isDark}
-                onTrolleyClick={handleTrolleyClickOnMap}
-              />
+            <div className="absolute inset-0 overflow-auto rounded-lg">
+              <div
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.3s ease',
+                  width: '100%',
+                  height: '100%',
+                }}
+              >
+                <AirportMapSVG
+                  floor={selectedFloor}
+                  activeLayers={activeLayers}
+                  selectedTrolleyId={selectedDeviceId}
+                  highlightTrolleyId={selectedDeviceId}
+                  isDark={isDark}
+                  onTrolleyClick={handleTrolleyClickOnMap}
+                />
+              </div>
             </div>
             
             {/* Selected device info overlay on map */}
@@ -281,7 +338,7 @@ export default function LiveFleetPage({ embedded = false, initialDeviceId = null
                 <div className="relative">
                   <button
                     className="absolute -top-2 -right-2 z-10 p-1 rounded-full bg-background border shadow-sm hover:bg-muted"
-                    onClick={() => setSelectedDeviceId(null)}
+                    onClick={() => { setSelectedDeviceId(null); setZoomLevel(1); }}
                   >
                     <X className="h-3 w-3" />
                   </button>

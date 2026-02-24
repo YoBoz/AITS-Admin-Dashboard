@@ -23,6 +23,7 @@ const statusConfig: Record<Incident['status'], { label: string; variant: 'defaul
   investigating: { label: 'Investigating', variant: 'default' },
   mitigating: { label: 'Mitigating', variant: 'secondary' },
   resolved: { label: 'Resolved', variant: 'outline' },
+  closed: { label: 'Closed', variant: 'outline' },
   post_mortem: { label: 'Post-Mortem', variant: 'outline' },
 };
 

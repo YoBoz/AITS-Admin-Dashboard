@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Settings, ShieldAlert, Save, RotateCcw } from 'lucide-react';
+import { Clock, Settings, ShieldAlert, Save, RotateCcw, Zap, PauseCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { RequirePermission } from '@/components/merchant/RequirePermission';
@@ -22,8 +22,8 @@ export default function SLASettingsPage() {
   const canEdit = canDo('sla.edit');
   const canEditCapacity = canDo('capacity.edit');
   const {
-    slaSettings, capacitySettings, storeStatus,
-    setSLASettings, setCapacitySettings, setStoreStatus,
+    slaSettings, capacitySettings, storeStatus, autoPauseConfig,
+    setSLASettings, setCapacitySettings, setStoreStatus, toggleBusyMode, setAutoPauseConfig,
   } = useMerchantStore();
 
   // ─── Local draft state ────────────────────────────────────────────
@@ -111,9 +111,9 @@ export default function SLASettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-montserrat text-foreground">Settings</h1>
+          <h1 className="text-2xl font-bold font-montserrat text-foreground">Capacity & SLA</h1>
           <p className="text-xs text-muted-foreground font-lexend mt-0.5">
-            Configure SLA, capacity, and store status · Role:{' '}
+            Configure SLA, capacity, busy mode, and auto-pause · Role:{' '}
             <span className="font-semibold capitalize text-foreground">{merchantRole}</span>
           </p>
         </div>
@@ -349,6 +349,149 @@ export default function SLASettingsPage() {
                   <p className="text-[10px] text-red-500 font-medium">
                     ⚠ Closing the store will disable the Accept button on all new orders.
                   </p>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* ─── Busy Mode Toggle ───────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="lg:col-span-2"
+        >
+          <Card className={cn(storeStatus === 'busy' && 'border-amber-500/30 bg-amber-500/5')}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Zap className={cn('h-5 w-5', storeStatus === 'busy' ? 'text-amber-500' : 'text-muted-foreground')} />
+                  <div>
+                    <h3 className="text-sm font-semibold font-montserrat">
+                      Busy Mode
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Toggle between Normal and Busy. When Busy: lowers store ranking, limits new orders, does not cancel existing orders.
+                    </p>
+                  </div>
+                </div>
+                <RequirePermission permission="sla.edit" disableInstead>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'text-xs font-semibold',
+                      storeStatus === 'busy' ? 'text-amber-500' : 'text-emerald-500',
+                    )}>
+                      {storeStatus === 'busy' ? 'Busy' : 'Normal'}
+                    </span>
+                    <Switch
+                      checked={storeStatus === 'busy'}
+                      onCheckedChange={() => toggleBusyMode()}
+                      disabled={storeStatus === 'closed'}
+                    />
+                  </div>
+                </RequirePermission>
+              </div>
+
+              {storeStatus === 'busy' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="mt-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-3"
+                >
+                  <div className="text-[11px] text-amber-700 dark:text-amber-400 space-y-1">
+                    <p>• Store ranking is lowered in search results</p>
+                    <p>• New orders are limited (throttled at {slaSettings.busy_auto_throttle_at} concurrent)</p>
+                    <p>• Existing orders continue to be processed normally</p>
+                  </div>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* ─── Auto-Pause Logic ───────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="lg:col-span-2"
+        >
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <PauseCircle className="h-5 w-5 text-brand" />
+                  <div>
+                    <h3 className="text-sm font-semibold font-montserrat">
+                      Auto-Pause Logic
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Automatically pause accepting new orders after inactivity or high load
+                    </p>
+                  </div>
+                </div>
+                <RequirePermission permission="sla.edit" disableInstead>
+                  <Switch
+                    checked={autoPauseConfig.enabled}
+                    onCheckedChange={(enabled) => {
+                      setAutoPauseConfig({ enabled });
+                      toast.info(enabled ? 'Auto-pause enabled' : 'Auto-pause disabled');
+                    }}
+                  />
+                </RequirePermission>
+              </div>
+
+              {autoPauseConfig.enabled && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="space-y-4 pt-2"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">
+                        Pause After (minutes of no orders)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={5}
+                        max={120}
+                        value={autoPauseConfig.pause_after_minutes}
+                        onChange={(e) => setAutoPauseConfig({ pause_after_minutes: parseInt(e.target.value, 10) || 30 })}
+                        className="font-mono w-28"
+                        disabled={!canEdit}
+                      />
+                      <p className="text-[10px] text-muted-foreground">
+                        Stop accepting orders if no orders received in this window
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">
+                          Auto-Resume
+                        </Label>
+                        <Switch
+                          checked={autoPauseConfig.resume_automatically}
+                          onCheckedChange={(resume_automatically) => setAutoPauseConfig({ resume_automatically })}
+                          disabled={!canEdit}
+                        />
+                      </div>
+                      {autoPauseConfig.resume_automatically && (
+                        <div className="space-y-1.5">
+                          <Label className="text-xs text-muted-foreground">
+                            Resume After (minutes)
+                          </Label>
+                          <Input
+                            type="number"
+                            min={5}
+                            max={240}
+                            value={autoPauseConfig.resume_after_minutes}
+                            onChange={(e) => setAutoPauseConfig({ resume_after_minutes: parseInt(e.target.value, 10) || 60 })}
+                            className="font-mono w-28"
+                            disabled={!canEdit}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </CardContent>

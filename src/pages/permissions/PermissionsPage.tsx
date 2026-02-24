@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@/components/common/PageHeader';
 import { cn } from '@/lib/utils';
 import { Users, Shield, Grid3X3, FileText } from 'lucide-react';
@@ -20,7 +21,23 @@ interface PermissionsPageProps {
 }
 
 export default function PermissionsPage({ embedded }: PermissionsPageProps) {
-  const [activeTab, setActiveTab] = useState('users');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(
+    tabParam && tabs.some((t) => t.key === tabParam) ? tabParam : 'users'
+  );
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (!embedded) {
+      setSearchParams((prev) => {
+        prev.set('tab', tab);
+        prev.delete('page');
+        prev.delete('pageSize');
+        return prev;
+      }, { replace: true });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -36,7 +53,7 @@ export default function PermissionsPage({ embedded }: PermissionsPageProps) {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => handleTabChange(tab.key)}
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-lexend transition-colors relative',
               activeTab === tab.key

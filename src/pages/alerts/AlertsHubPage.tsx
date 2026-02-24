@@ -46,7 +46,12 @@ export default function AlertsHubPage() {
 
   const handleTabChange = (tab: AlertsTab) => {
     setActiveTab(tab);
-    setSearchParams({ tab }, { replace: true });
+    setSearchParams((prev) => {
+      prev.set('tab', tab);
+      prev.delete('page');
+      prev.delete('pageSize');
+      return prev;
+    }, { replace: true });
   };
 
   const getBadge = (tab: AlertsTab): number => {

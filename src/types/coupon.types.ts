@@ -15,6 +15,12 @@ export interface Coupon {
   campaign_id: string | null;
 }
 
+export interface CampaignLanguageVersion {
+  language: 'en' | 'ar' | 'fr';
+  name: string;
+  description: string;
+}
+
 export interface Campaign {
   id: string;
   name: string;
@@ -36,4 +42,8 @@ export interface Campaign {
   revenue_attributed: number;
   created_by: string;
   created_at: string;
+  /** Localized versions of campaign name & description */
+  language_versions?: CampaignLanguageVersion[];
+  /** Whether scheduler auto-executes this campaign on the start_date */
+  auto_execute?: boolean;
 }

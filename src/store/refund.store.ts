@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { REFUND_CONFIG } from '@/types/merchant.types';
+import { useOrdersStore } from '@/store/orders.store';
 
 // ─── Types ────────────────────────────────────────────────────────────
 export interface RefundRequest {
@@ -104,7 +105,27 @@ export const useRefundStore = create<RefundState>((set, get) => ({
   threshold: REFUND_CONFIG.opsApprovalThreshold,
 
   submitRefund: (data) => {
-    const requiresOps = data.amount > get().threshold;
+    const state = get();
+    const threshold = state.threshold;
+    const maxAuto = REFUND_CONFIG.maxAutoApprove;
+    const dailyLimit = REFUND_CONFIG.dailyLimitManager;
+
+    // Count today's refunds by this requester
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayRefunds = state.refunds.filter(
+      (r) => r.requestedBy === data.requestedBy && new Date(r.requestedAt) >= todayStart
+    ).length;
+
+    // Determine if ops approval is needed:
+    // 1. Amount exceeds ops threshold (100 AED)
+    // 2. Amount exceeds maxAutoApprove (50 AED) — manager can only auto-approve up to this
+    // 3. Manager has exceeded daily refund limit
+    const exceedsOpsThreshold = data.amount > threshold;
+    const exceedsAutoApprove = data.amount > maxAuto;
+    const exceedsDailyLimit = todayRefunds >= dailyLimit;
+    const requiresOps = exceedsOpsThreshold || exceedsAutoApprove || exceedsDailyLimit;
+
     const refund: RefundRequest = {
       id: `ref-new-${++nextId}`,
       ...data,
@@ -116,6 +137,19 @@ export const useRefundStore = create<RefundState>((set, get) => ({
     };
 
     set((s) => ({ refunds: [refund, ...s.refunds] }));
+
+    // Sync with orders store — update the order's refund fields
+    try {
+      useOrdersStore.getState().requestRefund(
+        data.orderId,
+        data.amount,
+        data.reason,
+        data.notes
+      );
+    } catch {
+      // Order may not exist in orders store (e.g. manually entered order number)
+    }
+
     return refund;
   },
 

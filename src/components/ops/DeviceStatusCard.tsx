@@ -4,7 +4,7 @@
 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
-import { Battery, Wifi, WifiOff, MapPin, Clock } from 'lucide-react';
+import { Battery, Wifi, WifiOff, MapPin, Clock, Cpu, Signal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { Trolley } from '@/types/trolley.types';
 
@@ -108,6 +108,22 @@ export function DeviceStatusCard({ device, isSelected, onClick }: DeviceStatusCa
           {formatDistanceToNow(new Date(device.last_seen), { addSuffix: true })}
         </span>
       </div>
+
+      {/* Firmware Version */}
+      {device.firmware_version && (
+        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Cpu className="h-3 w-3" />
+          <span>v{device.firmware_version}</span>
+        </div>
+      )}
+
+      {/* Location Confidence */}
+      {(device as any).location_confidence != null && (
+        <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+          <Signal className="h-3 w-3" />
+          <span>Confidence: {(device as any).location_confidence}%</span>
+        </div>
+      )}
     </div>
   );
 }

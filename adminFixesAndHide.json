@@ -1,0 +1,248 @@
+{
+  "role": "system",
+  "title": "Admin/Ops Dashboard Audit & Alignment Task",
+  "objective": "Audit the existing Admin/Ops dashboard implementation and strictly align it to the provided requirements. Hide or remove unnecessary pages, components, and fields. Add any missing functionality. Do NOT modify the left navigation structure.",
+  "constraints": {
+    "navbar": "DO NOT change left nav items.",
+    "focus": "Hide or conditionally render pages not required by spec instead of deleting if structurally coupled.",
+    "strictRBAC": true,
+    "allOverridesRequireReasonCode": true,
+    "allCriticalActionsMustBeAudited": true
+  },
+  "reference_sections": {
+    "dashboard_sections": [
+      "Live Map",
+      "Fleet Monitoring",
+      "Runners",
+      "Orders",
+      "Incidents",
+      "Gate Management",
+      "Policy Controls",
+      "Merchant Management",
+      "SLA Analytics",
+      "Reports",
+      "RBAC",
+      "Audit Logs"
+    ],
+    "required_modules": [
+      "Live Fleet Map",
+      "Ops Orders Console",
+      "Incident Console",
+      "Merchant Management",
+      "Policy Controls (Restricted Zones + Wheel Lock)",
+      "RBAC + Audit Logs",
+      "SLA Analytics"
+    ]
+  },
+  "tasks": [
+    {
+      "step": 1,
+      "name": "Page Audit",
+      "instructions": [
+        "List all currently implemented pages under Admin/Ops.",
+        "Map each page to requirement sections.",
+        "Mark pages as: REQUIRED, OPTIONAL (hide), or REMOVE.",
+        "If a page exists but is not in the requirements, hide it unless technically required.",
+        "If a required module is missing, flag as ADD."
+      ]
+    },
+    {
+      "step": 2,
+      "name": "Field-Level Audit",
+      "instructions": [
+        "Inspect all forms and side panels.",
+        "Remove or hide fields not defined in requirements.",
+        "Add missing required fields exactly as specified.",
+        "Ensure incident creation includes: Order ID, Device ID, Type, Severity, Assigned Operator, Notes.",
+        "Ensure override forms require reason code (mandatory) + optional notes."
+      ]
+    },
+    {
+      "step": 3,
+      "name": "Live Fleet Map Compliance",
+      "requirements": {
+        "map_features": [
+          "Floor selector",
+          "Device dots",
+          "Runner icons",
+          "Online/Offline state",
+          "Confidence indicator",
+          "Last seen",
+          "Battery indicator"
+        ],
+        "side_panel": [
+          "Battery",
+          "Connectivity",
+          "Last seen",
+          "Version",
+          "Location confidence"
+        ],
+        "device_actions": [
+          "lock",
+          "unlock",
+          "reboot",
+          "update app",
+          "mark as maintenance"
+        ],
+        "developer_contracts": [
+          "GET /ops/devices",
+          "POST /ops/devices/{id}/action"
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "name": "Ops Orders Console Alignment",
+      "requirements": {
+        "ui": [
+          "Search order",
+          "Full event timeline",
+          "Override actions"
+        ],
+        "override_actions": [
+          "reassign runner",
+          "abort order",
+          "force refund",
+          "convert to pickup",
+          "override gate safety"
+        ],
+        "mandatory": [
+          "Reason code required",
+          "Audit log entry required"
+        ],
+        "developer_contract": "POST /ops/orders/{id}/override"
+      }
+    },
+    {
+      "step": 5,
+      "name": "Incident Console Alignment",
+      "requirements": {
+        "ui": [
+          "Incident list",
+          "Severity",
+          "Type",
+          "Status",
+          "Assign operator",
+          "Actions timeline",
+          "Close with resolution code"
+        ],
+        "developer_contracts": [
+          "GET /ops/incidents",
+          "POST /ops/incidents",
+          "PUT /ops/incidents/{id}"
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "name": "Policy Controls Compliance",
+      "requirements": {
+        "restricted_zones": [
+          "Delivery blocked",
+          "Device locked"
+        ],
+        "wheel_lock_logic": [
+          "Device locks after departure time",
+          "No active session",
+          "Safe zone confirmed"
+        ],
+        "override_logging": "Mandatory reason capture",
+        "developer_contract": "CRUD /ops/policies/*"
+      }
+    },
+    {
+      "step": 7,
+      "name": "RBAC Enforcement",
+      "instructions": [
+        "Implement permission matrix exactly as defined.",
+        "Hide UI elements if permission not granted.",
+        "Prevent backend action if permission missing.",
+        "Ensure Admin has RBAC + policy modification rights only.",
+        "Ensure Ops Operator has override rights but cannot modify RBAC."
+      ],
+      "roles": [
+        "Passenger",
+        "Runner",
+        "Merchant Cashier",
+        "Merchant Kitchen",
+        "Merchant Manager",
+        "Ops Operator",
+        "Admin"
+      ]
+    },
+    {
+      "step": 8,
+      "name": "Reason Code Standardization",
+      "instructions": [
+        "Replace all free-text reason inputs with standardized dropdowns.",
+        "Allow optional notes field.",
+        "Ensure each category maps to defined list."
+      ],
+      "categories": {
+        "merchant_reject": [
+          "Out of stock",
+          "Too busy / capacity exceeded",
+          "Item unavailable",
+          "System issue",
+          "Other"
+        ],
+        "runner_fail": [
+          "Passenger not found",
+          "Gate closed / security restriction",
+          "Gate changed and time exceeded",
+          "Could not verify handoff",
+          "Other"
+        ],
+        "ops_override": [
+          "SLA breach mitigation",
+          "Safety risk",
+          "Incorrect merchant action",
+          "Runner availability issue",
+          "Customer experience recovery",
+          "Manual correction",
+          "Other"
+        ],
+        "refund": [
+          "Order failed",
+          "Merchant rejected",
+          "Delay beyond threshold",
+          "Wrong item",
+          "Quality issue",
+          "Ops goodwill",
+          "Other"
+        ]
+      }
+    },
+    {
+      "step": 9,
+      "name": "SLA Analytics Validation",
+      "requirements": [
+        "Acceptance time",
+        "Delivery time",
+        "Delay rate",
+        "Refund rate",
+        "Merchant SLA compliance",
+        "Runner performance",
+        "Device uptime"
+      ],
+      "developer_contract": "GET /ops/analytics/*"
+    },
+    {
+      "step": 10,
+      "name": "Audit Logging Validation",
+      "instructions": [
+        "Ensure every override, device action, policy change, RBAC change, refund, and incident closure generates an audit entry.",
+        "Audit entries must contain actor, action, timestamp, entity ID, reason code."
+      ],
+      "developer_contract": "GET /ops/audit"
+    }
+  ],
+  "expected_output_format": {
+    "page_audit_summary": "Table listing page -> Required/Hide/Remove/Add",
+    "field_changes": "List of fields removed, added, or standardized",
+    "rbac_matrix_validation": "Matrix of roles vs actions",
+    "missing_features": "List",
+    "conflicts_found": "List",
+    "final_alignment_status": "PASS / FAIL with justification"
+  }
+}

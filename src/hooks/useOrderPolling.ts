@@ -87,7 +87,7 @@ function generateOrder(shopId: string, slaSeconds: number = 90): Order {
 // ---------- hook ----------
 export function useOrderPolling() {
   const { addOrder, updateOrderStatus, orders, isPolling, startPolling, stopPolling } = useOrdersStore();
-  const { merchantUser, isStoreOpen, slaSettings } = useMerchantStore();
+  const { merchantUser, isStoreOpen, slaSettings, storeStatus, setStoreStatus } = useMerchantStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tickRef = useRef(0);
 
@@ -138,7 +138,19 @@ export function useOrderPolling() {
         updateOrderStatus(target.id, 'preparing');
       }
     }
-  }, [merchantUser, isStoreOpen, slaSettings, addOrder, updateOrderStatus, orders]);
+
+    // Auto-busy: if active orders reach busy_auto_throttle_at, switch to busy
+    const activeCount = orders.filter(
+      (o) => o.status === 'new' || o.status === 'accepted' || o.status === 'preparing'
+    ).length;
+    const threshold = slaSettings.busy_auto_throttle_at;
+    if (activeCount >= threshold && storeStatus === 'open') {
+      setStoreStatus('busy');
+    } else if (activeCount < threshold && storeStatus === 'busy') {
+      // Auto-revert to open when load drops below threshold
+      setStoreStatus('open');
+    }
+  }, [merchantUser, isStoreOpen, slaSettings, addOrder, updateOrderStatus, orders, storeStatus, setStoreStatus]);
 
   useEffect(() => {
     if (!merchantUser || !isStoreOpen) {

@@ -54,6 +54,10 @@ import {
   MoreHorizontal,
   Play,
   RotateCcw,
+  UserCheck,
+  DollarSign,
+  ShoppingBag,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -64,8 +68,11 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { opsOrdersData, opsOverrideReasons } from '@/data/mock/ops-orders.mock';
+import { opsOrdersData } from '@/data/mock/ops-orders.mock';
+import { reasonCodes } from '@/data/mock/reason-codes.mock';
 import type { Order, OrderStatus } from '@/types/order.types';
+import { usePermissionsStore } from '@/store/permissions.store';
+import { usePermissions } from '@/hooks/usePermissions';
 
 // Merchant lookup for display
 const merchantNames: Record<string, string> = {
@@ -110,12 +117,16 @@ function getStatusIcon(status: OrderStatus) {
 }
 
 export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean }) {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isOverrideOpen, setIsOverrideOpen] = useState(false);
+  const [overrideAction, setOverrideAction] = useState('');
   const [overrideReason, setOverrideReason] = useState('');
   const [overrideNotes, setOverrideNotes] = useState('');
+  const [selectedOrderForTimeline, setSelectedOrderForTimeline] = useState<Order | null>(null);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
 
   // Use mock data for now
   const orders: Order[] = opsOrdersData;
@@ -146,13 +157,40 @@ export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean 
   // selectedOrderId is used for order selection/override functionality
 
   const handleOverride = () => {
-    // Would dispatch to store
-    console.log('Override:', { orderId: selectedOrderId, reason: overrideReason, notes: overrideNotes });
+    // Create audit log entry for override actions
+    const { addAuditEntry } = usePermissionsStore.getState();
+    addAuditEntry({
+      id: `audit-${Date.now()}`,
+      actor_id: 'admin-001',
+      actor_name: 'Current Admin',
+      actor_role: 'ops_manager',
+      action: `order_override:${overrideAction}`,
+      resource_type: 'order',
+      resource_id: selectedOrderId || '',
+      resource_label: `Order ${selectedOrderId}`,
+      changes: [
+        { field: 'override_action', from: '', to: overrideAction },
+        { field: 'reason', from: '', to: overrideReason },
+        ...(overrideNotes ? [{ field: 'notes', from: '', to: overrideNotes }] : []),
+      ],
+      ip_address: '10.0.0.1',
+      timestamp: new Date().toISOString(),
+      result: 'success',
+    });
     setIsOverrideOpen(false);
+    setOverrideAction('');
     setOverrideReason('');
     setOverrideNotes('');
     setSelectedOrderId(null);
   };
+
+  const overrideActions = [
+    { value: 'reassign_runner', label: 'Reassign Runner', icon: UserCheck },
+    { value: 'abort_order', label: 'Abort Order', icon: XCircle },
+    { value: 'force_refund', label: 'Force Refund', icon: DollarSign },
+    { value: 'convert_to_pickup', label: 'Convert to Pickup', icon: ShoppingBag },
+    { value: 'override_gate_safety', label: 'Override Gate Safety', icon: ShieldAlert },
+  ];
 
   return (
     <div className="space-y-6">
@@ -334,9 +372,9 @@ export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean 
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => { setSelectedOrderForTimeline(order); setIsTimelineOpen(true); }}>
                               <ChevronRight className="h-4 w-4 mr-2" />
-                              View Details
+                              View Timeline
                             </DropdownMenuItem>
                             {order.status === 'new' && (
                               <DropdownMenuItem>
@@ -351,21 +389,58 @@ export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean 
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
+                            {can('orders.override') && (
+                            <>
+                            <DropdownMenuItem
+                              className="text-blue-500"
+                              onClick={() => { setSelectedOrderId(order.id); setOverrideAction('reassign_runner'); setIsOverrideOpen(true); }}
+                            >
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Reassign Runner
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-amber-500"
+                              onClick={() => { setSelectedOrderId(order.id); setOverrideAction('force_refund'); setIsOverrideOpen(true); }}
+                            >
+                              <DollarSign className="h-4 w-4 mr-2" />
+                              Force Refund
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-violet-500"
+                              onClick={() => { setSelectedOrderId(order.id); setOverrideAction('convert_to_pickup'); setIsOverrideOpen(true); }}
+                            >
+                              <ShoppingBag className="h-4 w-4 mr-2" />
+                              Convert to Pickup
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-orange-500"
+                              onClick={() => { setSelectedOrderId(order.id); setOverrideAction('override_gate_safety'); setIsOverrideOpen(true); }}
+                            >
+                              <ShieldAlert className="h-4 w-4 mr-2" />
+                              Override Gate Safety
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-amber-500"
                               onClick={() => {
                                 setSelectedOrderId(order.id);
+                                setOverrideAction('');
                                 setIsOverrideOpen(true);
                               }}
                             >
                               <RotateCcw className="h-4 w-4 mr-2" />
-                              Override
+                              Custom Override
                             </DropdownMenuItem>
                             {order.status !== 'rejected' && order.status !== 'failed' && order.status !== 'delivered' && order.status !== 'refunded' && (
-                              <DropdownMenuItem className="text-red-500">
+                              <DropdownMenuItem
+                                className="text-red-500"
+                                onClick={() => { setSelectedOrderId(order.id); setOverrideAction('abort_order'); setIsOverrideOpen(true); }}
+                              >
                                 <XCircle className="h-4 w-4 mr-2" />
-                                Cancel Order
+                                Abort Order
                               </DropdownMenuItem>
+                            )}
+                            </>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -393,21 +468,41 @@ export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean 
       <Dialog open={isOverrideOpen} onOpenChange={setIsOverrideOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Override Order</DialogTitle>
+            <DialogTitle>
+              {overrideAction ? overrideActions.find(a => a.value === overrideAction)?.label || 'Override Order' : 'Override Order'}
+            </DialogTitle>
             <DialogDescription>
               Apply an override action to order {selectedOrderId}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {!overrideAction && (
+              <div className="space-y-2">
+                <Label>Override Action</Label>
+                <Select value={overrideAction} onValueChange={setOverrideAction}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select action..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {overrideActions.map((action) => (
+                      <SelectItem key={action.value} value={action.value}>
+                        {action.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label>Reason Code</Label>
+              <Label>Reason Code <span className="text-red-500">*</span></Label>
               <Select value={overrideReason} onValueChange={setOverrideReason}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select reason..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {opsOverrideReasons.map((reason: { code: string; label: string }) => (
+                  {reasonCodes.ops_override.map((reason) => (
                     <SelectItem key={reason.code} value={reason.code}>
                       {reason.label}
                     </SelectItem>
@@ -417,22 +512,76 @@ export default function OpsOrdersConsolePage({ embedded }: { embedded?: boolean 
             </div>
             
             <div className="space-y-2">
-              <Label>Notes</Label>
+              <Label>Notes (optional)</Label>
               <Textarea
-                placeholder="Additional details for the override..."
+                placeholder="Additional details for audit trail..."
                 value={overrideNotes}
                 onChange={(e) => setOverrideNotes(e.target.value)}
                 rows={3}
               />
             </div>
+
+            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-600 dark:text-amber-400">
+              <strong>Audit Notice:</strong> This action will be logged with your identity, reason code, and timestamp in the immutable audit trail.
+            </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOverrideOpen(false)}>
+            <Button variant="outline" onClick={() => { setIsOverrideOpen(false); setOverrideAction(''); }}>
               Cancel
             </Button>
             <Button onClick={handleOverride} disabled={!overrideReason}>
               Apply Override
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Timeline Dialog */}
+      <Dialog open={isTimelineOpen} onOpenChange={setIsTimelineOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Order Event Timeline</DialogTitle>
+            <DialogDescription>
+              Full event history for {selectedOrderForTimeline?.id}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedOrderForTimeline && (
+            <div className="space-y-3 py-4 max-h-96 overflow-y-auto">
+              {selectedOrderForTimeline.event_log.length > 0 ? (
+                selectedOrderForTimeline.event_log.map((event, idx) => (
+                  <div key={idx} className="flex gap-3 relative">
+                    <div className="flex flex-col items-center">
+                      <div className="h-2 w-2 rounded-full bg-primary mt-2" />
+                      {idx < selectedOrderForTimeline.event_log.length - 1 && (
+                        <div className="w-px flex-1 bg-border mt-1" />
+                      )}
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{event.action}</p>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(event.timestamp).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{event.actor}</p>
+                      {event.details && (
+                        <p className="text-xs text-muted-foreground mt-1 bg-muted/50 rounded p-2">{event.details}</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">No events recorded</p>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTimelineOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

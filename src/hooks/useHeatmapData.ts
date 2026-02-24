@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import type { DataMode, TimeRange } from '@/types/visitor.types';
-import { heatmapData, hourlyHeatmapData, zoneIds } from '@/data/mock/heatmap.mock';
+import { heatmapData, hourlyHeatmapData, zoneIds, getZoneIdsByFloor } from '@/data/mock/heatmap.mock';
 
 interface UseHeatmapDataOptions {
   mode: DataMode;
   timeRange: TimeRange;
   hourRange?: [number, number];
+  floor?: number;
 }
 
 interface HeatmapResult {
@@ -14,13 +15,16 @@ interface HeatmapResult {
   minValue: number;
 }
 
-export function useHeatmapData({ mode, timeRange, hourRange }: UseHeatmapDataOptions): HeatmapResult {
+export function useHeatmapData({ mode, timeRange, hourRange, floor }: UseHeatmapDataOptions): HeatmapResult {
   return useMemo(() => {
     const intensityMap: Record<string, number> = {};
     let maxVal = 0;
     let minVal = 1;
 
-    zoneIds.forEach((zoneId) => {
+    // If floor is specified, only compute for that floor's zones
+    const targetZoneIds = floor ? getZoneIdsByFloor(floor) : zoneIds;
+
+    targetZoneIds.forEach((zoneId) => {
       let val: number;
       const tr = timeRange === 'custom' ? 'today' : timeRange;
 
@@ -44,5 +48,5 @@ export function useHeatmapData({ mode, timeRange, hourRange }: UseHeatmapDataOpt
     });
 
     return { intensityMap, maxValue: maxVal, minValue: minVal };
-  }, [mode, timeRange, hourRange]);
+  }, [mode, timeRange, hourRange, floor]);
 }

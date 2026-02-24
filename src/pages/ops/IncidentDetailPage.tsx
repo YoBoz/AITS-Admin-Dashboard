@@ -5,6 +5,8 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useIncidentsStore } from '@/store/incidents.store';
+import { usePermissionsStore } from '@/store/permissions.store';
+import { usePermissions } from '@/hooks/usePermissions';
 import { 
   IncidentSeverityBadge, 
   IncidentTimeline, 
@@ -12,6 +14,7 @@ import {
 } from '@/components/ops';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Label } from '@/components/ui/Label';
 import { 
   Card, 
   CardContent, 
@@ -51,6 +54,23 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { useState } from 'react';
 import { IncidentStatus } from '@/types/incident.types';
 import { cn } from '@/lib/utils';
+import { UserCheck } from 'lucide-react';
+
+/** Resolution reason codes for closing incidents */
+const RESOLUTION_CODES = [
+  { code: 'resolved_manually', label: 'Resolved Manually' },
+  { code: 'auto_resolved', label: 'Auto-Resolved' },
+  { code: 'false_positive', label: 'False Positive' },
+  { code: 'escalated', label: 'Escalated to Engineering' },
+  { code: 'workaround_applied', label: 'Workaround Applied' },
+  { code: 'duplicate', label: 'Duplicate Incident' },
+  { code: 'no_action_needed', label: 'No Action Needed' },
+  { code: 'other', label: 'Other' },
+];
+
+const AVAILABLE_OPERATORS = [
+  'Ahmed K.', 'Sara M.', 'Youssef R.', 'Layla T.', 'Omar H.',
+];
 
 function getStatusColor(status: IncidentStatus) {
   switch (status) {
@@ -76,6 +96,12 @@ export default function IncidentDetailPage() {
   const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [isResolveDialogOpen, setIsResolveDialogOpen] = useState(false);
+  const [resolveCode, setResolveCode] = useState('');
+  const [resolveNotes, setResolveNotes] = useState('');
+  const [pendingStatus, setPendingStatus] = useState<IncidentStatus | null>(null);
+
+  const { can } = usePermissions();
 
   const incident = incidents.find(i => i.id === id);
 
@@ -97,19 +123,63 @@ export default function IncidentDetailPage() {
     ? runbooks.find(r => r.id === incident.runbook_id) 
     : null;
 
+  /** Helper to create an audit entry for incident actions */
+  const logAudit = (action: string, changes: { field: string; from: string; to: string }[] | null) => {
+    const { addAuditEntry } = usePermissionsStore.getState();
+    addAuditEntry({
+      id: `audit-${Date.now()}`,
+      actor_id: 'admin-001',
+      actor_name: 'Admin User',
+      actor_role: 'ops_manager',
+      action,
+      resource_type: 'incident',
+      resource_id: incident.id,
+      resource_label: incident.title,
+      changes,
+      ip_address: '10.0.0.1',
+      timestamp: new Date().toISOString(),
+      result: 'success',
+    });
+  };
+
   const handleStatusChange = (status: IncidentStatus) => {
-    if (status === 'resolved') {
-      resolveIncident(incident.id, 'resolved_manually', 'Resolved by Admin User');
-    } else {
-      updateIncident(incident.id, { status });
-      addTimelineEntry(incident.id, {
-        action_type: 'status_change',
-        actor: 'Admin User',
-        timestamp: new Date().toISOString(),
-        content: `Status changed to ${status}`,
-        new_status: status,
-      });
+    // For resolved / closed, require resolution code via dialog
+    if (status === 'resolved' || status === 'closed') {
+      setPendingStatus(status);
+      setIsResolveDialogOpen(true);
+      return;
     }
+    const prev = incident.status;
+    updateIncident(incident.id, { status });
+    addTimelineEntry(incident.id, {
+      action_type: 'status_change',
+      actor: 'Admin User',
+      timestamp: new Date().toISOString(),
+      content: `Status changed to ${status}`,
+      new_status: status,
+    });
+    logAudit('incident:status_change', [{ field: 'status', from: prev, to: status }]);
+  };
+
+  const handleResolveConfirm = () => {
+    if (!resolveCode || !pendingStatus) return;
+    const prev = incident.status;
+    resolveIncident(incident.id, resolveCode, resolveNotes || `Resolved by Admin User`);
+    addTimelineEntry(incident.id, {
+      action_type: 'status_change',
+      actor: 'Admin User',
+      timestamp: new Date().toISOString(),
+      content: `${pendingStatus === 'closed' ? 'Closed' : 'Resolved'} — ${RESOLUTION_CODES.find(c => c.code === resolveCode)?.label ?? resolveCode}${resolveNotes ? ` — ${resolveNotes}` : ''}`,
+      new_status: pendingStatus,
+    });
+    logAudit(`incident:${pendingStatus}`, [
+      { field: 'status', from: prev, to: pendingStatus },
+      { field: 'resolution_code', from: '', to: resolveCode },
+    ]);
+    setIsResolveDialogOpen(false);
+    setResolveCode('');
+    setResolveNotes('');
+    setPendingStatus(null);
   };
 
   const handleAddNote = () => {
@@ -121,6 +191,7 @@ export default function IncidentDetailPage() {
       content: noteText,
       new_status: null,
     });
+    logAudit('incident:note_added', null);
     setNoteText('');
     setIsNoteDialogOpen(false);
   };
@@ -128,6 +199,7 @@ export default function IncidentDetailPage() {
   const handleAttachRunbook = (runbookId: string) => {
     attachRunbook(incident.id, runbookId);
     setCompletedSteps([]);
+    logAudit('incident:runbook_attached', [{ field: 'runbook_id', from: '', to: runbookId }]);
   };
 
   const handleCompleteStep = (stepOrder: number) => {
@@ -139,6 +211,19 @@ export default function IncidentDetailPage() {
       content: `Completed runbook step ${stepOrder}`,
       new_status: null,
     });
+  };
+
+  const handleAssignOperator = (operator: string) => {
+    const prev = incident.assigned_to || 'unassigned';
+    updateIncident(incident.id, { assigned_to: operator });
+    addTimelineEntry(incident.id, {
+      action_type: 'status_change',
+      actor: 'Admin User',
+      timestamp: new Date().toISOString(),
+      content: `Assigned to ${operator}`,
+      new_status: null,
+    });
+    logAudit('incident:assign_operator', [{ field: 'assigned_to', from: prev, to: operator }]);
   };
 
   return (
@@ -168,8 +253,8 @@ export default function IncidentDetailPage() {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Select value={incident.status} onValueChange={(v) => handleStatusChange(v as IncidentStatus)}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Select value={incident.status} onValueChange={(v) => handleStatusChange(v as IncidentStatus)} disabled={!can('incidents.manage')}>
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
@@ -178,6 +263,20 @@ export default function IncidentDetailPage() {
               <SelectItem value="investigating">Investigating</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
               <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={incident.assigned_to || ''} onValueChange={handleAssignOperator} disabled={!can('incidents.manage')}>
+            <SelectTrigger className="w-44">
+              <div className="flex items-center gap-1">
+                <UserCheck className="h-3.5 w-3.5" />
+                <SelectValue placeholder="Assign Operator" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {AVAILABLE_OPERATORS.map(op => (
+                <SelectItem key={op} value={op}>{op}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           
@@ -364,7 +463,7 @@ export default function IncidentDetailPage() {
                   View Zone on Map
                 </Button>
               )}
-              {incident.status !== 'resolved' && (
+              {incident.status !== 'resolved' && can('incidents.manage') && (
                 <Button 
                   className="w-full" 
                   onClick={() => handleStatusChange('resolved')}
@@ -377,6 +476,60 @@ export default function IncidentDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Resolve / Close Dialog with mandatory reason code */}
+      <Dialog open={isResolveDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsResolveDialogOpen(false);
+          setResolveCode('');
+          setResolveNotes('');
+          setPendingStatus(null);
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-emerald-500" />
+              {pendingStatus === 'closed' ? 'Close Incident' : 'Resolve Incident'}
+            </DialogTitle>
+            <DialogDescription>
+              Select a resolution code. This action will be logged in the audit trail.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Resolution Code <span className="text-destructive">*</span></Label>
+              <Select value={resolveCode} onValueChange={setResolveCode}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select resolution code..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {RESOLUTION_CODES.map(rc => (
+                    <SelectItem key={rc.code} value={rc.code}>{rc.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Notes (optional)</Label>
+              <Textarea
+                placeholder="Additional resolution notes..."
+                value={resolveNotes}
+                onChange={(e) => setResolveNotes(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setIsResolveDialogOpen(false); setPendingStatus(null); }}>
+              Cancel
+            </Button>
+            <Button onClick={handleResolveConfirm} disabled={!resolveCode}>
+              {pendingStatus === 'closed' ? 'Close Incident' : 'Resolve Incident'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

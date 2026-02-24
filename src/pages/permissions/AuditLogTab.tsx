@@ -72,13 +72,13 @@ function ImmutableAuditCallout() {
     <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
       <ShieldCheck className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
       <div className="flex-1 text-xs text-blue-800 dark:text-blue-300">
-        <strong>Immutable Audit Log:</strong> For tamper-proof, hash-chained compliance audit trails with export capabilities, visit the Compliance Center.
+        <strong>Immutable Audit Log:</strong> For tamper-proof, hash-chained compliance audit trails with export capabilities, visit the Administration Hub.
       </div>
       <button
-        onClick={() => navigate('/dashboard/compliance')}
+        onClick={() => navigate('/dashboard/admin?tab=global-rules')}
         className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-xs font-medium hover:bg-blue-700 transition-colors flex-shrink-0"
       >
-        Open Compliance
+        Open Admin Hub
       </button>
     </div>
   );

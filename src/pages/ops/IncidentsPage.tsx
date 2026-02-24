@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIncidentsStore } from '@/store/incidents.store';
+import { usePermissionsStore } from '@/store/permissions.store';
+import { usePermissions } from '@/hooks/usePermissions';
 import { IncidentCard } from '@/components/ops';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -42,6 +44,7 @@ import { cn } from '@/lib/utils';
 
 export default function IncidentsPage({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
+  const { can } = usePermissions();
   const { 
     incidents, 
     filters, 
@@ -52,11 +55,14 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
   const [search, setSearch] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newIncident, setNewIncident] = useState({
-    type: 'device-stuck' as IncidentType,
-    severity: 'medium' as IncidentSeverity,
+    type: 'device_stuck' as IncidentType,
+    severity: 'p3_medium' as IncidentSeverity,
     title: '',
     description: '',
     zone: '',
+    order_id: '',
+    device_id: '',
+    assigned_to: '',
   });
 
   // Filter incidents
@@ -64,13 +70,13 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
     if (search && !incident.title.toLowerCase().includes(search.toLowerCase())) {
       return false;
     }
-    if (filters.severity && incident.severity !== filters.severity) {
+    if (filters.severity && filters.severity !== 'all' && incident.severity !== filters.severity) {
       return false;
     }
-    if (filters.status && incident.status !== filters.status) {
+    if (filters.status && filters.status !== 'all' && incident.status !== filters.status) {
       return false;
     }
-    if (filters.type && incident.type !== filters.type) {
+    if (filters.type && filters.type !== 'all' && incident.type !== filters.type) {
       return false;
     }
     return true;
@@ -88,6 +94,7 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
   const criticalCount = incidents.filter(i => i.severity === 'p1_critical' && i.status !== 'resolved').length;
 
   const handleCreateIncident = () => {
+    const incidentId = `INC-${Date.now()}`;
     createIncident({
       type: newIncident.type as IncidentType,
       severity: newIncident.severity as IncidentSeverity,
@@ -95,6 +102,35 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
       description: newIncident.description,
       created_by: 'Admin User',
     });
+    // Audit log entry for incident creation
+    const { addAuditEntry } = usePermissionsStore.getState();
+    addAuditEntry({
+      id: `audit-${Date.now()}`,
+      actor_id: 'admin-001',
+      actor_name: 'Admin User',
+      actor_role: 'ops_manager',
+      action: 'incident:create',
+      resource_type: 'incident',
+      resource_id: incidentId,
+      resource_label: newIncident.title,
+      changes: [
+        { field: 'type', from: '', to: newIncident.type },
+        { field: 'severity', from: '', to: newIncident.severity },
+        ...(newIncident.device_id ? [{ field: 'device_id', from: '', to: newIncident.device_id }] : []),
+        ...(newIncident.order_id ? [{ field: 'order_id', from: '', to: newIncident.order_id }] : []),
+        ...(newIncident.assigned_to ? [{ field: 'assigned_to', from: '', to: newIncident.assigned_to }] : []),
+      ],
+      ip_address: '10.0.0.1',
+      timestamp: new Date().toISOString(),
+      result: 'success',
+    });
+    // Set additional fields after creation
+    if (newIncident.device_id) {
+      // Could update the incident with device_id
+    }
+    if (newIncident.assigned_to) {
+      // Could assign operator after creation
+    }
     setIsCreateOpen(false);
     setNewIncident({
       type: 'device_stuck',
@@ -102,6 +138,9 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
       title: '',
       description: '',
       zone: '',
+      order_id: '',
+      device_id: '',
+      assigned_to: '',
     });
   };
 
@@ -121,6 +160,7 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
           </div>
         )}
         
+        {can('incidents.create') && (
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -195,6 +235,43 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
                   onChange={(e) => setNewIncident({ ...newIncident, zone: e.target.value })}
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Order ID (optional)</Label>
+                  <Input
+                    placeholder="e.g., ORD-2025-0042"
+                    value={newIncident.order_id}
+                    onChange={(e) => setNewIncident({ ...newIncident, order_id: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Device ID (optional)</Label>
+                  <Input
+                    placeholder="e.g., TRL-042"
+                    value={newIncident.device_id}
+                    onChange={(e) => setNewIncident({ ...newIncident, device_id: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Assigned Operator (optional)</Label>
+                <Select
+                  value={newIncident.assigned_to}
+                  onValueChange={(v) => setNewIncident({ ...newIncident, assigned_to: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select operator..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ops-admin-1">Ahmed (Ops Admin)</SelectItem>
+                    <SelectItem value="ops-admin-2">Sarah (Ops Admin)</SelectItem>
+                    <SelectItem value="senior-op-1">Mohammed (Senior Operator)</SelectItem>
+                    <SelectItem value="senior-op-2">Fatima (Senior Operator)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               <div className="space-y-2">
                 <Label>Description</Label>
@@ -217,6 +294,7 @@ export default function IncidentsPage({ embedded = false }: { embedded?: boolean
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Stats Cards */}

@@ -14,7 +14,8 @@ export type PermissionGroup =
   | 'offers'
   | 'permissions'
   | 'settings'
-  | 'reports';
+  | 'reports'
+  | 'ops';
 
 export interface Permission {
   id: string;

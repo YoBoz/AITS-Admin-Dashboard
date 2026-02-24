@@ -7,6 +7,7 @@ interface MapState {
   selectedShopId: string | null;
   selectedTrolleyId: string | null;
   zoomLevel: number;
+  currentFloor: number;
 
   toggleLayer: (layer: string) => void;
   selectZone: (zone: MapZone | null) => void;
@@ -17,6 +18,7 @@ interface MapState {
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
+  setFloor: (floor: number) => void;
 }
 
 export const useMapStore = create<MapState>((set) => ({
@@ -25,6 +27,7 @@ export const useMapStore = create<MapState>((set) => ({
   selectedShopId: null,
   selectedTrolleyId: null,
   zoomLevel: 1,
+  currentFloor: 1,
 
   toggleLayer: (layer) =>
     set((state) => ({
@@ -55,4 +58,7 @@ export const useMapStore = create<MapState>((set) => ({
     set((state) => ({ zoomLevel: Math.max(0.5, state.zoomLevel - 0.2) })),
 
   resetZoom: () => set({ zoomLevel: 1 }),
+
+  setFloor: (floor) =>
+    set({ currentFloor: floor, selectedZone: null, selectedShopId: null, selectedTrolleyId: null }),
 }));

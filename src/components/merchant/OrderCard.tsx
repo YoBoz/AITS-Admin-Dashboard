@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Clock, MapPin, Plane, AlertTriangle, Star,
-  Check, X, Play, Package, Truck,
+  Check, X, Play, Package, Truck, DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RequirePermission } from '@/components/merchant/RequirePermission';
@@ -60,6 +60,7 @@ interface OrderCardProps {
   onStartPreparing?: (id: string) => void;
   onMarkReady?: (id: string) => void;
   onMarkPickedUp?: (id: string) => void;
+  onRefund?: (order: Order) => void;
   isTransitioning?: boolean;
 }
 
@@ -109,6 +110,7 @@ export const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(functi
   onStartPreparing,
   onMarkReady,
   onMarkPickedUp,
+  onRefund,
   isTransitioning = false,
 }, ref) {
   const showSLA = order.status === 'new';
@@ -308,24 +310,54 @@ export const OrderCard = React.forwardRef<HTMLDivElement, OrderCardProps>(functi
           </div>
         )}
 
-        {/* Completed — no actions */}
+        {/* Completed — refund action available */}
         {(order.status === 'delivered' || order.status === 'in_transit') && (
-          <span className="text-xs text-muted-foreground italic">
-            {order.status === 'in_transit' ? 'En route to gate' : 'Delivered'}
-          </span>
+          <div className="flex-1 flex items-center gap-2">
+            <span className="text-xs text-muted-foreground italic">
+              {order.status === 'in_transit' ? 'En route to gate' : 'Delivered'}
+            </span>
+            {order.status === 'delivered' && order.refund_status === 'none' && onRefund && (
+              <RequirePermission permission="refunds.request" disableInstead>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto h-7 text-[10px] font-semibold gap-1 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                  onClick={() => onRefund(order)}
+                  disabled={isTransitioning}
+                >
+                  <DollarSign className="h-3 w-3" /> Refund
+                </Button>
+              </RequirePermission>
+            )}
+          </div>
         )}
 
-        {/* Issues — info */}
+        {/* Issues — info + refund action */}
         {['rejected', 'failed', 'refund_requested', 'refunded'].includes(order.status) && (
-          <div className="flex-1 text-xs">
-            {order.reject_reason && (
-              <span className="text-destructive font-medium">Reason: {order.reject_reason}</span>
-            )}
-            {order.refund_status !== 'none' && (
-              <span className="text-amber-600 dark:text-amber-400 font-medium">
-                Refund: {order.refund_status === 'pending_approval' ? 'Pending' : order.refund_status}
-                {order.refund_amount ? ` (${order.currency} ${order.refund_amount.toFixed(2)})` : ''}
-              </span>
+          <div className="flex-1 flex items-center gap-2">
+            <div className="text-xs min-w-0">
+              {order.reject_reason && (
+                <span className="text-destructive font-medium">Reason: {order.reject_reason}</span>
+              )}
+              {order.refund_status !== 'none' && (
+                <span className="text-amber-600 dark:text-amber-400 font-medium">
+                  Refund: {order.refund_status === 'pending_approval' ? 'Pending' : order.refund_status}
+                  {order.refund_amount ? ` (${order.currency} ${order.refund_amount.toFixed(2)})` : ''}
+                </span>
+              )}
+            </div>
+            {order.refund_status === 'none' && onRefund && (
+              <RequirePermission permission="refunds.request" disableInstead>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="ml-auto h-7 text-[10px] font-semibold gap-1 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 shrink-0"
+                  onClick={() => onRefund(order)}
+                  disabled={isTransitioning}
+                >
+                  <DollarSign className="h-3 w-3" /> Refund
+                </Button>
+              </RequirePermission>
             )}
           </div>
         )}

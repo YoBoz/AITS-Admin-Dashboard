@@ -22,6 +22,7 @@ const typeConfig: Record<Policy['type'], { icon: React.ComponentType<{ className
   speed_limit: { icon: Gauge, color: 'text-amber-500', bgColor: 'bg-amber-100 dark:bg-amber-950' },
   no_entry: { icon: Ban, color: 'text-red-700', bgColor: 'bg-red-100 dark:bg-red-950' },
   time_restricted: { icon: Timer, color: 'text-blue-500', bgColor: 'bg-blue-100 dark:bg-blue-950' },
+  delivery_blocked: { icon: Ban, color: 'text-rose-600', bgColor: 'bg-rose-100 dark:bg-rose-950' },
 };
 
 const typeLabels: Record<Policy['type'], string> = {
@@ -30,6 +31,7 @@ const typeLabels: Record<Policy['type'], string> = {
   speed_limit: 'Speed Limit',
   no_entry: 'No Entry',
   time_restricted: 'Time Restricted',
+  delivery_blocked: 'Delivery Blocked',
 };
 
 function generateRuleSummary(policy: Policy): string {

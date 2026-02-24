@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Megaphone, Plus, Percent, Eye, ChevronRight, ChevronLeft,
-  Play, Pause, X, Trash2, BarChart3, Users, Tag, ShoppingBag, Gift,
+  Play, Pause, X, Trash2, BarChart3, Users, Tag, ShoppingBag, Gift, Globe, Timer,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -12,11 +12,12 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Badge } from '@/components/ui/Badge';
+import { Switch } from '@/components/ui/Switch';
 import { useCampaignStore, type CampaignDraft } from '@/store/campaign.store';
 import type { Campaign } from '@/types/coupon.types';
 
 // ─── Constants ────────────────────────────────────────────────────────
-const WIZARD_STEPS = ['Details', 'Schedule', 'Targeting', 'Preview'] as const;
+const WIZARD_STEPS = ['Details', 'Schedule', 'Targeting', 'Languages', 'Preview'] as const;
 const ZONES = ['Zone A - Departures', 'Zone B - International', 'Zone C - Arrivals', 'Zone D - VIP'];
 const GATES = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3', 'C1', 'C2', 'D1', 'D2'];
 const DISCOUNT_TYPES = [
@@ -183,6 +184,114 @@ function StepTargeting({ draft, update }: { draft: CampaignDraft; update: (u: Pa
   );
 }
 
+function StepLanguages({ draft, update }: { draft: CampaignDraft; update: (u: Partial<CampaignDraft>) => void }) {
+  const LANGUAGES: { key: 'en' | 'ar' | 'fr'; label: string }[] = [
+    { key: 'en', label: 'English' },
+    { key: 'ar', label: 'العربية (Arabic)' },
+    { key: 'fr', label: 'Français (French)' },
+  ];
+
+  const getVersion = (lang: 'en' | 'ar' | 'fr') =>
+    draft.language_versions.find((v) => v.language === lang);
+
+  const toggleLanguage = (lang: 'en' | 'ar' | 'fr') => {
+    const exists = getVersion(lang);
+    if (exists) {
+      update({ language_versions: draft.language_versions.filter((v) => v.language !== lang) });
+    } else {
+      update({
+        language_versions: [
+          ...draft.language_versions,
+          { language: lang, name: draft.name, description: draft.description },
+        ],
+      });
+    }
+  };
+
+  const updateVersion = (lang: 'en' | 'ar' | 'fr', field: 'name' | 'description', value: string) => {
+    update({
+      language_versions: draft.language_versions.map((v) =>
+        v.language === lang ? { ...v, [field]: value } : v
+      ),
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1.5">
+        <Label className="text-xs">Language Versions</Label>
+        <p className="text-[10px] text-muted-foreground">
+          Add translations for the campaign name and description. The default language uses the values from the Details step.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        {LANGUAGES.map(({ key, label }) => {
+          const version = getVersion(key);
+          const isEnabled = !!version;
+          return (
+            <div key={key} className="rounded-lg border border-border p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-3.5 w-3.5 text-brand" />
+                  <span className="text-xs font-medium">{label}</span>
+                </div>
+                <Switch
+                  checked={isEnabled}
+                  onCheckedChange={() => toggleLanguage(key)}
+                />
+              </div>
+
+              {isEnabled && (
+                <div className="space-y-2 pl-5">
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Campaign Name ({key.toUpperCase()})</Label>
+                    <Input
+                      value={version!.name}
+                      onChange={(e) => updateVersion(key, 'name', e.target.value)}
+                      placeholder={`Campaign name in ${label}`}
+                      dir={key === 'ar' ? 'rtl' : 'ltr'}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Description ({key.toUpperCase()})</Label>
+                    <textarea
+                      value={version!.description}
+                      onChange={(e) => updateVersion(key, 'description', e.target.value)}
+                      placeholder={`Description in ${label}`}
+                      dir={key === 'ar' ? 'rtl' : 'ltr'}
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[60px] resize-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Auto-Execute Scheduler */}
+      <div className="rounded-lg border border-border p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Timer className="h-3.5 w-3.5 text-brand" />
+            <div>
+              <span className="text-xs font-medium">Scheduler Auto-Execute</span>
+              <p className="text-[10px] text-muted-foreground">
+                Automatically activate this campaign on the start date
+              </p>
+            </div>
+          </div>
+          <Switch
+            checked={draft.auto_execute}
+            onCheckedChange={(checked) => update({ auto_execute: checked })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function StepPreview({ draft }: { draft: CampaignDraft }) {
   return (
     <div className="space-y-3 text-sm">
@@ -200,6 +309,8 @@ function StepPreview({ draft }: { draft: CampaignDraft }) {
         <Row label="Zones" value={draft.target_zones.length ? draft.target_zones.join(', ') : 'All zones'} />
         <Row label="Gates" value={draft.target_gates.length ? draft.target_gates.join(', ') : 'All gates'} />
         <Row label="Budget" value={draft.budget_cap ? `${draft.budget_cap} AED` : 'Unlimited'} />
+        <Row label="Languages" value={draft.language_versions.length > 0 ? draft.language_versions.map((lv) => lv.language.toUpperCase()).join(', ') : 'Default only'} />
+        <Row label="Auto-Execute" value={draft.auto_execute ? 'Yes — scheduler will activate on start date' : 'No — manual activation required'} />
       </div>
     </div>
   );
@@ -308,7 +419,8 @@ export default function CampaignsPage() {
                     {wizardStep === 0 && <StepDetails draft={draft} update={updateDraft} />}
                     {wizardStep === 1 && <StepSchedule draft={draft} update={updateDraft} />}
                     {wizardStep === 2 && <StepTargeting draft={draft} update={updateDraft} />}
-                    {wizardStep === 3 && <StepPreview draft={draft} />}
+                    {wizardStep === 3 && <StepLanguages draft={draft} update={updateDraft} />}
+                    {wizardStep === 4 && <StepPreview draft={draft} />}
                   </motion.div>
                 </AnimatePresence>
 
@@ -324,7 +436,7 @@ export default function CampaignsPage() {
                     {wizardStep > 0 ? 'Back' : 'Cancel'}
                   </Button>
                   <div className="flex gap-2">
-                    {wizardStep === 3 ? (
+                    {wizardStep === 4 ? (
                       <Button size="sm" onClick={handleSave} className="gap-1">
                         Save as Draft
                       </Button>

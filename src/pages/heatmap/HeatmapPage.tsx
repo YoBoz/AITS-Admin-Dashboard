@@ -6,6 +6,7 @@ import { AirportMapSVG } from '@/components/map/AirportMapSVG';
 import { HeatmapOverlay } from '@/components/heatmap/HeatmapOverlay';
 import { HeatmapLegend } from '@/components/heatmap/HeatmapLegend';
 import { HeatmapControls } from '@/components/heatmap/HeatmapControls';
+import { FloorSelector } from '@/components/map/FloorSelector';
 // CategoryHeatmapToggle removed — redundant with HeatmapControls Data Mode
 import { useHeatmapData } from '@/hooks/useHeatmapData';
 import { useTheme } from '@/hooks/useTheme';
@@ -109,8 +110,9 @@ export default function HeatmapPage() {
   const [hourRange, setHourRange] = useState<[number, number]>([0, 23]);
   const [hoveredZone, setHoveredZone] = useState<string | null>(null);
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
+  const [currentFloor, setCurrentFloor] = useState(1);
 
-  const { intensityMap } = useHeatmapData({ mode, timeRange, hourRange });
+  const { intensityMap } = useHeatmapData({ mode, timeRange, hourRange, floor: currentFloor });
 
   const handleZoneHover = useCallback((zoneId: string | null) => {
     setHoveredZone(zoneId);
@@ -120,12 +122,21 @@ export default function HeatmapPage() {
     setSelectedZone((prev) => (prev === zoneId ? null : zoneId));
   }, []);
 
+  const handleFloorChange = useCallback((floor: number) => {
+    setCurrentFloor(floor);
+    setSelectedZone(null);
+    setHoveredZone(null);
+  }, []);
+
   return (
     <div className="space-y-4">
-      <PageHeader
-        title="Heatmap View"
-        subtitle="Visualize airport zone activity in real-time"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <PageHeader
+          title="Heatmap View"
+          subtitle="Visualize airport zone activity in real-time"
+        />
+        <FloorSelector currentFloor={currentFloor} onFloorChange={handleFloorChange} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Map Area - 75% */}
@@ -140,12 +151,15 @@ export default function HeatmapPage() {
             >
               <AirportMapSVG
                 isDark={isDark}
+                floor={currentFloor}
                 activeLayers={['zones']}
                 selectedZoneId={selectedZone}
               />
               <HeatmapOverlay
                 intensityMap={intensityMap}
+                floor={currentFloor}
                 selectedZoneId={selectedZone || hoveredZone}
+                showShopMarkers={true}
                 onZoneHover={handleZoneHover}
                 onZoneClick={handleZoneClick}
                 isDark={isDark}

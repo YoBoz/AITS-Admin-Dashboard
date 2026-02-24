@@ -1,7 +1,7 @@
 export interface MapZone {
   id: string;
   name: string;
-  type: 'terminal' | 'gate' | 'retail' | 'food' | 'lounge' | 'service' | 'washroom' | 'security' | 'customs';
+  type: 'terminal' | 'gate' | 'retail' | 'food' | 'lounge' | 'service' | 'washroom' | 'security' | 'customs' | 'baggage' | 'transport' | 'vip' | 'conference' | 'executive';
   x: number;
   y: number;
   width: number;
@@ -9,15 +9,23 @@ export interface MapZone {
   color_light: string;
   color_dark: string;
   shops: string[];
+  floor: number;
+}
+
+export interface FloorInfo {
+  id: number;
+  name: string;
+  label: string;
 }
 
 export interface PointOfInterest {
   id: string;
   label: string;
-  type: 'info_desk' | 'first_aid' | 'charging_station' | 'elevator' | 'atm' | 'escalator';
+  type: 'info_desk' | 'first_aid' | 'charging_station' | 'elevator' | 'atm' | 'escalator' | 'luggage_cart' | 'prayer_room';
   x: number;
   y: number;
   shop_id: string | null;
+  floor: number;
 }
 
 export interface TrolleyPosition {
@@ -28,6 +36,7 @@ export interface TrolleyPosition {
   battery: number;
   zone_id: string;
   imei: string;
+  floor: number;
 }
 
 export interface MapConfig {

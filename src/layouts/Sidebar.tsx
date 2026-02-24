@@ -4,20 +4,20 @@ import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   Map,
-  Flame,
-  ShoppingCart,
   Store,
-  Users,
-  Tag,
-  Bell,
   AlertTriangle,
   ShieldCheck,
-  Settings,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
-  // Phase 8 - Operations
-  Plane,
+  Radio,
+  ClipboardList,
+  DoorOpen,
+  Target,
+  FileBarChart,
+  ScrollText,
+  UserCheck,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar.store';
@@ -39,42 +39,53 @@ interface NavItem {
   badge?: 'live' | 'count' | null;
 }
 
-interface NavSection {
-  section: string;
+interface NavCategory {
+  category: string;
   items: NavItem[];
 }
 
-const navSections: NavSection[] = [
+const navCategories: NavCategory[] = [
   {
-    section: 'nav.core',
+    category: '',
     items: [
-      { label: 'nav.overview', icon: LayoutDashboard, route: '/dashboard/overview', badge: null },
-      { label: 'nav.terminalMap', icon: Map, route: '/dashboard/map', badge: null },
-      { label: 'nav.heatmap', icon: Flame, route: '/dashboard/heatmap', badge: null },
+      { label: 'nav.dashboard', icon: LayoutDashboard, route: '/dashboard/overview', badge: null },
     ],
   },
   {
-    section: 'nav.operations',
+    category: 'nav.catMonitoring',
     items: [
-      { label: 'nav.trolleyManagement', icon: ShoppingCart, route: '/dashboard/trolleys', badge: 'live' },
-      { label: 'nav.shopManagement', icon: Store, route: '/dashboard/shops', badge: null },
-      { label: 'nav.visitorStats', icon: Users, route: '/dashboard/visitors', badge: null },
-      { label: 'nav.gateSurge', icon: Plane, route: '/dashboard/ops/surge', badge: null },
+      { label: 'nav.liveMap', icon: Map, route: '/dashboard/map', badge: null },
+      { label: 'nav.fleetMonitoring', icon: Radio, route: '/dashboard/fleet', badge: 'live' },
     ],
   },
   {
-    section: 'nav.engagement',
+    category: 'nav.catOperations',
     items: [
-      { label: 'nav.offersContracts', icon: Tag, route: '/dashboard/offers', badge: null },
-      { label: 'nav.notifications', icon: Bell, route: '/dashboard/notifications', badge: 'count' },
-      { label: 'nav.alertsAndIssues', icon: AlertTriangle, route: '/dashboard/alerts', badge: 'count' },
+      { label: 'nav.runners', icon: UserCheck, route: '/dashboard/runners', badge: null },
+      { label: 'nav.orders', icon: ClipboardList, route: '/dashboard/orders', badge: null },
+      { label: 'nav.incidents', icon: AlertTriangle, route: '/dashboard/incidents', badge: 'count' },
+      { label: 'nav.gateManagement', icon: DoorOpen, route: '/dashboard/gates', badge: null },
     ],
   },
   {
-    section: 'nav.administration',
+    category: 'nav.catCommerce',
     items: [
-      { label: 'nav.adminHub', icon: ShieldCheck, route: '/dashboard/admin', badge: null },
-      { label: 'nav.settings', icon: Settings, route: '/dashboard/settings', badge: null },
+      { label: 'nav.merchantManagement', icon: Store, route: '/dashboard/shops', badge: null },
+      { label: 'nav.slaAnalytics', icon: Target, route: '/dashboard/sla', badge: null },
+    ],
+  },
+  {
+    category: 'nav.catGovernance',
+    items: [
+      { label: 'nav.policyControls', icon: ShieldCheck, route: '/dashboard/policies', badge: null },
+      { label: 'nav.reports', icon: FileBarChart, route: '/dashboard/reports', badge: null },
+    ],
+  },
+  {
+    category: 'nav.catAdmin',
+    items: [
+      { label: 'nav.rbac', icon: ScrollText, route: '/dashboard/permissions', badge: null },
+      { label: 'nav.auditLogs', icon: FileText, route: '/dashboard/audit-logs', badge: null },
     ],
   },
 ];
@@ -102,7 +113,7 @@ export function Sidebar() {
       className="fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card overflow-hidden"
     >
       {/* Logo */}
-      <div className="flex h-20 items-center justify-center px-4 border-b border-border shrink-0">
+      <div className="flex h-14 items-center justify-center px-4 border-b border-border shrink-0">
         <AnimatePresence mode="wait">
           {isCollapsed ? (
             <motion.div
@@ -113,7 +124,7 @@ export function Sidebar() {
               transition={{ duration: 0.15 }}
               className="flex items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-10 object-contain" />
+              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-8 w-8 object-contain" />
             </motion.div>
           ) : (
             <motion.div
@@ -124,112 +135,117 @@ export function Sidebar() {
               transition={{ duration: 0.15 }}
               className="flex items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-14 w-auto object-contain" />
+              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-auto object-contain" />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-5 scrollbar-thin">
-        {navSections.map((section) => (
-          <div key={section.section}>
-            {/* Section label */}
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mb-1.5 px-3 font-roboto text-[10px] font-semibold uppercase tracking-[0.05em] text-muted-foreground"
-                >
-                  {t(section.section)}
-                </motion.p>
-              )}
-            </AnimatePresence>
+      <nav className="flex-1 overflow-y-auto pt-6 pb-2 px-2 scrollbar-thin">
+        {navCategories.map((group, gi) => (
+          <div key={gi} className={cn(group.category && 'mt-2')}>
+            {/* Category header — hidden when collapsed */}
+            {group.category && (
+              <AnimatePresence>
+                {!isCollapsed ? (
+                  <motion.p
+                    key="label"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="px-3 mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 font-roboto select-none"
+                  >
+                    {t(group.category)}
+                  </motion.p>
+                ) : (
+                  <div className="mx-auto my-1 h-px w-6 bg-border" />
+                )}
+              </AnimatePresence>
+            )}
 
             <div className="space-y-0.5">
-              {section.items.map((item) => {
+              {group.items.map((item) => {
                 const active = isActive(item.route);
                 const linkContent = (
-                  <button
-                    onClick={() => navigate(item.route)}
-                    className={cn(
-                      'group relative flex w-full items-center gap-3 rounded-lg py-2 text-sm font-lexend transition-all duration-150',
-                      active
-                        ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-4 border-transparent px-3',
-                      isCollapsed && 'justify-center px-0 border-l-0'
-                    )}
+            <button
+              onClick={() => navigate(item.route)}
+              className={cn(
+                'group relative flex w-full items-center gap-3 rounded-lg py-1.5 text-[13px] font-lexend transition-all duration-150',
+                active
+                  ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-4 border-transparent px-3',
+                isCollapsed && 'justify-center px-0 border-l-0'
+              )}
+            >
+              <span className="relative">
+                <item.icon
+                  className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand' : '')}
+                  style={{ width: 18, height: 18 }}
+                />
+                {/* Collapsed red dot indicator for unread notifications */}
+                {item.badge === 'count' && unreadCount > 0 && isCollapsed && (
+                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand" />
+                  </span>
+                )}
+                {/* Collapsed live indicator */}
+                {item.badge === 'live' && isCollapsed && (
+                  <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand" />
+                  </span>
+                )}
+              </span>
+              <AnimatePresence>
+                {!isCollapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="truncate whitespace-nowrap"
                   >
-                    <span className="relative">
-                      <item.icon
-                        className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand' : '')}
-                        style={{ width: 18, height: 18 }}
-                      />
-                      {/* Collapsed red dot indicator for unread notifications */}
-                      {item.badge === 'count' && unreadCount > 0 && isCollapsed && (
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand" />
-                        </span>
-                      )}
-                      {/* Collapsed live indicator */}
-                      {item.badge === 'live' && isCollapsed && (
-                        <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-                          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand" />
-                        </span>
-                      )}
-                    </span>
-                    <AnimatePresence>
-                      {!isCollapsed && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          className="truncate whitespace-nowrap"
-                        >
-                          {t(item.label)}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+                    {t(item.label)}
+                  </motion.span>
+                )}
+              </AnimatePresence>
 
-                    {/* Badges - only show expanded versions when not collapsed */}
-                    {item.badge === 'live' && !isCollapsed && (
-                      <span className="ml-auto flex h-2 w-2">
-                        <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-brand opacity-75" />
-                        <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
-                      </span>
-                    )}
-                    {item.badge === 'count' && unreadCount > 0 && !isCollapsed && (
-                      <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-semibold text-white">
-                        {unreadCount}
-                      </span>
-                    )}
-                  </button>
-                );
+              {/* Badges - only show expanded versions when not collapsed */}
+              {item.badge === 'live' && !isCollapsed && (
+                <span className="ml-auto flex h-2 w-2">
+                  <span className="absolute inline-flex h-2 w-2 animate-ping rounded-full bg-brand opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+                </span>
+              )}
+              {item.badge === 'count' && unreadCount > 0 && !isCollapsed && (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[10px] font-semibold text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          );
 
-                if (isCollapsed) {
-                  return (
-                    <Tooltip key={item.route}>
-                      <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                      <TooltipContent side="right">
-                        <p>{t(item.label)}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  );
-                }
+          if (isCollapsed) {
+            return (
+              <Tooltip key={item.route}>
+                <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>{t(item.label)}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          }
 
-                return <div key={item.route}>{linkContent}</div>;
-              })}
+          return <div key={item.route}>{linkContent}</div>;
+        })}
             </div>
           </div>
         ))}
       </nav>
 
       {/* User + Collapse toggle */}
-      <div className="border-t border-border p-3 space-y-2 shrink-0">
+      <div className="border-t border-border p-2 space-y-1 shrink-0">
         {/* User row */}
         <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
           <Avatar className="h-8 w-8">

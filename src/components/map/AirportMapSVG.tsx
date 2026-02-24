@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import { mapZones, poiList, trolleyPositions } from '@/data/mock/map.mock';
+import { mapZones, poiList, trolleyPositions, gatePositionsByFloor, floors } from '@/data/mock/map.mock';
 import { shopsData } from '@/data/mock/shops.mock';
 import { TrolleyMapMarker } from '@/components/trolleys/TrolleyMapMarker';
 import type { MapZone } from '@/types/map.types';
 
 interface AirportMapSVGProps {
   mini?: boolean;
+  floor?: number;
   activeLayers?: string[];
   selectedZoneId?: string | null;
   selectedTrolleyId?: string | null;
@@ -17,29 +18,9 @@ interface AirportMapSVGProps {
   onShopClick?: (shopId: string) => void;
 }
 
-const gatePositions = [
-  // Concourse A - left side
-  { id: 'A1', x: 155, y: 590, w: 35, h: 25 },
-  { id: 'A2', x: 200, y: 590, w: 35, h: 25 },
-  { id: 'A3', x: 250, y: 590, w: 35, h: 25 },
-  { id: 'A4', x: 300, y: 590, w: 35, h: 25 },
-  { id: 'A5', x: 350, y: 590, w: 35, h: 25 },
-  { id: 'A6', x: 400, y: 590, w: 35, h: 25 },
-  { id: 'A7', x: 155, y: 665, w: 35, h: 25 },
-  { id: 'A8', x: 200, y: 665, w: 35, h: 25 },
-  // Concourse B - right side
-  { id: 'B1', x: 705, y: 590, w: 35, h: 25 },
-  { id: 'B2', x: 755, y: 590, w: 35, h: 25 },
-  { id: 'B3', x: 810, y: 590, w: 35, h: 25 },
-  { id: 'B4', x: 860, y: 590, w: 35, h: 25 },
-  { id: 'B5', x: 910, y: 590, w: 35, h: 25 },
-  { id: 'B6', x: 960, y: 590, w: 35, h: 25 },
-  { id: 'B7', x: 705, y: 665, w: 35, h: 25 },
-  { id: 'B8', x: 755, y: 665, w: 35, h: 25 },
-];
-
 export function AirportMapSVG({
   mini = false,
+  floor = 1,
   activeLayers = ['zones', 'trolleys', 'shops', 'pois', 'lounges', 'washrooms', 'gates'],
   selectedZoneId,
   selectedTrolleyId,
@@ -56,13 +37,37 @@ export function AirportMapSVG({
   const showPois = activeLayers.includes('pois');
   const showGates = activeLayers.includes('gates');
 
+  // Filter data by floor
+  const floorZones = useMemo(() => mapZones.filter((z) => z.floor === floor), [floor]);
+  const floorPois = useMemo(() => poiList.filter((p) => p.floor === floor), [floor]);
+  const floorTrolleys = useMemo(() => trolleyPositions.filter((t) => t.floor === floor), [floor]);
+  const floorGates = useMemo(() => gatePositionsByFloor[floor] || [], [floor]);
+  const floorInfo = floors.find((f) => f.id === floor);
+
   const shopPositions = useMemo(() => {
-    return shopsData.slice(0, 30).map((s) => ({
-      ...s,
-      cx: s.location.coordinates.x * 1.1,
-      cy: s.location.coordinates.y * 0.9 + 50,
-    }));
-  }, []);
+    // Get shop IDs associated with zones on this floor
+    const shopIdsOnFloor = new Set(floorZones.flatMap((z) => z.shops));
+    return shopsData
+      .filter((s) => shopIdsOnFloor.has(s.id))
+      .map((s) => {
+        // Position shops inside their assigned zone
+        const zone = floorZones.find((z) => z.shops.includes(s.id));
+        if (zone) {
+          const shopIdx = zone.shops.indexOf(s.id);
+          const cols = Math.max(2, Math.ceil(Math.sqrt(zone.shops.length)));
+          const col = shopIdx % cols;
+          const row = Math.floor(shopIdx / cols);
+          const spacingX = (zone.width - 20) / cols;
+          const spacingY = (zone.height - 20) / Math.ceil(zone.shops.length / cols);
+          return {
+            ...s,
+            cx: zone.x + 10 + col * spacingX + spacingX / 2,
+            cy: zone.y + 10 + row * spacingY + spacingY / 2,
+          };
+        }
+        return { ...s, cx: s.location.coordinates.x * 1.1, cy: s.location.coordinates.y * 0.9 + 50 };
+      });
+  }, [floorZones]);
 
   return (
     <svg
@@ -74,9 +79,17 @@ export function AirportMapSVG({
       {/* Background */}
       <rect x="0" y="0" width="1200" height="800" fill={isDark ? '#111' : '#ffffff'} rx="8" />
 
+      {/* Subtle grid pattern */}
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke={isDark ? '#1a1a1a' : '#f1f5f9'} strokeWidth="0.5" />
+        </pattern>
+      </defs>
+      <rect x="0" y="0" width="1200" height="800" fill="url(#grid)" />
+
       {/* Zone rectangles */}
       {showZones &&
-        mapZones.map((zone) => (
+        floorZones.map((zone) => (
           <g
             key={zone.id}
             onClick={() => !mini && onZoneClick?.(zone)}
@@ -90,7 +103,7 @@ export function AirportMapSVG({
               fill={isDark ? zone.color_dark : zone.color_light}
               stroke={selectedZoneId === zone.id ? '#BE052E' : (isDark ? '#333' : '#ddd')}
               strokeWidth={selectedZoneId === zone.id ? 2.5 : 1}
-              rx={4}
+              rx={6}
               className="transition-all duration-200"
             />
             {/* Zone label */}
@@ -119,12 +132,38 @@ export function AirportMapSVG({
                 {zone.type}
               </text>
             )}
+            {/* Shop count badge */}
+            {zone.shops.length > 0 && !mini && (
+              <g>
+                <rect
+                  x={zone.x + zone.width - 28}
+                  y={zone.y + 4}
+                  width={24}
+                  height={16}
+                  rx={8}
+                  fill="#BE052E"
+                  opacity={0.85}
+                />
+                <text
+                  x={zone.x + zone.width - 16}
+                  y={zone.y + 12}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={8}
+                  fill="white"
+                  fontWeight="700"
+                  fontFamily="Roboto Mono, monospace"
+                >
+                  {zone.shops.length}
+                </text>
+              </g>
+            )}
           </g>
         ))}
 
-      {/* Gate markers */}
+      {/* Gate / Carousel markers */}
       {showGates &&
-        gatePositions.map((gate) => (
+        floorGates.map((gate) => (
           <g key={gate.id}>
             <rect
               x={gate.x}
@@ -153,12 +192,14 @@ export function AirportMapSVG({
 
       {/* POI icons */}
       {showPois &&
-        poiList.map((poi) => {
+        floorPois.map((poi) => {
           const color =
             poi.type === 'info_desk' ? '#3b82f6' :
             poi.type === 'first_aid' ? '#ef4444' :
             poi.type === 'charging_station' ? '#10b981' :
             poi.type === 'atm' ? '#f59e0b' :
+            poi.type === 'luggage_cart' ? '#8b5cf6' :
+            poi.type === 'prayer_room' ? '#14b8a6' :
             '#9ca3af';
           const icon =
             poi.type === 'info_desk' ? 'i' :
@@ -166,7 +207,9 @@ export function AirportMapSVG({
             poi.type === 'charging_station' ? '⚡' :
             poi.type === 'elevator' ? '↕' :
             poi.type === 'escalator' ? '↗' :
-            poi.type === 'atm' ? '$' : '•';
+            poi.type === 'atm' ? '$' :
+            poi.type === 'luggage_cart' ? '🧳' :
+            poi.type === 'prayer_room' ? '🕌' : '•';
 
           return (
             <g key={poi.id}>
@@ -221,13 +264,26 @@ export function AirportMapSVG({
               <circle
                 cx={shop.cx}
                 cy={shop.cy}
-                r={selectedShopId === shop.id ? 10 : 7}
+                r={selectedShopId === shop.id ? 10 : 6}
                 fill={markerColor}
-                opacity={selectedShopId === shop.id ? 1 : 0.7}
+                opacity={selectedShopId === shop.id ? 1 : 0.75}
                 stroke={selectedShopId === shop.id ? '#fff' : 'none'}
                 strokeWidth={2}
                 className="transition-all duration-200"
               />
+              {selectedShopId === shop.id && (
+                <text
+                  x={shop.cx}
+                  y={shop.cy - 14}
+                  textAnchor="middle"
+                  fontSize={8}
+                  fill={isDark ? '#fff' : '#111'}
+                  fontFamily="Poppins, sans-serif"
+                  fontWeight="600"
+                >
+                  {shop.name}
+                </text>
+              )}
               <title>{shop.name} ({shop.category})</title>
             </g>
           );
@@ -235,11 +291,11 @@ export function AirportMapSVG({
 
       {/* Trolley markers */}
       {showTrolleys &&
-        trolleyPositions.slice(0, mini ? 20 : undefined).map((t) => (
+        floorTrolleys.slice(0, mini ? 20 : undefined).map((t) => (
           <TrolleyMapMarker
             key={t.trolley_id}
-            x={(t.x / 1200) * 1100 + 50}
-            y={(t.y / 800) * 650 + 75}
+            x={t.x}
+            y={t.y}
             status={t.status}
             battery={t.battery}
             selected={selectedTrolleyId === t.trolley_id || highlightTrolleyId === t.trolley_id}
@@ -249,12 +305,10 @@ export function AirportMapSVG({
 
       {/* Highlight trolley position if specified */}
       {highlightTrolleyId && (() => {
-        const t = trolleyPositions.find((tp) => tp.trolley_id === highlightTrolleyId);
+        const t = floorTrolleys.find((tp) => tp.trolley_id === highlightTrolleyId);
         if (!t) return null;
-        const cx = (t.x / 1200) * 1100 + 50;
-        const cy = (t.y / 800) * 650 + 75;
         return (
-          <circle cx={cx} cy={cy} r={15} fill="#BE052E" opacity={0.15}>
+          <circle cx={t.x} cy={t.y} r={15} fill="#BE052E" opacity={0.15}>
             <animate attributeName="r" values="10;20;10" dur="2s" repeatCount="indefinite" />
             <animate attributeName="opacity" values="0.2;0.05;0.2" dur="2s" repeatCount="indefinite" />
           </circle>
@@ -264,7 +318,7 @@ export function AirportMapSVG({
       {/* Title */}
       {!mini && (
         <text x={600} y={30} textAnchor="middle" fontSize={14} fill={isDark ? '#aaa' : '#555'} fontFamily="Montserrat, sans-serif" fontWeight="700">
-          Airport Terminal — Floor Plan
+          {floorInfo?.label || `Airport Terminal — Floor ${floor}`}
         </text>
       )}
     </svg>

@@ -5,6 +5,7 @@ import { mapZones, trolleyPositions } from '@/data/mock/map.mock';
 import { shopsData } from '@/data/mock/shops.mock';
 import { trolleysData } from '@/data/mock/trolleys.mock';
 import { AirportMapSVG } from '@/components/map/AirportMapSVG';
+import { FloorSelector } from '@/components/map/FloorSelector';
 import { MapLegend } from '@/components/map/MapLegend';
 // MapFilters removed per cleanup requirements
 import { MapTooltip } from '@/components/map/MapTooltip';
@@ -36,12 +37,14 @@ export default function TerminalMapPage() {
     selectedShopId,
     selectedTrolleyId,
     zoomLevel,
+    currentFloor,
     selectZone,
     selectShop,
     selectTrolley,
     clearSelection,
     zoomIn,
     zoomOut,
+    setFloor,
   } = useMapStore();
 
   const isDark = theme === 'dark';
@@ -62,9 +65,9 @@ export default function TerminalMapPage() {
     const zone = mapZones.find((z) => z.id === selectedZone.id);
     if (!zone) return null;
     const zoneShops = shopsData.filter((s) => s.location.zone === zone.id);
-    const zoneTrolleys = trolleyPositions.filter((t) => t.zone_id === zone.id);
+    const zoneTrolleys = trolleyPositions.filter((t) => t.zone_id === zone.id && t.floor === currentFloor);
     return { zone, shops: zoneShops, trolleys: zoneTrolleys };
-  }, [selectedZone]);
+  }, [selectedZone, currentFloor]);
 
   const selectedShopData = useMemo(() => {
     if (!selectedShopId) return null;
@@ -93,10 +96,12 @@ export default function TerminalMapPage() {
     [selectShop]
   );
 
-  // Stats
-  const activeTrolleys = trolleyPositions.filter((t) => t.status === 'active').length;
-  const totalShopsOnMap = shopsData.filter((s) => s.status === 'active').length;
-  const zonesCount = mapZones.length;
+  // Stats (floor-aware)
+  const floorZones = useMemo(() => mapZones.filter((z) => z.floor === currentFloor), [currentFloor]);
+  const floorTrolleys = useMemo(() => trolleyPositions.filter((t) => t.floor === currentFloor), [currentFloor]);
+  const activeTrolleys = floorTrolleys.filter((t) => t.status === 'active').length;
+  const totalShopsOnMap = floorZones.reduce((sum, z) => sum + z.shops.length, 0);
+  const zonesCount = floorZones.length;
 
   const hasSelection = selectedZone || selectedShopId || selectedTrolleyId;
 
@@ -111,33 +116,21 @@ export default function TerminalMapPage() {
         subtitle="Real-time terminal floor plan with trolley positions"
       />
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-          <div className="p-2 rounded-lg bg-blue-500/10">
-            <MapPin className="h-4 w-4 text-blue-500" />
+      {/* Floor Selector + Quick Stats */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <FloorSelector currentFloor={currentFloor} onFloorChange={setFloor} />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border">
+            <MapPin className="h-3.5 w-3.5 text-blue-500" />
+            <span className="text-xs font-medium">{zonesCount} Zones</span>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Zones</p>
-            <p className="text-lg font-bold">{zonesCount}</p>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border">
+            <ShoppingCart className="h-3.5 w-3.5 text-green-500" />
+            <span className="text-xs font-medium">{activeTrolleys} Trolleys</span>
           </div>
-        </div>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-          <div className="p-2 rounded-lg bg-green-500/10">
-            <ShoppingCart className="h-4 w-4 text-green-500" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Active Trolleys</p>
-            <p className="text-lg font-bold">{activeTrolleys}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Store className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Active Shops</p>
-            <p className="text-lg font-bold">{totalShopsOnMap}</p>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border">
+            <Store className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-medium">{totalShopsOnMap} Shops</span>
           </div>
         </div>
       </div>
@@ -190,6 +183,7 @@ export default function TerminalMapPage() {
               }}
             >
               <AirportMapSVG
+                floor={currentFloor}
                 activeLayers={activeMapLayers}
                 selectedZoneId={selectedZone?.id}
                 selectedTrolleyId={selectedTrolleyId}

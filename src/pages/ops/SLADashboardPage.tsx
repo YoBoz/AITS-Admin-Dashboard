@@ -401,6 +401,59 @@ export default function SLADashboardPage({ embedded }: { embedded?: boolean }) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Runner Performance Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Runner Performance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Avg Acceptance</p>
+              <p className="text-xl font-bold">{metrics.runner_performance.avg_acceptance_seconds}s</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Completion Rate</p>
+              <p className="text-xl font-bold text-emerald-500">{metrics.runner_performance.completion_rate_pct}%</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Fail Reasons</p>
+              <p className="text-xl font-bold text-amber-500">
+                {Object.values(metrics.runner_performance.fail_reasons).reduce((a, b) => a + b, 0)}
+              </p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Device Uptime</p>
+              <p className="text-xl font-bold text-blue-500">{metrics.device_uptime.overall_pct}%</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Refund Rate Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Refund Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Refund Rate</p>
+              <p className="text-xl font-bold text-orange-500">2.4%</p>
+              <p className="text-[10px] text-muted-foreground">of total orders</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Avg Refund Amount</p>
+              <p className="text-xl font-bold">AED 42.50</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/50">
+              <p className="text-xs text-muted-foreground">Top Refund Reason</p>
+              <p className="text-sm font-medium mt-1">Late Delivery (38%)</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

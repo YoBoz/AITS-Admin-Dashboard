@@ -1,6 +1,6 @@
 // ──────────────────────────────────────
 // Administration Hub — Unified Admin
-// Sub-tabs: Compliance | Global Rules | Permissions | Policies
+// Sub-tabs: Global Rules | Permissions | Policies
 // ──────────────────────────────────────
 
 import { useState, useEffect, lazy, Suspense } from 'react';
@@ -16,15 +16,13 @@ import { cn } from '@/lib/utils';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
-const CompliancePage = lazy(() => import('../compliance/CompliancePage'));
 const GlobalRulesPage = lazy(() => import('../global-rules/GlobalRulesPage'));
 const PermissionsPage = lazy(() => import('../permissions/PermissionsPage'));
 const PoliciesPage = lazy(() => import('../ops/PoliciesPage'));
 
-type AdminTab = 'compliance' | 'global-rules' | 'permissions' | 'policies';
+type AdminTab = 'global-rules' | 'permissions' | 'policies';
 
 const tabs: { key: AdminTab; label: string; icon: React.ElementType; description: string }[] = [
-  { key: 'compliance', label: 'Compliance Center', icon: ShieldCheck, description: 'Security, consent, DSAR & audit' },
   { key: 'global-rules', label: 'Global Rules', icon: ScrollText, description: 'Platform-wide constraints & limits' },
   { key: 'permissions', label: 'Permissions', icon: Users, description: 'Access control, roles & users' },
   { key: 'policies', label: 'Policies', icon: Shield, description: 'Zone & operational policies' },
@@ -34,7 +32,7 @@ export default function AdminHubPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as AdminTab | null;
   const [activeTab, setActiveTab] = useState<AdminTab>(
-    tabParam && tabs.some((t) => t.key === tabParam) ? tabParam : 'compliance'
+    tabParam && tabs.some((t) => t.key === tabParam) ? tabParam : 'global-rules'
   );
 
   // Sync activeTab when URL search params change (e.g. from external navigation)
@@ -46,7 +44,12 @@ export default function AdminHubPage() {
 
   const handleTabChange = (tab: AdminTab) => {
     setActiveTab(tab);
-    setSearchParams({ tab }, { replace: true });
+    setSearchParams((prev) => {
+      prev.set('tab', tab);
+      prev.delete('page');
+      prev.delete('pageSize');
+      return prev;
+    }, { replace: true });
   };
 
   return (
@@ -58,7 +61,7 @@ export default function AdminHubPage() {
           Administration
         </h1>
         <p className="text-sm text-muted-foreground font-lexend mt-1">
-          Compliance, global rules, access control, and operational policies
+          Global rules, access control, and operational policies
         </p>
       </div>
 
@@ -102,7 +105,6 @@ export default function AdminHubPage() {
           >
             <ErrorBoundary>
               <Suspense fallback={<LoadingScreen />}>
-                {activeTab === 'compliance' && <CompliancePage embedded />}
                 {activeTab === 'global-rules' && <GlobalRulesPage embedded />}
                 {activeTab === 'permissions' && <PermissionsPage embedded />}
                 {activeTab === 'policies' && <PoliciesPage embedded />}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, LogOut, User, ChevronDown, Clock, Store, ShieldCheck } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, LogOut, User, Clock, Store, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { Button } from '@/components/ui/Button';
@@ -30,22 +29,15 @@ const ROLE_LABELS: Record<MerchantRole, string> = {
 
 export function MerchantTopbar({ onMenuClick }: MerchantTopbarProps) {
   const navigate = useNavigate();
-  const { merchantUser, merchantRole, logout, switchRole } = useMerchantAuth();
+  const { merchantUser, merchantRole, logout } = useMerchantAuth();
   const { storeStatus, slaSettings } = useMerchantStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
 
   const statusConfig = STORE_STATUS_CONFIG[storeStatus];
-  const canSwitchRole = merchantRole === 'manager' || merchantRole === 'developer';
 
   const handleLogout = () => {
     logout();
     navigate('/merchant/login');
-  };
-
-  const handleRoleSwitch = (role: MerchantRole) => {
-    switchRole(role);
-    setRoleMenuOpen(false);
   };
 
   return (
@@ -85,65 +77,12 @@ export function MerchantTopbar({ onMenuClick }: MerchantTopbarProps) {
         </span>
       </div>
 
-      {/* Right: role switch, theme, user */}
+      {/* Right: role badge, theme, user */}
       <div className="flex items-center gap-1">
-        {/* Role Switch (Manager & Developer only) */}
-        {canSwitchRole && (
-          <div className="relative">
-            <button
-              onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5 hover:bg-muted transition-colors"
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-brand" />
-              <span className="text-xs font-semibold font-lexend text-foreground">
-                {merchantRole ? ROLE_LABELS[merchantRole] : 'Role'}
-              </span>
-              <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            </button>
-
-            <AnimatePresence>
-              {roleMenuOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setRoleMenuOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-1 z-50 w-48 rounded-lg border bg-card p-1 shadow-lg"
-                  >
-                    <p className="px-3 py-1.5 text-[10px] font-semibold uppercase text-muted-foreground tracking-wider">
-                      Switch Role
-                    </p>
-                    {merchantUser?.available_roles.map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => handleRoleSwitch(role)}
-                        className={cn(
-                          'flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-lexend transition-colors',
-                          role === merchantRole
-                            ? 'bg-brand/10 text-brand font-medium'
-                            : 'hover:bg-muted text-foreground'
-                        )}
-                      >
-                        <ShieldCheck className={cn('h-4 w-4', role === merchantRole ? 'text-brand' : 'text-muted-foreground')} />
-                        {ROLE_LABELS[role]}
-                        {role === merchantRole && (
-                          <span className="ml-auto text-[10px] text-brand">Active</span>
-                        )}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* Non-switchable role badge */}
-        {!canSwitchRole && merchantRole && (
+        {/* Role Badge (Display Only) */}
+        {merchantRole && (
           <div className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50 px-2.5 py-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+            <ShieldCheck className="h-3.5 w-3.5 text-brand" />
             <span className="text-xs font-semibold font-lexend text-foreground">
               {ROLE_LABELS[merchantRole]}
             </span>

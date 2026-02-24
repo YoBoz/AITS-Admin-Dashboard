@@ -44,12 +44,18 @@ export default function TrolleyHubPage() {
 
   const handleTabChange = (tab: TrolleyTab) => {
     setActiveTab(tab);
-    // Preserve device param when switching to live-tracking, otherwise clear it
-    if (tab === 'live-tracking' && deviceParam) {
-      setSearchParams({ tab, device: deviceParam }, { replace: true });
-    } else {
-      setSearchParams({ tab }, { replace: true });
-    }
+    setSearchParams((prev) => {
+      prev.set('tab', tab);
+      // Preserve device param when switching to live-tracking, otherwise clear it
+      if (tab === 'live-tracking' && deviceParam) {
+        prev.set('device', deviceParam);
+      } else {
+        prev.delete('device');
+      }
+      prev.delete('page');
+      prev.delete('pageSize');
+      return prev;
+    }, { replace: true });
   };
 
   return (

@@ -5,6 +5,8 @@
 
 import React, { useState } from 'react';
 import { usePoliciesStore } from '@/store/policies.store';
+import { usePermissionsStore } from '@/store/permissions.store';
+import { usePermissions } from '@/hooks/usePermissions';
 import { PolicyRuleCard } from '@/components/ops';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -38,8 +40,10 @@ import {
   XCircle,
   AlertTriangle,
   Clock,
+  FileText,
 } from 'lucide-react';
 import { Policy, PolicyType, PolicyStatus } from '@/types/policy.types';
+import { formatDistanceToNow } from 'date-fns';
 
 interface PoliciesPageProps {
   embedded?: boolean;
@@ -47,7 +51,9 @@ interface PoliciesPageProps {
 
 export default function PoliciesPage({ embedded }: PoliciesPageProps) {
   const { policies, addPolicy, togglePolicy } = usePoliciesStore();
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
+  const [showOverrideLog, setShowOverrideLog] = useState(false);
   const [typeFilter, setTypeFilter] = useState<PolicyType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<PolicyStatus | 'all'>('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -57,6 +63,27 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
     type: 'restricted_zone' as PolicyType,
     zone: '',
   });
+  const [editingPolicy, setEditingPolicy] = useState<Policy | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+
+  /** Audit helper for policy actions */
+  const logPolicyAudit = (action: string, resourceId: string, resourceLabel: string, changes: { field: string; from: string; to: string }[] | null) => {
+    const { addAuditEntry } = usePermissionsStore.getState();
+    addAuditEntry({
+      id: `audit-${Date.now()}`,
+      actor_id: 'admin-001',
+      actor_name: 'Admin User',
+      actor_role: 'ops_manager',
+      action,
+      resource_type: 'policy',
+      resource_id: resourceId,
+      resource_label: resourceLabel,
+      changes,
+      ip_address: '10.0.0.1',
+      timestamp: new Date().toISOString(),
+      result: 'success',
+    });
+  };
 
   // Filter policies
   const filteredPolicies = policies.filter((policy) => {
@@ -79,14 +106,27 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
   const totalViolations = policies.reduce((sum, p) => sum + (p.trigger_count || 0), 0);
 
   const handleCreatePolicy = () => {
+    const policyId = `POL-${Date.now()}`;
+    // Build actions — include wheel lock conditions when type is wheel_lock_zone
+    const policyActions = newPolicy.type === 'wheel_lock_zone'
+      ? [{ type: 'wheel_lock' as const, params: { immediate: 1 } }]
+      : [];
+    const policyConditions = newPolicy.type === 'wheel_lock_zone'
+      ? [
+          { field: 'departure_time', operator: 'past' as const, value: 'true' },
+          { field: 'active_session', operator: 'eq' as const, value: 'false' },
+          { field: 'safe_zone', operator: 'eq' as const, value: 'true' },
+        ]
+      : [];
+
     const policy: Policy = {
-      id: `POL-${Date.now()}`,
+      id: policyId,
       name: newPolicy.name,
       description: newPolicy.description,
       type: newPolicy.type,
       status: 'scheduled',
-      conditions: [],
-      actions: [],
+      conditions: policyConditions,
+      actions: policyActions,
       zone_ids: newPolicy.zone ? [newPolicy.zone] : [],
       gate_ids: [],
       overrides: [],
@@ -98,6 +138,10 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
       trigger_count: 0,
     };
     addPolicy(policy);
+    logPolicyAudit('policy:create', policyId, newPolicy.name, [
+      { field: 'type', from: '', to: newPolicy.type },
+      { field: 'status', from: '', to: 'scheduled' },
+    ]);
     setIsCreateOpen(false);
     setNewPolicy({
       name: '',
@@ -107,7 +151,42 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
     });
   };
 
-  const createDialog = (
+  const handleTogglePolicy = (policyId: string) => {
+    const policy = policies.find(p => p.id === policyId);
+    if (!policy) return;
+    const prevStatus = policy.status;
+    const newStatus = prevStatus === 'active' ? 'inactive' : 'active';
+    togglePolicy(policyId);
+    logPolicyAudit('policy:toggle', policyId, policy.name, [
+      { field: 'status', from: prevStatus, to: newStatus },
+    ]);
+  };
+
+  const handleEditPolicy = (policyId: string) => {
+    const policy = policies.find(p => p.id === policyId);
+    if (!policy) return;
+    setEditingPolicy(policy);
+    setIsEditOpen(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingPolicy) return;
+    const { updatePolicy } = usePoliciesStore.getState();
+    updatePolicy(editingPolicy.id, {
+      name: editingPolicy.name,
+      description: editingPolicy.description,
+      type: editingPolicy.type,
+      zone_ids: editingPolicy.zone_ids,
+    });
+    logPolicyAudit('policy:edit', editingPolicy.id, editingPolicy.name, [
+      { field: 'name', from: '', to: editingPolicy.name },
+      { field: 'description', from: '', to: editingPolicy.description },
+    ]);
+    setIsEditOpen(false);
+    setEditingPolicy(null);
+  };
+
+  const createDialog = can('policies.manage') ? (
     <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
       <DialogTrigger asChild>
         <Button>
@@ -182,7 +261,95 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  ) : null;
+
+  const editDialog = can('policies.manage') && editingPolicy ? (
+    <Dialog open={isEditOpen} onOpenChange={(open) => { setIsEditOpen(open); if (!open) setEditingPolicy(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit Policy</DialogTitle>
+          <DialogDescription>
+            Modify policy settings
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label>Policy Name</Label>
+            <Input
+              placeholder="e.g., Gate Area Restriction"
+              value={editingPolicy.name}
+              onChange={(e) => setEditingPolicy({ ...editingPolicy, name: e.target.value })}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Type</Label>
+            <Select 
+              value={editingPolicy.type} 
+              onValueChange={(v: string) => setEditingPolicy({ ...editingPolicy, type: v as PolicyType })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="restricted_zone">Restricted Zone</SelectItem>
+                <SelectItem value="no_entry">No Entry</SelectItem>
+                <SelectItem value="speed_limit">Speed Limit</SelectItem>
+                <SelectItem value="time_restricted">Time Restricted</SelectItem>
+                <SelectItem value="wheel_lock_zone">Wheel Lock</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Zone</Label>
+            <Input
+              placeholder="e.g., Terminal 2, Gate A1"
+              value={editingPolicy.zone_ids?.join(', ') || ''}
+              onChange={(e) => setEditingPolicy({ ...editingPolicy, zone_ids: e.target.value ? [e.target.value] : [] })}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Textarea
+              placeholder="Describe what this policy enforces..."
+              value={editingPolicy.description}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditingPolicy({ ...editingPolicy, description: e.target.value })}
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select 
+              value={editingPolicy.status} 
+              onValueChange={(v: string) => setEditingPolicy({ ...editingPolicy, status: v as PolicyStatus })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="scheduled">Scheduled</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => { setIsEditOpen(false); setEditingPolicy(null); }}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveEdit} disabled={!editingPolicy.name}>
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ) : null;
 
   return (
     <div className="space-y-6">
@@ -286,6 +453,7 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="restricted_zone">Restricted Zone</SelectItem>
+                <SelectItem value="delivery_blocked">Delivery Blocked</SelectItem>
                 <SelectItem value="no_entry">No Entry</SelectItem>
                 <SelectItem value="speed_limit">Speed Limit</SelectItem>
                 <SelectItem value="time_restricted">Time Restricted</SelectItem>
@@ -315,30 +483,94 @@ export default function PoliciesPage({ embedded }: PoliciesPageProps) {
       </Card>
 
       {/* Policy List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredPolicies.map((policy) => (
-          <PolicyRuleCard
-            key={policy.id}
-            policy={policy}
-            onToggle={() => togglePolicy(policy.id)}
-            onEdit={() => console.log('Edit policy:', policy.id)}
-          />
-        ))}
-        
-        {filteredPolicies.length === 0 && (
-          <Card className="md:col-span-2">
-            <CardContent className="py-12 text-center">
-              <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold mb-1">No policies found</h3>
-              <p className="text-sm text-muted-foreground">
-                {search || typeFilter !== 'all' || statusFilter !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Create your first policy to get started'}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+      <div className="flex justify-end">
+        <Button
+          variant={showOverrideLog ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setShowOverrideLog(!showOverrideLog)}
+        >
+          <FileText className="h-4 w-4 mr-1" />
+          {showOverrideLog ? 'Show Policies' : 'Override Log'}
+        </Button>
       </div>
+
+      {!showOverrideLog ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredPolicies.map((policy) => (
+            <PolicyRuleCard
+              key={policy.id}
+              policy={policy}
+              onToggle={() => handleTogglePolicy(policy.id)}
+              onEdit={() => handleEditPolicy(policy.id)}
+            />
+          ))}
+          
+          {filteredPolicies.length === 0 && (
+            <Card className="md:col-span-2">
+              <CardContent className="py-12 text-center">
+                <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="font-semibold mb-1">No policies found</h3>
+                <p className="text-sm text-muted-foreground">
+                  {search || typeFilter !== 'all' || statusFilter !== 'all'
+                    ? 'Try adjusting your filters'
+                    : 'Create your first policy to get started'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="pt-4">
+            <h3 className="text-sm font-semibold mb-3">Policy Override Log</h3>
+            <div className="space-y-3">
+              {policies.flatMap((p) =>
+                p.overrides.map((override) => ({
+                  ...override,
+                  policy_name: p.name,
+                  policy_id: p.id,
+                }))
+              ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">No overrides recorded</p>
+                </div>
+              ) : (
+                policies.flatMap((p) =>
+                  p.overrides.map((override) => ({
+                    ...override,
+                    policy_name: p.name,
+                    policy_id: p.id,
+                  }))
+                ).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).map((override, idx) => (
+                  <div key={override.id || idx} className="flex gap-3 p-3 rounded-lg border bg-card">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{override.policy_name}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {formatDistanceToNow(new Date(override.timestamp), { addSuffix: true })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        <strong>By:</strong> {override.overridden_by} • <strong>Reason:</strong> {override.override_reason}
+                      </p>
+                      {override.override_notes && (
+                        <p className="text-xs text-muted-foreground mt-1 bg-muted/50 rounded p-1.5">{override.override_notes}</p>
+                      )}
+                      {override.device_id && (
+                        <p className="text-[10px] text-muted-foreground mt-1">Device: {override.device_id}</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Policy Dialog */}
+      {editDialog}
     </div>
   );
 }

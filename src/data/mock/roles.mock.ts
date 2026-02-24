@@ -67,6 +67,22 @@ export const allPermissions: Permission[] = [
   perm('reports.view', 'View Reports', 'Access reports', 'reports', 'low'),
   perm('reports.export', 'Export Reports', 'Export report data', 'reports', 'medium'),
   perm('reports.schedule', 'Schedule Reports', 'Set up automated reports', 'reports', 'medium'),
+  // Ops — Orders, Incidents, Policies, Fleet, Runners, Gates, SLA
+  perm('orders.view', 'View Orders', 'Access ops orders console', 'ops', 'low'),
+  perm('orders.override', 'Override Orders', 'Perform override actions on orders', 'ops', 'high'),
+  perm('incidents.view', 'View Incidents', 'View incident list and details', 'ops', 'low'),
+  perm('incidents.create', 'Create Incidents', 'Report new incidents', 'ops', 'medium'),
+  perm('incidents.manage', 'Manage Incidents', 'Change status, assign, resolve incidents', 'ops', 'high'),
+  perm('policies.view', 'View Policies', 'View zone and operational policies', 'ops', 'low'),
+  perm('policies.manage', 'Manage Policies', 'Create, toggle, edit policies', 'ops', 'critical'),
+  perm('fleet.view', 'View Fleet', 'Access live fleet map and device list', 'ops', 'low'),
+  perm('fleet.actions', 'Device Actions', 'Lock, unlock, reboot, update devices', 'ops', 'high'),
+  perm('runners.view', 'View Runners', 'View runner management page', 'ops', 'low'),
+  perm('runners.manage', 'Manage Runners', 'Assign and manage runners', 'ops', 'medium'),
+  perm('gates.view', 'View Gates', 'View gate management', 'ops', 'low'),
+  perm('gates.manage', 'Manage Gates', 'Override gate assignments', 'ops', 'medium'),
+  perm('sla.view', 'View SLA Analytics', 'Access SLA analytics dashboard', 'ops', 'low'),
+  perm('audit.view', 'View Audit Logs', 'Access global audit log', 'ops', 'medium'),
 ];
 
 export const allPermissionKeys = allPermissions.map((p) => p.key);
@@ -93,6 +109,7 @@ export const permissionGroupLabels: Record<PermissionGroup, string> = {
   permissions: 'Permissions',
   settings: 'Settings',
   reports: 'Reports',
+  ops: 'Operations',
 };
 
 // ─── Default Roles ───
@@ -104,6 +121,14 @@ const operatorPermissions = [
   'complaints.view', 'complaints.assign', 'complaints.resolve',
   'dashboard.view',
   'notifications.view',
+  // Ops — operators can view + create + act on incidents & orders, but NOT modify RBAC or policies
+  'orders.view', 'orders.override',
+  'incidents.view', 'incidents.create', 'incidents.manage',
+  'fleet.view', 'fleet.actions',
+  'runners.view', 'runners.manage',
+  'gates.view', 'gates.manage',
+  'sla.view',
+  'audit.view',
 ];
 
 const viewerPermissions = [

@@ -178,4 +178,44 @@ function generateShop(index: number): Shop {
   };
 }
 
-export const shopsData: Shop[] = Array.from({ length: 64 }, (_, i) => generateShop(i));
+// Generated shops
+const generatedShops: Shop[] = Array.from({ length: 64 }, (_, i) => generateShop(i));
+
+// Special shop that matches the merchant dashboard (sky-lounge-premier)
+const skyLoungePremierShop: Shop = {
+  id: 'sky-lounge-premier',
+  name: 'Sky Lounge Premier',
+  company_name: 'Plaza Premium Group',
+  category: 'lounge',
+  logo_url: 'https://ui-avatars.com/api/?name=Sky+Lounge+Premier&background=BE052E&color=fff&size=64',
+  location: {
+    zone: 'Zone A',
+    unit_number: 'A12',
+    floor: 2,
+    coordinates: { x: 450, y: 280 },
+  },
+  contact: {
+    name: 'Sarah Al-Mahmoud',
+    email: 'manager@skyloungepr.com',
+    phone: '+971 4 555 1234',
+  },
+  contract: {
+    id: 'CTR-SKY-001',
+    start_date: '2025-06-01T00:00:00Z',
+    end_date: '2027-05-31T23:59:59Z',
+    monthly_fee: 18000,
+    revenue_share_percent: 12,
+    status: 'active',
+    auto_renew: true,
+    terms_file_url: '/files/contract-sky-lounge.pdf',
+    signed_at: '2025-05-15T10:00:00Z',
+  },
+  status: 'active',
+  registered_at: '2025-05-01T00:00:00Z',
+  offers_count: 5,
+  total_visitors: 45230,
+  rating: 4.7,
+  description: 'Premium airport lounge offering world-class amenities, fine dining, and exclusive services for discerning travelers.',
+};
+
+export const shopsData: Shop[] = [skyLoungePremierShop, ...generatedShops];

@@ -152,7 +152,7 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => navigate(`/dashboard/trolleys?tab=live-tracking&device=${row.original.id}`)}
+              onClick={() => navigate(`/dashboard/fleet?tab=live-fleet&device=${row.original.id}`)}
               title="Track Location"
             >
               <Radio className="h-4 w-4" />

@@ -7,11 +7,12 @@ export type PolicyType =
   | 'wheel_lock_zone'
   | 'speed_limit'
   | 'no_entry'
-  | 'time_restricted';
+  | 'time_restricted'
+  | 'delivery_blocked';
 
 export type PolicyStatus = 'active' | 'inactive' | 'scheduled';
 
-export type ConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'between';
+export type ConditionOperator = 'eq' | 'neq' | 'gt' | 'lt' | 'in' | 'between' | 'past';
 
 export interface PolicyCondition {
   field: string; // e.g. 'zone_id', 'device_speed', 'time_of_day'

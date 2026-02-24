@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { Command } from 'cmdk';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Map, Flame, ShoppingCart, Store, Users,
-  Tag, Bell, AlertTriangle, MessageSquareWarning, ShieldCheck,
-  Settings, Search, Target, MapPin, LayoutTemplate, Building2, ClipboardList,
-  ScrollText, Shield, Plane,
+  LayoutDashboard, Map, Flame, ShoppingCart, Store, Radio,
+  AlertTriangle, ShieldCheck, Search, Target, ClipboardList,
+  ScrollText, FileBarChart, UserCheck, FileText, DoorOpen, Building2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { LucideIcon } from 'lucide-react';
@@ -22,35 +21,30 @@ interface CmdItem {
 }
 
 const pageItems: CmdItem[] = [
-  { label: 'Overview', icon: LayoutDashboard, route: '/dashboard/overview', group: 'Pages' },
-  { label: 'Terminal Map', icon: Map, route: '/dashboard/map', group: 'Pages' },
-  { label: 'Heatmap', icon: Flame, route: '/dashboard/heatmap', group: 'Pages' },
-  { label: 'Trolley Management', icon: ShoppingCart, route: '/dashboard/trolleys', group: 'Pages' },
-  { label: 'Shop Management', icon: Store, route: '/dashboard/shops', group: 'Pages' },
-  { label: 'Merchants', icon: Building2, route: '/dashboard/shops?tab=merchants', group: 'Pages' },
-  { label: 'SLA Dashboard', icon: Target, route: '/dashboard/shops?tab=sla', group: 'Pages' },
-  { label: 'Venue Setup', icon: MapPin, route: '/dashboard/shops?tab=venue', group: 'Pages' },
-  { label: 'Content Management', icon: LayoutTemplate, route: '/dashboard/shops?tab=content', group: 'Pages' },
-  { label: 'Orders Console', icon: ClipboardList, route: '/dashboard/shops?tab=orders', group: 'Pages' },
-  { label: 'Visitor Stats', icon: Users, route: '/dashboard/visitors', group: 'Pages' },
-  { label: 'Offers & Contracts', icon: Tag, route: '/dashboard/offers', group: 'Pages' },
-  { label: 'Notifications', icon: Bell, route: '/dashboard/notifications', group: 'Pages' },
-  { label: 'Alerts & Issues', icon: AlertTriangle, route: '/dashboard/alerts', group: 'Pages' },
-  { label: 'Complaints', icon: MessageSquareWarning, route: '/dashboard/alerts?tab=complaints', group: 'Pages' },
-  { label: 'Incidents', icon: AlertTriangle, route: '/dashboard/alerts?tab=incidents', group: 'Pages' },
-  { label: 'Gate Surge', icon: Plane, route: '/dashboard/ops/surge', group: 'Pages' },
-  { label: 'Administration', icon: ShieldCheck, route: '/dashboard/admin', group: 'Pages' },
-  { label: 'Compliance Center', icon: ShieldCheck, route: '/dashboard/admin?tab=compliance', group: 'Pages' },
-  { label: 'Global Rules', icon: ScrollText, route: '/dashboard/admin?tab=global-rules', group: 'Pages' },
-  { label: 'Permissions', icon: Users, route: '/dashboard/admin?tab=permissions', group: 'Pages' },
-  { label: 'Policies', icon: Shield, route: '/dashboard/admin?tab=policies', group: 'Pages' },
-  { label: 'Settings', icon: Settings, route: '/dashboard/settings', group: 'Pages' },
+  // Sidebar items (exact match)
+  { label: 'Dashboard', icon: LayoutDashboard, route: '/dashboard/overview', group: 'Pages' },
+  { label: 'Live Map', icon: Map, route: '/dashboard/map', group: 'Pages' },
+  { label: 'Heatmap', icon: Flame, route: '/dashboard/map?tab=heatmap', group: 'Pages' },
+  { label: 'Fleet Monitoring', icon: Radio, route: '/dashboard/fleet', group: 'Pages' },
+  { label: 'Live Fleet', icon: Radio, route: '/dashboard/fleet?tab=live-fleet', group: 'Pages' },
+  { label: 'Trolley Management', icon: ShoppingCart, route: '/dashboard/fleet?tab=trolleys', group: 'Pages' },
+  { label: 'Runners', icon: UserCheck, route: '/dashboard/runners', group: 'Pages' },
+  { label: 'Orders Console', icon: ClipboardList, route: '/dashboard/orders', group: 'Pages' },
+  { label: 'Incidents', icon: AlertTriangle, route: '/dashboard/incidents', group: 'Pages' },
+  { label: 'Gate Management', icon: DoorOpen, route: '/dashboard/gates', group: 'Pages' },
+  { label: 'Policy Controls', icon: ShieldCheck, route: '/dashboard/policies', group: 'Pages' },
+  { label: 'Merchant Management', icon: Store, route: '/dashboard/shops', group: 'Pages' },
+  { label: 'Merchant Directory', icon: Building2, route: '/dashboard/shops?tab=merchants', group: 'Pages' },
+  { label: 'SLA Analytics', icon: Target, route: '/dashboard/sla', group: 'Pages' },
+  { label: 'Reports', icon: FileBarChart, route: '/dashboard/reports', group: 'Pages' },
+  { label: 'RBAC & Permissions', icon: ScrollText, route: '/dashboard/permissions', group: 'Pages' },
+  { label: 'Audit Logs', icon: FileText, route: '/dashboard/audit-logs', group: 'Pages' },
 ];
 
 const trolleyItems = trolleysData.slice(0, 20).map((t) => ({
   label: `${t.id} — ${t.imei}`,
   icon: ShoppingCart,
-  route: `/dashboard/trolleys/${t.id}`,
+  route: `/dashboard/fleet?tab=live-fleet&device=${t.id}`,
   group: 'Trolleys',
 }));
 

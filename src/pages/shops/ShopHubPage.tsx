@@ -1,6 +1,5 @@
 // ──────────────────────────────────────
-// Shop & Venue Hub — Unified Management
-// Sub-tabs: Shops | Merchants | Orders | SLA Dashboard | Venue | Content
+// Merchant Management Hub — Shops, Merchant Directory, Notifications
 // ──────────────────────────────────────
 
 import { useState, lazy, Suspense } from 'react';
@@ -8,11 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Store,
-  Building2,
-  Target,
-  MapPin,
-  LayoutTemplate,
-  ClipboardList,
+  Warehouse,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LoadingScreen } from '@/components/common/LoadingScreen';
@@ -20,20 +15,12 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 const ShopListPage = lazy(() => import('./ShopListPage'));
 const MerchantDirectoryPage = lazy(() => import('../merchant-directory/MerchantDirectoryPage'));
-const SLADashboardPage = lazy(() => import('../ops/SLADashboardPage'));
-const VenueSetupPage = lazy(() => import('../ops/VenueSetupPage'));
-const ContentManagementPage = lazy(() => import('../cms/ContentManagementPage'));
-const OpsOrdersConsolePage = lazy(() => import('../ops/OpsOrdersConsolePage'));
 
-type ShopTab = 'shops' | 'merchants' | 'orders' | 'sla' | 'venue' | 'content';
+type ShopTab = 'shops' | 'merchants';
 
 const tabs: { key: ShopTab; label: string; icon: React.ElementType; description: string }[] = [
   { key: 'shops', label: 'Shops & Contracts', icon: Store, description: 'Manage shop inventory and contracts' },
-  { key: 'merchants', label: 'Merchants', icon: Building2, description: 'Onboarding and performance' },
-  { key: 'orders', label: 'Orders Console', icon: ClipboardList, description: 'Unified order management' },
-  { key: 'sla', label: 'SLA Dashboard', icon: Target, description: 'Service level metrics' },
-  { key: 'venue', label: 'Venue Setup', icon: MapPin, description: 'Terminal zones and gates' },
-  { key: 'content', label: 'Content', icon: LayoutTemplate, description: 'Banners, tiles, and copy' },
+  { key: 'merchants', label: 'Merchant Directory', icon: Warehouse, description: 'Browse and manage merchants' },
 ];
 
 export default function ShopHubPage() {
@@ -45,7 +32,13 @@ export default function ShopHubPage() {
 
   const handleTabChange = (tab: ShopTab) => {
     setActiveTab(tab);
-    setSearchParams({ tab }, { replace: true });
+    setSearchParams((prev) => {
+      prev.set('tab', tab);
+      // Reset pagination when switching tabs
+      prev.delete('page');
+      prev.delete('pageSize');
+      return prev;
+    }, { replace: true });
   };
 
   return (
@@ -54,10 +47,10 @@ export default function ShopHubPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold font-montserrat text-foreground flex items-center gap-2">
           <Store className="h-6 w-6 text-brand" />
-          Shop & Venue Management
+          Merchant Management
         </h1>
         <p className="text-sm text-muted-foreground font-lexend mt-1">
-          Shops, merchants, orders, SLA tracking, venue configuration, and content
+          Shops and merchant directory management
         </p>
       </div>
 
@@ -102,11 +95,7 @@ export default function ShopHubPage() {
             <ErrorBoundary>
               <Suspense fallback={<LoadingScreen />}>
                 {activeTab === 'shops' && <ShopListPage embedded />}
-                {activeTab === 'merchants' && <MerchantDirectoryPage embedded />}
-                {activeTab === 'orders' && <OpsOrdersConsolePage embedded />}
-                {activeTab === 'sla' && <SLADashboardPage embedded />}
-                {activeTab === 'venue' && <VenueSetupPage embedded />}
-                {activeTab === 'content' && <ContentManagementPage embedded />}
+                {activeTab === 'merchants' && <MerchantDirectoryPage />}
               </Suspense>
             </ErrorBoundary>
           </motion.div>

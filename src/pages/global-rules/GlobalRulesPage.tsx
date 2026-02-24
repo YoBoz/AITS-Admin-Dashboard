@@ -5,18 +5,16 @@
 import { useState, Suspense, lazy } from 'react';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { Ticket, ShieldAlert, Timer } from 'lucide-react';
+import { Ticket, ShieldAlert } from 'lucide-react';
 
 const CouponRulesTab = lazy(() => import('./CouponRulesTab'));
 const FraudLimitsTab = lazy(() => import('./FraudLimitsTab'));
-const ExpiryRulesTab = lazy(() => import('./ExpiryRulesTab'));
 
-type Tab = 'coupons' | 'fraud' | 'expiry';
+type Tab = 'coupons' | 'fraud';
 
 const tabs: { id: Tab; label: string; icon: typeof Ticket }[] = [
   { id: 'coupons', label: 'Coupon Rules', icon: Ticket },
   { id: 'fraud', label: 'Fraud Limits', icon: ShieldAlert },
-  { id: 'expiry', label: 'Expiry & Retention', icon: Timer },
 ];
 
 interface GlobalRulesPageProps {
@@ -60,7 +58,6 @@ export default function GlobalRulesPage({ embedded }: GlobalRulesPageProps) {
       <Suspense fallback={<Skeleton className="h-64 w-full rounded-xl" />}>
         {activeTab === 'coupons' && <CouponRulesTab />}
         {activeTab === 'fraud' && <FraudLimitsTab />}
-        {activeTab === 'expiry' && <ExpiryRulesTab />}
       </Suspense>
     </div>
   );
