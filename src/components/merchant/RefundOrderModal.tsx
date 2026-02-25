@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, DollarSign, ShieldAlert, ChevronDown,
@@ -95,7 +96,7 @@ export function RefundOrderModal({ open, order, onClose }: RefundOrderModalProps
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && order && (
         <>
@@ -108,13 +109,17 @@ export function RefundOrderModal({ open, order, onClose }: RefundOrderModalProps
             onClick={handleClose}
           />
 
-          {/* Modal */}
+          {/* Modal Container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card rounded-xl border border-border shadow-xl p-5 space-y-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
+            <div
+              className="w-full max-w-md bg-card rounded-xl border border-border shadow-xl p-5 space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
@@ -231,9 +236,11 @@ export function RefundOrderModal({ open, order, onClose }: RefundOrderModalProps
                 <DollarSign className="h-3 w-3" /> Submit Refund
               </Button>
             </div>
+            </div>
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

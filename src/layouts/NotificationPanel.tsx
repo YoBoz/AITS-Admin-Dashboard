@@ -9,7 +9,19 @@ import { cn } from '@/lib/utils';
 interface NotificationPanelProps {
   open: boolean;
   onClose: () => void;
+  variant?: 'admin' | 'merchant';
 }
+
+// Merchant-specific mock notifications
+const merchantNotifications: Notification[] = [
+  { id: 'm1', type: 'alert', title: 'New Order Received', description: 'Order #ORD-4521 — 3 items, Gate B12. Accept within SLA.', time: '1 min ago', read: false },
+  { id: 'm2', type: 'warning', title: 'SLA Warning', description: 'Order #ORD-4518 approaching SLA limit. 45 seconds remaining.', time: '3 min ago', read: false },
+  { id: 'm3', type: 'success', title: 'Order Delivered', description: 'Order #ORD-4515 successfully delivered. Customer rated 5 stars.', time: '12 min ago', read: false },
+  { id: 'm4', type: 'info', title: 'Menu Item Low Stock', description: 'Cappuccino running low. Only 5 servings remaining.', time: '25 min ago', read: true },
+  { id: 'm5', type: 'alert', title: 'Refund Request', description: 'Customer requested refund for Order #ORD-4490. Review required.', time: '1 hr ago', read: true },
+  { id: 'm6', type: 'success', title: 'Campaign Started', description: 'Your "Happy Hour" campaign is now live until 6 PM.', time: '2 hr ago', read: true },
+  { id: 'm7', type: 'info', title: 'Daily Report Ready', description: 'Your sales report for yesterday is ready to view.', time: '5 hr ago', read: true },
+];
 
 const typeConfig: Record<Notification['type'], { icon: typeof Bell; color: string }> = {
   alert: { icon: AlertCircle, color: 'text-status-error' },
@@ -18,15 +30,34 @@ const typeConfig: Record<Notification['type'], { icon: typeof Bell; color: strin
   success: { icon: CheckCircle, color: 'text-status-success' },
 };
 
-export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
-  const { notifications, unreadCount, markAsRead, markAllRead } = useNotificationsStore();
+export function NotificationPanel({ open, onClose, variant = 'admin' }: NotificationPanelProps) {
+  const store = useNotificationsStore();
   const navigate = useNavigate();
 
+  // Use merchant-specific notifications if variant is merchant
+  const notifications = variant === 'merchant' ? merchantNotifications : store.notifications;
+  const unreadCount = variant === 'merchant'
+    ? merchantNotifications.filter((n) => !n.read).length
+    : store.unreadCount;
+
   const handleNotificationClick = (n: Notification) => {
-    markAsRead(n.id);
-    const route = n.type === 'alert' ? '/dashboard/alerts' : '/dashboard/notifications';
-    navigate(`${route}?id=${n.id}`);
+    if (variant === 'admin') {
+      store.markAsRead(n.id);
+      const route = n.type === 'alert' ? '/dashboard/alerts' : '/dashboard/notifications';
+      navigate(`${route}?id=${n.id}`);
+    } else {
+      // Merchant routes
+      const route = n.type === 'alert' ? '/merchant/orders' : '/merchant/dashboard';
+      navigate(route);
+    }
     onClose();
+  };
+
+  const handleMarkAllRead = () => {
+    if (variant === 'admin') {
+      store.markAllRead();
+    }
+    // For merchant, we'd need a separate store or API call
   };
 
   if (!open) return null;
@@ -63,7 +94,7 @@ export function NotificationPanel({ open, onClose }: NotificationPanelProps) {
               </div>
               <div className="flex items-center gap-1">
                 {unreadCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={markAllRead} className="text-xs gap-1.5">
+                  <Button variant="ghost" size="sm" onClick={handleMarkAllRead} className="text-xs gap-1.5">
                     <CheckCheck className="h-3.5 w-3.5" />
                     Mark all read
                   </Button>

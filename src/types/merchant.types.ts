@@ -1,4 +1,4 @@
-export type MerchantRole = 'manager' | 'cashier' | 'kitchen' | 'developer';
+export type MerchantRole = 'manager' | 'cashier' | 'kitchen' | 'viewer' | 'developer';
 
 export type MerchantPermission =
   | 'dashboard.view'
@@ -57,7 +57,11 @@ export interface MerchantCapacitySettings {
   is_accepting_orders: boolean;
 }
 
+export type DeliveryMode = 'pickup_only' | 'delivery_enabled';
+export type PickupVerificationMethod = 'QR' | 'Code' | 'Both';
+
 export interface MerchantDeliverySettings {
+  delivery_mode: DeliveryMode;
   delivery_radius_km: number;
   base_delivery_fee: number;
   free_delivery_above: number | null;
@@ -65,6 +69,31 @@ export interface MerchantDeliverySettings {
   delivery_time_windows: { start: string; end: string }[];
   runner_preference: 'any' | 'dedicated' | 'pool';
   allow_scheduled_delivery: boolean;
+  supported_areas: string[];
+  cutoff_minutes: number | null;
+  pickup_verification: PickupVerificationMethod;
+  packaging_readiness_required: boolean;
+}
+
+// ─── Audit System ──────────────────────────────────────────────────
+export type MerchantAuditEventType =
+  | 'merchant_staff_invited'
+  | 'merchant_staff_role_changed'
+  | 'merchant_staff_disabled'
+  | 'merchant_audit_viewed'
+  | 'merchant_delivery_settings_updated'
+  | 'merchant_report_viewed'
+  | 'merchant_report_exported'
+  | 'merchant_settings_updated'
+  | 'merchant_hours_updated';
+
+export interface MerchantAuditEntry {
+  id: string;
+  eventType: MerchantAuditEventType;
+  actorName: string;
+  actorRole: string;
+  timestamp: string;
+  metadata: Record<string, unknown>;
 }
 
 export interface AutoPauseConfig {
@@ -114,6 +143,14 @@ export const ROLE_PERMISSIONS: Record<MerchantRole, MerchantPermission[]> = {
     'orders.view', 'orders.prepare', 'orders.ready',
     // NO: orders.accept, orders.reject, menu.*, sla.*, capacity.*, campaigns.*,
     //     coupons.*, refunds.*, analytics.*
+  ],
+  /**
+   * Viewer — read-only access to dashboard and orders.
+   */
+  viewer: [
+    'dashboard.view',
+    'orders.view',
+    'settings.view',
   ],
   /**
    * Developer — superuser for testing, all permissions + debug.

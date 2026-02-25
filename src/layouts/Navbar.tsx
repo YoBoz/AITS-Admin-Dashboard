@@ -4,7 +4,6 @@ import { Bell, Building2, Menu, Search, LogOut, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb } from './Breadcrumb';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { Button } from '@/components/ui/Button';
 import { Avatar, AvatarFallback } from '@/components/common/Avatar';
 import { useAuth } from '@/hooks/useAuth';
@@ -68,16 +67,15 @@ export function Navbar({ onSearchClick, onNotificationClick }: NavbarProps) {
       </button>
 
       {/* Right */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0.5">
         {/* Current Terminal Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1.5 mr-1">
+        <div className="hidden sm:flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1.5 mr-0.5">
           <Building2 className="h-3.5 w-3.5 text-primary" />
           <span className="text-xs font-semibold font-lexend text-primary">
             {terminalLabels[defaultTerminal] || defaultTerminal}
           </span>
         </div>
         <ThemeToggle />
-        <LanguageSwitcher />
 
         {/* Notification bell */}
         <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={onNotificationClick}>
@@ -93,7 +91,7 @@ export function Navbar({ onSearchClick, onNotificationClick }: NavbarProps) {
         <div className="relative">
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted transition-colors"
+            className="flex items-center gap-1.5 rounded-lg px-1.5 py-1.5 hover:bg-muted transition-colors"
           >
             <Avatar className="h-7 w-7">
               <AvatarFallback className="text-[10px] bg-brand/10 text-brand">

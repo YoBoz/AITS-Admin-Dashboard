@@ -257,8 +257,8 @@ export default function AuditLogsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Input type="date" placeholder="From" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[140px]" />
-              <Input type="date" placeholder="To" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[140px]" />
+              <Input type="date" placeholder="From" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-[160px]" />
+              <Input type="date" placeholder="To" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-[160px]" />
             </div>
           </div>
           {(search || actionFilter !== 'all' || resultFilter !== 'all' || entityFilter !== 'all' || dateFrom || dateTo) && (

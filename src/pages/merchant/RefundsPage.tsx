@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ReceiptText, Plus, Check, X, AlertTriangle, Clock, ChevronDown,
@@ -79,7 +80,7 @@ function RequestRefundModal({ onClose }: { onClose: () => void }) {
     onClose();
   };
 
-  return (
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -217,7 +218,8 @@ function RequestRefundModal({ onClose }: { onClose: () => void }) {
           </Button>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
 

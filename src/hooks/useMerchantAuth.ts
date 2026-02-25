@@ -36,8 +36,17 @@ const MOCK_MERCHANT_USERS: Record<string, { password: string; user: MerchantUser
     user: {
       id: 'mu-4', name: 'Alex Dev', email: 'developer@demo.ai-ts',
       merchant_role: 'developer', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
-      available_roles: ['manager', 'cashier', 'kitchen', 'developer'],
+      available_roles: ['manager', 'cashier', 'kitchen', 'viewer', 'developer'],
       permissions: rolePermissions.developer,
+    },
+  },
+  'viewer@demo.ai-ts': {
+    password: 'Password123',
+    user: {
+      id: 'mu-5', name: 'Dana Viewer', email: 'viewer@demo.ai-ts',
+      merchant_role: 'viewer', shop_id: 'sky-lounge-premier', shop_name: 'Sky Lounge Premier',
+      available_roles: ['viewer'],
+      permissions: rolePermissions.viewer,
     },
   },
 };

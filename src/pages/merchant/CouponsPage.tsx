@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, CheckCircle2, XCircle, AlertTriangle, Clock, QrCode, Loader2,
@@ -93,7 +94,7 @@ function CouponModal({ open, editCoupon, onClose }: CouponModalProps) {
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0 }}
@@ -214,7 +215,8 @@ function CouponModal({ open, editCoupon, onClose }: CouponModalProps) {
           </Button>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -262,9 +264,9 @@ export default function CouponsPage() {
         </RequirePermission>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* ─── LEFT: Validation Panel ──────────────────────────── */}
-        <div className="lg:col-span-2 space-y-4">
+      <div className="space-y-6">
+        {/* ─── TOP: Validation Panel ──────────────────────────── */}
+        <div>
           <Card>
             <CardContent className="p-5 space-y-4">
               <h3 className="text-sm font-semibold font-montserrat">Validate Coupon</h3>
@@ -357,8 +359,8 @@ export default function CouponsPage() {
           </Card>
         </div>
 
-        {/* ─── RIGHT: Active Coupons List ──────────────────────── */}
-        <div className="lg:col-span-3 space-y-3">
+        {/* ─── BOTTOM: All Coupons List ──────────────────────── */}
+        <div className="space-y-3">
           <h3 className="text-sm font-semibold font-montserrat text-muted-foreground">All Coupons</h3>
           {coupons.map((coupon) => {
             const TypeIcon = TYPE_ICONS[coupon.type] || Tag;

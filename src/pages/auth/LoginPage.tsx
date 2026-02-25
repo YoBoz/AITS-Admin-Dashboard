@@ -82,7 +82,7 @@ export default function LoginPage() {
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="w-full max-w-md px-4 relative z-10"
       >
-        <Card className="border-border/50 shadow-lg backdrop-blur-sm">
+        <Card className="border-border/30 shadow-lg backdrop-blur-sm bg-transparent">
           <CardContent className="p-8">
             {/* Logo */}
             <div className="flex justify-center mb-8">
@@ -199,10 +199,20 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Footer */}
-            <p className="mt-8 text-center text-xs text-muted-foreground font-roboto">
-              {t('login.securedAccess')}
-            </p>
+            {/* Demo Credentials */}
+            <div className="mt-6 pt-4 border-t border-border/30">
+              <p className="text-xs text-center text-muted-foreground font-lexend mb-2">Demo Credentials</p>
+              <div className="bg-muted/50 rounded-md p-3 text-xs font-mono">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Email:</span>
+                  <span className="text-foreground">admin@aits.io</span>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-muted-foreground">Password:</span>
+                  <span className="text-foreground">Admin@123</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </motion.div>

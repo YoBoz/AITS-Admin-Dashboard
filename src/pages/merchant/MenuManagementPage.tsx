@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   UtensilsCrossed, Plus, Trash2, Eye, EyeOff, PackageX,
   Pencil, Upload, RotateCcw, GripVertical, Check, Search, X,
-  ChevronRight, FolderPlus,
+  ChevronRight, FolderPlus, ImagePlus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -397,6 +398,21 @@ function SortableItemCard({
         bulkMode && isSelected && 'ring-2 ring-brand',
         isDragging && 'ring-2 ring-brand/30 shadow-lg',
       )}>
+        {/* Item image */}
+        {item.image_url ? (
+          <div className="w-full h-32 bg-muted overflow-hidden">
+            <img
+              src={item.image_url}
+              alt={item.name}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div className="w-full h-20 bg-muted/50 flex items-center justify-center">
+            <UtensilsCrossed className="h-6 w-6 text-muted-foreground/30" />
+          </div>
+        )}
         <CardContent className="p-4 space-y-2">
           {/* Drag handle + Bulk checkbox */}
           {bulkMode ? (
@@ -548,6 +564,7 @@ interface ItemModalProps {
 function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemModalProps) {
   const { addItem, updateItem } = useMenuStore();
   const isEdit = !!editItem;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(editItem?.name ?? '');
   const [description, setDescription] = useState(editItem?.description ?? '');
@@ -557,6 +574,27 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
   const [tags, setTags] = useState(editItem?.tags?.join(', ') ?? '');
   const [subcategoryId, setSubcategoryId] = useState<string>(editItem?.subcategory_id ?? '');
   const [dietType, setDietType] = useState<'veg' | 'non-veg' | 'egg'>(editItem?.diet_type ?? 'veg');
+  const [imageUrl, setImageUrl] = useState<string | null>(editItem?.image_url ?? null);
+  const [imagePreview, setImagePreview] = useState<string | null>(editItem?.image_url ?? null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image must be under 5 MB');
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      setImagePreview(objectUrl);
+      setImageUrl(objectUrl);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImageUrl(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const handleSubmit = () => {
     if (!name.trim()) {
@@ -574,7 +612,7 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
       description: description.trim(),
       price: parsedPrice,
       currency: 'AED',
-      image_url: null,
+      image_url: imageUrl,
       is_available: editItem?.is_available ?? true,
       is_out_of_stock: editItem?.is_out_of_stock ?? false,
       prep_time_minutes: parseInt(prepTime, 10) || 5,
@@ -598,7 +636,7 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0 }}
@@ -611,7 +649,7 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative z-10 w-full max-w-md rounded-xl bg-card border border-border shadow-xl p-6 mx-4"
+        className="relative z-10 w-full max-w-md max-h-[90vh] rounded-xl bg-card border border-border shadow-xl p-6 mx-4 overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-base font-semibold font-montserrat">
@@ -627,6 +665,50 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
             <Label className="text-xs">Name *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Flat White" />
           </div>
+
+          {/* Image Upload */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Item Image</Label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            {imagePreview ? (
+              <div className="relative group rounded-lg overflow-hidden border border-border">
+                <img src={imagePreview} alt="Preview" className="w-full h-36 object-cover" />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-full bg-white/90 p-2 hover:bg-white transition-colors"
+                  >
+                    <Upload className="h-4 w-4 text-foreground" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="rounded-full bg-white/90 p-2 hover:bg-white transition-colors"
+                  >
+                    <X className="h-4 w-4 text-red-500" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-28 rounded-lg border-2 border-dashed border-border hover:border-brand/50 transition-colors flex flex-col items-center justify-center gap-1.5 text-muted-foreground hover:text-foreground"
+              >
+                <ImagePlus className="h-6 w-6" />
+                <span className="text-xs font-medium">Click to upload image</span>
+                <span className="text-[10px] text-muted-foreground">PNG, JPG up to 5 MB</span>
+              </button>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label className="text-xs">Description</Label>
             <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description" />
@@ -713,7 +795,8 @@ function ItemModal({ open, categoryId, subcategories, editItem, onClose }: ItemM
           </Button>
         </div>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

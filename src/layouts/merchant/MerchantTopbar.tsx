@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, LogOut, User, Clock, Store, ShieldCheck } from 'lucide-react';
+import { Menu, LogOut, User, Clock, Store, ShieldCheck, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { Button } from '@/components/ui/Button';
@@ -8,10 +8,12 @@ import { Avatar, AvatarFallback } from '@/components/common/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
 import { useMerchantStore } from '@/store/merchant.store';
+import { useNotificationsStore } from '@/store/notifications.store';
 import type { MerchantRole } from '@/types/merchant.types';
 
 interface MerchantTopbarProps {
   onMenuClick: () => void;
+  onNotificationClick: () => void;
 }
 
 const STORE_STATUS_CONFIG = {
@@ -24,13 +26,15 @@ const ROLE_LABELS: Record<MerchantRole, string> = {
   manager: 'Manager',
   cashier: 'Cashier',
   kitchen: 'Kitchen',
+  viewer: 'Viewer',
   developer: 'Developer',
 };
 
-export function MerchantTopbar({ onMenuClick }: MerchantTopbarProps) {
+export function MerchantTopbar({ onMenuClick, onNotificationClick }: MerchantTopbarProps) {
   const navigate = useNavigate();
   const { merchantUser, merchantRole, logout } = useMerchantAuth();
   const { storeStatus, slaSettings } = useMerchantStore();
+  const { unreadCount } = useNotificationsStore();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const statusConfig = STORE_STATUS_CONFIG[storeStatus];
@@ -90,6 +94,16 @@ export function MerchantTopbar({ onMenuClick }: MerchantTopbarProps) {
         )}
 
         <ThemeToggle />
+
+        {/* Notification bell */}
+        <Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={onNotificationClick}>
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[9px] font-bold text-white">
+              {unreadCount}
+            </span>
+          )}
+        </Button>
 
         {/* User menu */}
         <div className="relative">

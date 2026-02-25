@@ -2,12 +2,11 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, ClipboardList, UtensilsCrossed, Megaphone, Ticket, ReceiptText, Settings,
-  LogOut, ChevronsLeft, ChevronsRight, Gauge, Truck, BarChart3, Users,
+  ChevronsLeft, ChevronsRight, Gauge, Truck, BarChart3, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
 import { Avatar, AvatarFallback } from '@/components/common/Avatar';
-import { Badge } from '@/components/ui/Badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/Tooltip';
 import type { LucideIcon } from 'lucide-react';
 import type { MerchantPermission } from '@/types/merchant.types';
@@ -26,41 +25,59 @@ interface NavItem {
   requiredPermission?: MerchantPermission;
 }
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, route: '/merchant/dashboard', requiredPermission: 'dashboard.view' },
-  { label: 'Orders', icon: ClipboardList, route: '/merchant/orders', highlight: true, requiredPermission: 'orders.view' },
-  { label: 'Menu', icon: UtensilsCrossed, route: '/merchant/menu', requiredPermission: 'menu.view' },
-  { label: 'Capacity & SLA', icon: Gauge, route: '/merchant/capacity-sla', requiredPermission: 'sla.view' },
-  { label: 'Delivery Settings', icon: Truck, route: '/merchant/delivery', requiredPermission: 'delivery.view' },
-  { label: 'Coupons', icon: Ticket, route: '/merchant/coupons', requiredPermission: 'coupons.validate' },
-  { label: 'Campaigns', icon: Megaphone, route: '/merchant/campaigns', requiredPermission: 'campaigns.view' },
-  { label: 'Refunds', icon: ReceiptText, route: '/merchant/refunds', requiredPermission: 'refunds.view' },
-  { label: 'Reports', icon: BarChart3, route: '/merchant/reports', requiredPermission: 'reports.view' },
-  { label: 'Staff & Roles', icon: Users, route: '/merchant/staff', requiredPermission: 'staff.view' },
-  { label: 'Settings', icon: Settings, route: '/merchant/settings', requiredPermission: 'settings.view' },
+interface NavCategory {
+  category: string;
+  items: NavItem[];
+}
+
+const navCategories: NavCategory[] = [
+  {
+    category: '',
+    items: [
+      { label: 'Dashboard', icon: LayoutDashboard, route: '/merchant/dashboard', requiredPermission: 'dashboard.view' },
+    ],
+  },
+  {
+    category: 'Operations',
+    items: [
+      { label: 'Orders', icon: ClipboardList, route: '/merchant/orders', requiredPermission: 'orders.view' },
+      { label: 'Menu', icon: UtensilsCrossed, route: '/merchant/menu', requiredPermission: 'menu.view' },
+      { label: 'Capacity & SLA', icon: Gauge, route: '/merchant/capacity-sla', requiredPermission: 'sla.view' },
+      { label: 'Delivery Settings', icon: Truck, route: '/merchant/delivery', requiredPermission: 'delivery.view' },
+    ],
+  },
+  {
+    category: 'Marketing',
+    items: [
+      { label: 'Coupons', icon: Ticket, route: '/merchant/coupons', requiredPermission: 'coupons.validate' },
+      { label: 'Campaigns', icon: Megaphone, route: '/merchant/campaigns', requiredPermission: 'campaigns.view' },
+    ],
+  },
+  {
+    category: 'Finance',
+    items: [
+      { label: 'Refunds', icon: ReceiptText, route: '/merchant/refunds', requiredPermission: 'refunds.view' },
+      { label: 'Reports', icon: BarChart3, route: '/merchant/reports', requiredPermission: 'reports.view' },
+    ],
+  },
+  {
+    category: 'Admin',
+    items: [
+      { label: 'Staff & Roles', icon: Users, route: '/merchant/staff', requiredPermission: 'staff.view' },
+      { label: 'Settings', icon: Settings, route: '/merchant/settings', requiredPermission: 'settings.view' },
+    ],
+  },
 ];
 
 export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { merchantUser, logout, canDo } = useMerchantAuth();
-
-  // Filter nav items by permission
-  const visibleNavItems = navItems.filter(
-    (item) => !item.requiredPermission || canDo(item.requiredPermission)
-  );
+  const { merchantUser, canDo } = useMerchantAuth();
 
   const isActive = (route: string) =>
     location.pathname === route || location.pathname.startsWith(route + '/');
 
-  const handleLogout = () => {
-    logout();
-    navigate('/merchant/login');
-  };
-
-  const roleLabel = merchantUser?.merchant_role
-    ? merchantUser.merchant_role.charAt(0).toUpperCase() + merchantUser.merchant_role.slice(1)
-    : '';
+  
 
   return (
     <motion.aside
@@ -102,14 +119,43 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1 scrollbar-thin">
-        {visibleNavItems.map((item) => {
-          const active = isActive(item.route);
-          const linkContent = (
+      <nav className="flex-1 overflow-y-auto pt-3 pb-2 px-2 scrollbar-thin">
+        {navCategories.map((group, gi) => {
+          // Filter items by permission
+          const visibleItems = group.items.filter(
+            (item) => !item.requiredPermission || canDo(item.requiredPermission)
+          );
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={gi} className={cn(group.category && 'mt-2')}>
+              {/* Category header — hidden when collapsed */}
+              {group.category && (
+                <AnimatePresence>
+                  {!isCollapsed ? (
+                    <motion.p
+                      key="label"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="px-3 mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 font-roboto select-none"
+                    >
+                      {group.category}
+                    </motion.p>
+                  ) : (
+                    <div className="mx-auto my-1 h-px w-6 bg-border" />
+                  )}
+                </AnimatePresence>
+              )}
+
+              <div className="space-y-0.5">
+                {visibleItems.map((item) => {
+                  const active = isActive(item.route);
+                  const linkContent = (
             <button
               onClick={() => navigate(item.route)}
               className={cn(
-                'group relative flex w-full items-center gap-3 rounded-lg py-2.5 text-sm font-lexend transition-all duration-150',
+                'group relative flex w-full items-center gap-3 rounded-lg py-1.5 text-[13px] font-lexend transition-all duration-150',
                 active
                   ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
                   : item.highlight && !active
@@ -166,12 +212,16 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
           }
           return <div key={item.route}>{linkContent}</div>;
         })}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       {/* User + Collapse toggle */}
-      <div className="border-t border-border p-3 space-y-2 shrink-0">
+      <div className="border-t border-border p-2 space-y-1 shrink-0">
         <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarFallback className="text-xs bg-brand/10 text-brand">
               {merchantUser?.name
                 ?.split(' ')
@@ -186,27 +236,11 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }}
-                className="flex-1 overflow-hidden"
+                className="flex-1 min-w-0 overflow-hidden"
               >
                 <p className="text-sm font-medium font-lexend truncate">{merchantUser?.name}</p>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {roleLabel}
-                </Badge>
+                <p className="text-[10px] text-muted-foreground truncate">{merchantUser?.email}</p>
               </motion.div>
-            )}
-          </AnimatePresence>
-          <AnimatePresence>
-            {!isCollapsed && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-destructive transition-colors"
-                title="Logout"
-              >
-                <LogOut className="h-4 w-4" />
-              </motion.button>
             )}
           </AnimatePresence>
         </div>

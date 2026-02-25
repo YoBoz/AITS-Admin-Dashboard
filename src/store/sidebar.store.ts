@@ -10,27 +10,16 @@ interface SidebarState {
 }
 
 const getInitialCollapsed = (): boolean => {
-  try {
-    const stored = localStorage.getItem('aits-sidebar-collapsed');
-    return stored === 'true';
-  } catch {
-    return false;
-  }
+  // Always start collapsed - sidebar expands on hover
+  return true;
 };
 
 export const useSidebarStore = create<SidebarState>((set) => ({
   isCollapsed: getInitialCollapsed(),
   isMobileOpen: false,
   toggle: () =>
-    set((state) => {
-      const next = !state.isCollapsed;
-      localStorage.setItem('aits-sidebar-collapsed', String(next));
-      return { isCollapsed: next };
-    }),
-  setCollapsed: (collapsed: boolean) => {
-    localStorage.setItem('aits-sidebar-collapsed', String(collapsed));
-    set({ isCollapsed: collapsed });
-  },
+    set((state) => ({ isCollapsed: !state.isCollapsed })),
+  setCollapsed: (collapsed: boolean) => set({ isCollapsed: collapsed }),
   openMobile: () => set({ isMobileOpen: true }),
   closeMobile: () => set({ isMobileOpen: false }),
 }));

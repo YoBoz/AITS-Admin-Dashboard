@@ -70,7 +70,7 @@ export default function MerchantLoginPage() {
         transition={{ duration: 0.4, ease: 'easeOut' }}
         className="w-full max-w-md px-4 relative z-10"
       >
-        <Card className="border-border/50 shadow-lg backdrop-blur-sm">
+        <Card className="border-border/30 shadow-lg backdrop-blur-sm bg-transparent">
           <CardContent className="p-8">
             <div className="flex justify-center mb-8">
               <img src="/images/AiTS.svg" alt="Ai-TS" className="h-16 w-auto object-contain" />
@@ -134,22 +134,36 @@ export default function MerchantLoginPage() {
               </Button>
             </form>
 
-            {/* Demo credentials */}
-            <div className="mt-6 rounded-lg border border-border bg-muted/30 p-3">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-2">Demo Credentials</p>
-              <div className="space-y-1 text-xs text-muted-foreground font-mono">
-                <p>manager@demo.ai-ts / Password123</p>
-                <p>cashier@demo.ai-ts / Password123</p>
-                <p>kitchen@demo.ai-ts / Password123</p>
-                <p>developer@demo.ai-ts / Password123</p>
+            {/* Demo Credentials */}
+            <div className="mt-6 pt-4 border-t border-border/30">
+              <p className="text-xs text-center text-muted-foreground font-lexend mb-2">Demo Credentials</p>
+              <div className="bg-muted/50 rounded-md p-3 text-xs font-mono space-y-2">
+                <div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Manager:</span>
+                    <span className="text-foreground">manager@demo.ai-ts</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cashier:</span>
+                    <span className="text-foreground">cashier@demo.ai-ts</span>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kitchen:</span>
+                    <span className="text-foreground">kitchen@demo.ai-ts</span>
+                  </div>
+                </div>
+                <div className="pt-1 border-t border-border/30">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Password (all):</span>
+                    <span className="text-foreground">Password123</span>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              <button onClick={() => navigate('/login')} className="text-brand hover:underline">
-                Admin Portal &rarr;
-              </button>
-            </p>
           </CardContent>
         </Card>
       </motion.div>

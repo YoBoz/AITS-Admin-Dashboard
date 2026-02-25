@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
+import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/auth/LoginPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
@@ -75,7 +76,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Navigate to="/login" replace />,
+        element: <LandingPage />,
       },
       {
         path: '/login',

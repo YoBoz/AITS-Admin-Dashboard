@@ -7,7 +7,6 @@ import {
   Store,
   AlertTriangle,
   ShieldCheck,
-  LogOut,
   ChevronsLeft,
   ChevronsRight,
   Radio,
@@ -24,7 +23,6 @@ import { useSidebarStore } from '@/store/sidebar.store';
 import { useNotificationsStore } from '@/store/notifications.store';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback } from '@/components/common/Avatar';
-import { Badge } from '@/components/ui/Badge';
 import {
   Tooltip,
   TooltipContent,
@@ -96,14 +94,9 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { isCollapsed, toggle } = useSidebarStore();
   const { unreadCount } = useNotificationsStore();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const isActive = (route: string) => location.pathname === route || location.pathname.startsWith(route + '/');
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   return (
     <motion.aside
@@ -248,7 +241,7 @@ export function Sidebar() {
       <div className="border-t border-border p-2 space-y-1 shrink-0">
         {/* User row */}
         <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarFallback className="text-xs bg-brand/10 text-brand">
               {user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2) || 'AU'}
             </AvatarFallback>
@@ -259,27 +252,11 @@ export function Sidebar() {
                 initial={{ opacity: 0, width: 0 }}
                 animate={{ opacity: 1, width: 'auto' }}
                 exit={{ opacity: 0, width: 0 }}
-                className="flex-1 overflow-hidden"
+                className="flex-1 min-w-0 overflow-hidden"
               >
                 <p className="text-sm font-medium font-lexend truncate">{user?.name}</p>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {user?.role?.replace('_', ' ')}
-                </Badge>
+                <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
               </motion.div>
-            )}
-          </AnimatePresence>
-          <AnimatePresence>
-            {!isCollapsed && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-destructive transition-colors"
-                title="Logout"
-              >
-                <LogOut className="h-4 w-4" />
-              </motion.button>
             )}
           </AnimatePresence>
         </div>

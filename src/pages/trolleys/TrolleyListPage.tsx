@@ -7,10 +7,8 @@ import {
   Activity,
   AlertTriangle,
   WifiOff,
-  Eye,
-  Wrench,
-  Trash2,
-  Radio,
+  Wifi,
+  Signal,
 } from 'lucide-react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,6 +29,26 @@ import { cn } from '@/lib/utils';
 import type { Trolley, TrolleyStatus } from '@/types/trolley.types';
 
 import AddTrolleyModal from './AddTrolleyModal';
+
+const OUTDATED_FW = '3.2.0';
+const LOW_CONF = 50;
+
+function zoneToTerminal(zone: string): string {
+  if (zone.startsWith('Zone A') || zone.startsWith('Zone B')) return 'Terminal 1';
+  if (zone.startsWith('Zone C') || zone.startsWith('Zone D')) return 'Terminal 2';
+  return 'Terminal 3';
+}
+
+function cmpVer(a: string, b: string): number {
+  const pa = a.replace(/-.*$/, '').split('.').map(Number);
+  const pb = b.replace(/-.*$/, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const na = pa[i] ?? 0;
+    const nb = pb[i] ?? 0;
+    if (na !== nb) return na - nb;
+  }
+  return 0;
+}
 
 interface TrolleyListPageProps {
   embedded?: boolean;
@@ -60,7 +78,6 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
     getFilteredTrolleys,
     getStats,
     deleteTrolley,
-    updateTrolley,
   } = useTrolleysStore();
 
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -78,17 +95,33 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
   const columns: ColumnDef<Trolley, unknown>[] = useMemo(
     () => [
       {
-        accessorKey: 'imei',
-        header: 'IMEI',
+        accessorKey: 'id',
+        header: 'Device ID',
         cell: ({ row }) => (
-          <span className="font-mono text-sm font-medium">{row.original.imei}</span>
+          <span className="font-mono text-sm font-medium">{row.original.id}</span>
         ),
       },
       {
-        accessorKey: 'serial_number',
-        header: 'Serial',
+        accessorKey: 'imei',
+        header: 'IMEI',
         cell: ({ row }) => (
-          <span className="text-xs text-muted-foreground">{row.original.serial_number}</span>
+          <span className="font-mono text-xs text-muted-foreground">{row.original.imei}</span>
+        ),
+      },
+      {
+        id: 'terminal',
+        header: 'Terminal',
+        cell: ({ row }) => (
+          <span className="text-sm">{zoneToTerminal(row.original.location.zone)}</span>
+        ),
+      },
+      {
+        id: 'online',
+        header: 'Online',
+        cell: ({ row }) => (
+          row.original.status !== 'offline'
+            ? <Wifi className="h-4 w-4 text-emerald-500" />
+            : <WifiOff className="h-4 w-4 text-red-500" />
         ),
       },
       {
@@ -127,6 +160,28 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
         ),
       },
       {
+        id: 'firmware',
+        header: 'Firmware',
+        cell: ({ row }) => (
+          <span className={cn('font-mono text-sm', cmpVer(row.original.firmware_version, OUTDATED_FW) < 0 && 'text-amber-500')}>
+            v{row.original.firmware_version}
+          </span>
+        ),
+      },
+      {
+        id: 'confidence',
+        header: 'Confidence',
+        cell: ({ row }) => {
+          const conf = row.original.location_confidence ?? 100;
+          return (
+            <div className="flex items-center gap-1">
+              <Signal className={cn('h-3 w-3', conf < LOW_CONF ? 'text-red-500' : 'text-emerald-500')} />
+              <span className={cn('font-mono text-sm', conf < LOW_CONF && 'text-red-500')}>{conf}%</span>
+            </div>
+          );
+        },
+      },
+      {
         accessorKey: 'last_seen',
         header: 'Last Seen',
         cell: ({ row }) => (
@@ -135,63 +190,8 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
           </span>
         ),
       },
-      {
-        accessorKey: 'today_trips',
-        header: 'Today Trips',
-        cell: ({ row }) => (
-          <span className="text-sm font-medium">{row.original.today_trips}</span>
-        ),
-      },
-      {
-        id: 'actions',
-        header: '',
-        enableSorting: false,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => navigate(`/dashboard/fleet?tab=live-fleet&device=${row.original.id}`)}
-              title="Track Location"
-            >
-              <Radio className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => navigate(`/dashboard/trolleys/${row.original.id}`)}
-              title="View Details"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => {
-                updateTrolley(row.original.id, { status: 'maintenance' });
-                toast.success(`${row.original.id} flagged for maintenance`);
-              }}
-              title="Flag for Maintenance"
-            >
-              <Wrench className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={() => setDeleteTarget(row.original)}
-              title="Delete"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        ),
-      },
     ],
-    [navigate, updateTrolley]
+    []
   );
 
   return (
@@ -202,8 +202,8 @@ export default function TrolleyListPage({ embedded = false }: TrolleyListPagePro
     >
       {!embedded && (
         <PageHeader
-          title="Trolley Management"
-          subtitle="Monitor and manage the trolley fleet"
+          title="Fleet Management"
+          subtitle="Monitor and manage the device fleet"
           actions={
             <Button onClick={() => setAddModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />

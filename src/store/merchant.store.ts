@@ -54,6 +54,7 @@ export const useMerchantStore = create<MerchantState>((set, get) => ({
   },
 
   deliverySettings: {
+    delivery_mode: 'delivery_enabled',
     delivery_radius_km: 5,
     base_delivery_fee: 10,
     free_delivery_above: 100,
@@ -63,6 +64,10 @@ export const useMerchantStore = create<MerchantState>((set, get) => ({
     ],
     runner_preference: 'any',
     allow_scheduled_delivery: false,
+    supported_areas: ['Gate A1-A12', 'Gate B1-B8'],
+    cutoff_minutes: 20,
+    pickup_verification: 'QR',
+    packaging_readiness_required: true,
   },
 
   autoPauseConfig: {

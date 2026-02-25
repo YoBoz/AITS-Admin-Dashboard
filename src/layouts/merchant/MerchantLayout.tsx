@@ -2,6 +2,7 @@ import { Outlet, useLocation, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MerchantSidebar } from './MerchantSidebar';
 import { MerchantTopbar } from './MerchantTopbar';
+import { NotificationPanel } from '@/layouts/NotificationPanel';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
 import { useState } from 'react';
 
@@ -10,6 +11,7 @@ export function MerchantLayout() {
   const { isAuthenticated } = useMerchantAuth();
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isNotificationOpen, setNotificationOpen] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/merchant/login" state={{ from: location.pathname }} replace />;
@@ -46,24 +48,33 @@ export function MerchantLayout() {
         )}
       </AnimatePresence>
 
-      {/* Main content */}
-      <motion.div
-        initial={false}
-        animate={{
+      {/* Main content — use CSS transition instead of motion.div to avoid
+          creating a containing block (transform) that breaks fixed-position modals */}
+      <div
+        style={{
           marginLeft:
             typeof window !== 'undefined' && window.innerWidth >= 1024
               ? isCollapsed ? 72 : 260
               : 0,
+          transition: 'margin-left 0.25s ease-in-out',
         }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
         className="min-h-screen flex flex-col"
       >
-        <MerchantTopbar onMenuClick={() => setMobileSidebarOpen(true)} />
+        <MerchantTopbar
+          onMenuClick={() => setMobileSidebarOpen(true)}
+          onNotificationClick={() => setNotificationOpen(true)}
+        />
+
+        <NotificationPanel
+          open={isNotificationOpen}
+          onClose={() => setNotificationOpen(false)}
+          variant="merchant"
+        />
 
         <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6" role="main">
           <Outlet />
         </main>
-      </motion.div>
+      </div>
     </div>
   );
 }

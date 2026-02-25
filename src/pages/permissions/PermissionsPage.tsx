@@ -2,18 +2,16 @@ import { useState, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '@/components/common/PageHeader';
 import { cn } from '@/lib/utils';
-import { Users, Shield, Grid3X3, FileText } from 'lucide-react';
+import { Users, Shield, Grid3X3 } from 'lucide-react';
 
 const UsersTab = lazy(() => import('./UsersTab'));
 const RolesTab = lazy(() => import('./RolesTab'));
 const PermissionMatrixTab = lazy(() => import('./PermissionMatrixTab'));
-const AuditLogTab = lazy(() => import('./AuditLogTab'));
 
 const tabs = [
   { key: 'users', label: 'Users', icon: Users },
   { key: 'roles', label: 'Roles', icon: Shield },
   { key: 'matrix', label: 'Permission Matrix', icon: Grid3X3 },
-  { key: 'audit', label: 'Audit Log', icon: FileText },
 ];
 
 interface PermissionsPageProps {
@@ -75,7 +73,6 @@ export default function PermissionsPage({ embedded }: PermissionsPageProps) {
         {activeTab === 'users' && <UsersTab />}
         {activeTab === 'roles' && <RolesTab />}
         {activeTab === 'matrix' && <PermissionMatrixTab />}
-        {activeTab === 'audit' && <AuditLogTab />}
       </Suspense>
     </div>
   );

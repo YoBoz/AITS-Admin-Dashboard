@@ -1,0 +1,437 @@
+{
+  "module": "AdminOpsDashboardAddendum",
+  "version": "1.0",
+  "mode": "UI_ONLY_NO_API",
+  "globalRules": {
+    "stateManagement": "local_state_only",
+    "dataSource": "centralized_mock_store",
+    "auditLogging": "in_memory_array",
+    "roleGuarding": "frontend_role_based_visibility",
+    "noBackendIntegration": true
+  },
+
+  "sections": [
+
+    {
+      "id": "O-A1",
+      "name": "FleetMonitoring",
+      "objective": "Provide operational visibility into trolley device health, telemetry, and alerts.",
+      
+      "mockDataEntities": [
+        "devices",
+        "deviceTelemetryTimeline",
+        "fleetAlerts"
+      ],
+
+      "screens": [
+
+        {
+          "name": "FleetList",
+          "type": "table_view",
+          "columns": [
+            "DeviceID",
+            "Terminal",
+            "Floor",
+            "OnlineStatus",
+            "BatteryPercentage",
+            "LastSeenTimestamp",
+            "SoftwareVersion",
+            "ConfidenceScore",
+            "DeviceStatus"
+          ],
+          "filters": [
+            "OfflineOnly",
+            "LowBatteryBelowThreshold",
+            "OutdatedVersion",
+            "LowConfidenceBelowThreshold"
+          ],
+          "rowClick": "open_DeviceDetail",
+          "realTimeSimulation": {
+            "batteryDrainInterval": "mock_timer",
+            "offlineSimulation": "toggle_button_for_testing"
+          }
+        },
+
+        {
+          "name": "DeviceDetail",
+          "type": "detail_layout",
+          "sections": [
+            {
+              "name": "DeviceInfoCard",
+              "fields": [
+                "DeviceID",
+                "CurrentTerminal",
+                "CurrentFloor",
+                "OnlineStatus",
+                "BatteryPercentage",
+                "LastSeen",
+                "SoftwareVersion",
+                "ConfidenceScore"
+              ]
+            },
+            {
+              "name": "TelemetryTimeline",
+              "type": "time_series_mock_chart",
+              "dataSource": "deviceTelemetryTimeline"
+            },
+            {
+              "name": "DeviceActions",
+              "type": "action_panel",
+              "actions": [
+                {
+                  "label": "LockDevice",
+                  "requiresReasonCode": true
+                },
+                {
+                  "label": "UnlockDevice",
+                  "requiresReasonCode": true
+                },
+                {
+                  "label": "RebootDevice",
+                  "requiresReasonCode": true
+                },
+                {
+                  "label": "MarkMaintenance",
+                  "requiresReasonCode": true
+                }
+              ],
+              "onExecute": {
+                "logEvent": "device_action_executed"
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "FleetAlerts",
+          "type": "alerts_list",
+          "columns": [
+            "AlertID",
+            "DeviceID",
+            "AlertType",
+            "Severity",
+            "CreatedAt",
+            "Status"
+          ],
+          "alertTypes": [
+            "Offline",
+            "LowBattery",
+            "SensorFault"
+          ],
+          "actions": [
+            {
+              "label": "Acknowledge",
+              "logEvent": "fleet_alert_acknowledged"
+            },
+            {
+              "label": "EscalateToIncident",
+              "logEvent": "incident_created_from_alert"
+            }
+          ]
+        }
+      ],
+
+      "eventsToSimulate": [
+        "device_offline_detected",
+        "device_low_battery_detected",
+        "device_action_executed",
+        "fleet_alert_acknowledged"
+      ],
+
+      "acceptanceCriteria": [
+        "Device actions require mandatory reason code before execution.",
+        "All actions create audit log entries with actor, timestamp, reason.",
+        "Offline devices appear in list based on simulated detection timer.",
+        "Filters dynamically update list without page reload."
+      ]
+    },
+
+    {
+      "id": "O-A2",
+      "name": "RunnersMonitoring",
+      "objective": "Monitor runner availability, workload, and performance with controlled interventions.",
+      
+      "mockDataEntities": [
+        "runners",
+        "runnerOrdersHistory",
+        "runnerPerformanceMetrics"
+      ],
+
+      "screens": [
+
+        {
+          "name": "RunnerList",
+          "type": "table_view",
+          "columns": [
+            "RunnerName",
+            "Status",
+            "CurrentOrderID",
+            "LastUpdateTimestamp",
+            "PerformanceScore"
+          ],
+          "statusValues": [
+            "Available",
+            "OnJob",
+            "Offline"
+          ],
+          "rowClick": "open_RunnerDetail"
+        },
+
+        {
+          "name": "RunnerDetail",
+          "type": "detail_layout",
+          "sections": [
+            {
+              "name": "AssignedOrdersHistory",
+              "type": "table_view",
+              "columns": [
+                "OrderID",
+                "AssignedAt",
+                "DeliveredAt",
+                "Status"
+              ]
+            },
+            {
+              "name": "CurrentRouteSummary",
+              "type": "summary_card",
+              "fields": [
+                "PickupLocation",
+                "DropoffGate",
+                "ETA",
+                "DistanceRemaining"
+              ]
+            },
+            {
+              "name": "EscalationActions",
+              "type": "action_panel",
+              "actions": [
+                {
+                  "label": "RemoveAssignment",
+                  "policyControlled": true,
+                  "requiresReasonCode": true
+                },
+                {
+                  "label": "ReassignOrder",
+                  "policyControlled": true,
+                  "requiresReasonCode": true
+                }
+              ],
+              "onExecute": {
+                "logEvent": "runner_reassigned_by_ops"
+              }
+            }
+          ]
+        },
+
+        {
+          "name": "RunnerPerformance",
+          "type": "analytics_dashboard",
+          "metrics": [
+            "OnTimePercentage",
+            "AverageDeliveryTime",
+            "FailureRate"
+          ],
+          "breakdowns": [
+            "FailureReasonsDistribution"
+          ]
+        }
+      ],
+
+      "eventsToSimulate": [
+        "runner_status_changed",
+        "runner_reassigned_by_ops"
+      ],
+
+      "acceptanceCriteria": [
+        "Ops interventions require reason code and create audit entry.",
+        "Performance metrics must derive from centralized mock order dataset.",
+        "Status updates visually reflect in RunnerList instantly."
+      ]
+    },
+
+    {
+      "id": "O-A3",
+      "name": "GateManagement",
+      "objective": "Manage gate-level operational changes impacting delivery feasibility and passenger experience.",
+
+      "mockDataEntities": [
+        "gates",
+        "gateEventsFeed",
+        "impactedOrders"
+      ],
+
+      "screens": [
+
+        {
+          "name": "GateStatusBoard",
+          "type": "grid_or_table_view",
+          "columns": [
+            "GateID",
+            "Terminal",
+            "Status",
+            "LastUpdated"
+          ],
+          "statusValues": [
+            "Normal",
+            "Congested",
+            "Restricted",
+            "Closed"
+          ],
+          "inlineStatusUpdate": true,
+          "onStatusUpdate": {
+            "logEvent": "gate_status_updated"
+          }
+        },
+
+        {
+          "name": "GateBroadcast",
+          "type": "broadcast_panel",
+          "fields": [
+            "TerminalFilter",
+            "GateRangeFilter",
+            "ActiveSessionsFilter",
+            "BroadcastMessage"
+          ],
+          "onSend": {
+            "logEvent": "gate_broadcast_sent"
+          }
+        },
+
+        {
+          "name": "GateChangeFeed",
+          "type": "event_feed",
+          "columns": [
+            "EventID",
+            "GateID",
+            "OldStatus",
+            "NewStatus",
+            "Source",
+            "Timestamp"
+          ],
+          "includesImpactedOrdersDrawer": true
+        }
+      ],
+
+      "eventsToSimulate": [
+        "gate_status_updated",
+        "gate_broadcast_sent",
+        "gate_change_ingested"
+      ],
+
+      "acceptanceCriteria": [
+        "Gate broadcasts logged and visible in audit panel.",
+        "Gate status changes update impacted orders list visually.",
+        "Passenger revalidation simulated via status indicator flag."
+      ]
+    },
+
+    {
+      "id": "O-A4",
+      "name": "OpsReports",
+      "objective": "Provide airport-level operational reporting for leadership and compliance.",
+
+      "mockDataEntities": [
+        "orders",
+        "devices",
+        "incidents",
+        "merchants"
+      ],
+
+      "screens": [
+
+        {
+          "name": "OpsSummaryDashboard",
+          "type": "kpi_dashboard",
+          "filters": [
+            "DateRange",
+            "Terminal"
+          ],
+          "kpis": [
+            "ActiveSessions",
+            "OrdersPerHour",
+            "AcceptanceSLABreaches",
+            "DeliverySLABreaches",
+            "IncidentsOpen",
+            "DevicesOffline"
+          ],
+          "onView": {
+            "logEvent": "ops_report_viewed"
+          }
+        },
+
+        {
+          "name": "MerchantSLAReport",
+          "type": "ranking_table",
+          "columns": [
+            "MerchantName",
+            "AvgAcceptanceTime",
+            "RejectRate",
+            "DelayRate",
+            "SLAComplianceScore"
+          ]
+        },
+
+        {
+          "name": "DeviceUptimeReport",
+          "type": "analytics_view",
+          "metrics": [
+            "UptimePercentage",
+            "OfflineDurationDistribution",
+            "BatteryTrend"
+          ]
+        },
+
+        {
+          "name": "IncidentReport",
+          "type": "analytics_view",
+          "metrics": [
+            "IncidentVolumeByType",
+            "IncidentVolumeBySeverity",
+            "AverageTimeToResolve",
+            "RepeatIncidents"
+          ]
+        },
+
+        {
+          "name": "ExportReports",
+          "type": "export_action",
+          "formats": ["CSV"],
+          "onExport": {
+            "logEvent": "ops_report_exported"
+          }
+        }
+      ],
+
+      "acceptanceCriteria": [
+        "All reports filterable by date range and terminal.",
+        "Export output matches filtered view.",
+        "All report views and exports logged in audit store."
+      ]
+    }
+  ],
+
+  "auditSystem": {
+    "storage": "frontend_memory_store",
+    "logStructure": {
+      "eventType": "string",
+      "actorName": "string",
+      "actorRole": "string",
+      "timestamp": "ISO8601",
+      "reasonCode": "string_optional",
+      "metadata": "object"
+    },
+    "supportedEvents": [
+      "device_offline_detected",
+      "device_low_battery_detected",
+      "device_action_executed",
+      "fleet_alert_acknowledged",
+      "runner_status_changed",
+      "runner_reassigned_by_ops",
+      "gate_status_updated",
+      "gate_broadcast_sent",
+      "gate_change_ingested",
+      "ops_report_viewed",
+      "ops_report_exported"
+    ]
+  }
+}

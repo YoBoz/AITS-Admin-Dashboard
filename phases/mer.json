@@ -1,0 +1,379 @@
+{
+  "module": "MerchantDashboardAddendum",
+  "version": "1.0",
+  "mode": "UI_ONLY_NO_API",
+  "globalRules": {
+    "stateManagement": "local_state_only",
+    "dataSource": "static_mock_data",
+    "auditLogging": "in_memory_array",
+    "roleGuarding": "frontend_role_based_visibility",
+    "noBackendIntegration": true
+  },
+
+  "sections": [
+
+    {
+      "id": "M-A1",
+      "name": "StaffAndRoles",
+      "objective": "Enable merchant operators to manage staff access, roles, and permissions in a controlled and auditable way.",
+      "roles": [
+        {
+          "role": "Manager",
+          "permissions": "full_merchant_scope",
+          "notes": "Can invite, disable, change roles, configure settings, refund up to threshold"
+        },
+        {
+          "role": "Kitchen",
+          "permissions": [
+            "view_orders",
+            "mark_preparing",
+            "mark_ready"
+          ]
+        },
+        {
+          "role": "Cashier",
+          "permissions": [
+            "view_orders",
+            "accept_reject_orders_optional"
+          ],
+          "restrictions": [
+            "cannot_refund"
+          ]
+        },
+        {
+          "role": "Viewer",
+          "permissions": [
+            "read_only_access"
+          ]
+        }
+      ],
+
+      "screens": [
+
+        {
+          "name": "StaffList",
+          "type": "table_view",
+          "columns": [
+            "Name",
+            "Role",
+            "Status",
+            "LastLogin",
+            "CreatedAt",
+            "Actions"
+          ],
+          "actions": [
+            {
+              "label": "Invite",
+              "visibleTo": ["Manager"]
+            },
+            {
+              "label": "Disable",
+              "visibleTo": ["Manager"],
+              "confirmationModal": true
+            },
+            {
+              "label": "ResetPasswordOrResendInvite",
+              "visibleTo": ["Manager"]
+            },
+            {
+              "label": "ChangeRole",
+              "visibleTo": ["Manager"],
+              "confirmationModal": true
+            }
+          ],
+          "mockDataRequired": true
+        },
+
+        {
+          "name": "InviteStaffModal",
+          "type": "modal",
+          "fields": [
+            { "name": "name", "type": "text", "required": true },
+            { "name": "email_or_phone", "type": "text", "required": true },
+            {
+              "name": "role",
+              "type": "dropdown",
+              "options": ["Manager", "Kitchen", "Cashier", "Viewer"],
+              "required": true
+            }
+          ],
+          "onSubmit": {
+            "effect": "add_to_staff_list_with_status_invited",
+            "logEvent": "merchant_staff_invited"
+          }
+        },
+
+        {
+          "name": "RolePermissionView",
+          "type": "permission_matrix",
+          "editable": false,
+          "rows": ["Manager", "Kitchen", "Cashier", "Viewer"],
+          "columns": [
+            "AcceptOrder",
+            "RejectOrder",
+            "MarkPreparing",
+            "MarkReady",
+            "RequestRefund",
+            "EditMenu",
+            "PublishMenu",
+            "UpdateDeliverySettings"
+          ]
+        },
+
+        {
+          "name": "MerchantAuditView",
+          "type": "filterable_log_list",
+          "filters": [
+            "StaffName",
+            "DateRange",
+            "ActionType"
+          ],
+          "drawerView": true,
+          "logEventsIncluded": [
+            "merchant_staff_invited",
+            "merchant_staff_role_changed",
+            "merchant_staff_disabled",
+            "merchant_audit_viewed"
+          ]
+        }
+      ],
+
+      "acceptanceCriteria": [
+        "Only Manager role can invite, disable, or change roles.",
+        "All staff changes generate audit log entries with actor and timestamp.",
+        "Disabled users cannot access dashboard after simulated token expiry.",
+        "All actions must simulate audit logging in frontend memory store."
+      ]
+    },
+
+    {
+      "id": "M-A2",
+      "name": "DeliverySettings",
+      "objective": "Allow merchants to configure delivery capabilities and operational constraints.",
+      "screens": [
+
+        {
+          "name": "DeliveryConfiguration",
+          "type": "form_layout",
+          "fields": [
+            {
+              "name": "deliveryMode",
+              "type": "toggle",
+              "options": ["PickupOnly", "DeliveryEnabled"]
+            },
+            {
+              "name": "supportedAreas",
+              "type": "multi_select",
+              "uiComponent": "zone_gate_selector",
+              "validation": "required_if_delivery_enabled"
+            },
+            {
+              "name": "deliveryHours",
+              "type": "schedule_picker",
+              "optional": true
+            },
+            {
+              "name": "cutoffRule",
+              "type": "number_input",
+              "label": "Do not accept new delivery orders if departure < X minutes",
+              "optional": true
+            }
+          ],
+          "validationRules": [
+            "If DeliveryEnabled, at least one supported area must be selected."
+          ],
+          "onSave": {
+            "logEvent": "merchant_delivery_settings_updated"
+          }
+        },
+
+        {
+          "name": "RunnerHandoffRules",
+          "type": "form_section",
+          "fields": [
+            {
+              "name": "pickupVerificationMethod",
+              "type": "radio",
+              "options": ["QR", "Code", "Both"]
+            },
+            {
+              "name": "packagingReadinessRequired",
+              "type": "checkbox"
+            }
+          ]
+        }
+      ],
+
+      "uiBehaviorRules": [
+        "If PickupOnly selected, delivery-related fields collapse.",
+        "If delivery disabled, simulate hiding delivery options in passenger feed (visual-only flag)."
+      ],
+
+      "acceptanceCriteria": [
+        "Delivery-enabled merchants must select at least one zone/gate.",
+        "Changes simulate affecting passenger eligibility within minutes (visual flag update).",
+        "All updates create audit log entry."
+      ]
+    },
+
+    {
+      "id": "M-A3",
+      "name": "Reports",
+      "objective": "Provide operational and financial performance reporting using mock data only.",
+      "screens": [
+
+        {
+          "name": "ReportsOverview",
+          "type": "dashboard",
+          "components": [
+            {
+              "type": "kpi_card",
+              "metrics": [
+                "Orders",
+                "AcceptanceRate",
+                "AvgPrepTime",
+                "SLABreaches",
+                "RefundRate"
+              ]
+            }
+          ],
+          "filters": [
+            "DateRange",
+            "FulfillmentType",
+            "TimeOfDay"
+          ],
+          "onView": {
+            "logEvent": "merchant_report_viewed"
+          }
+        },
+
+        {
+          "name": "OrdersReport",
+          "type": "table_exportable",
+          "columns": [
+            "OrderID",
+            "Time",
+            "Items",
+            "Status",
+            "Total",
+            "Refund",
+            "DeliveryOrPickup",
+            "DestinationGate"
+          ],
+          "export": {
+            "format": "csv_mock_download",
+            "logEvent": "merchant_report_exported"
+          }
+        },
+
+        {
+          "name": "SLAReport",
+          "type": "analytics_view",
+          "components": [
+            "AcceptanceTimeDistributionChart",
+            "BreachCountMetric",
+            "CommonCausesList"
+          ]
+        },
+
+        {
+          "name": "RejectionAndIssueReasons",
+          "type": "chart_and_trend",
+          "components": [
+            "BreakdownChart",
+            "TrendGraph"
+          ]
+        }
+      ],
+
+      "acceptanceCriteria": [
+        "Reports must use centralized mock order dataset (single source of truth).",
+        "Exports respect active filter constraints.",
+        "No metric is derived from client UI only — must derive from mock order dataset."
+      ]
+    },
+
+    {
+      "id": "M-A4",
+      "name": "Settings",
+      "objective": "Central settings for merchant profile, operating hours, notifications, and integrations.",
+      "screens": [
+
+        {
+          "name": "MerchantProfile",
+          "type": "form",
+          "fields": [
+            { "name": "MerchantName", "type": "text", "editable": false },
+            { "name": "Logo", "type": "image_upload_mock" },
+            { "name": "LocationMetadata", "type": "text", "editable": false }
+          ],
+          "onSave": {
+            "logEvent": "merchant_settings_updated"
+          }
+        },
+
+        {
+          "name": "OperatingHours",
+          "type": "weekly_schedule_editor",
+          "fields": [
+            "MondayToSundaySchedule",
+            "ClosedForMaintenanceToggle"
+          ],
+          "onSave": {
+            "logEvent": "merchant_hours_updated"
+          },
+          "uiBehaviorRule": "If closed, simulate removing merchant from passenger orderable list."
+        },
+
+        {
+          "name": "Notifications",
+          "type": "toggle_group",
+          "options": [
+            "OrderReceived",
+            "SLAAtRisk",
+            "RunnerPickupDelayed"
+          ]
+        },
+
+        {
+          "name": "Integrations",
+          "type": "config_section",
+          "optional": true,
+          "fields": [
+            "POSIntegrationKey",
+            "KDSIntegrationKey",
+            "WebhookURL"
+          ]
+        }
+      ],
+
+      "acceptanceCriteria": [
+        "Closed merchants are visually hidden from passenger feed.",
+        "Operating hours changes reflect consistently across UI.",
+        "All updates logged in audit system."
+      ]
+    }
+  ],
+
+  "auditSystem": {
+    "storage": "frontend_memory_store",
+    "logStructure": {
+      "eventType": "string",
+      "actorName": "string",
+      "actorRole": "string",
+      "timestamp": "ISO8601",
+      "metadata": "object"
+    },
+    "eventsToSupport": [
+      "merchant_staff_invited",
+      "merchant_staff_role_changed",
+      "merchant_staff_disabled",
+      "merchant_audit_viewed",
+      "merchant_delivery_settings_updated",
+      "merchant_report_viewed",
+      "merchant_report_exported",
+      "merchant_settings_updated",
+      "merchant_hours_updated"
+    ]
+  }
+}
