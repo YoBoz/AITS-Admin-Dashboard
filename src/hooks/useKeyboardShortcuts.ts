@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/hooks/useAuth';
 import { useSidebarStore } from '@/store/sidebar.store';
 import { useUIStore } from '@/store/ui.store';
 
@@ -10,7 +11,8 @@ import { useUIStore } from '@/store/ui.store';
  */
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
-  const { toggleTheme } = useTheme();
+  const { toggleTheme, toggleEclipse, toggleTron } = useTheme();
+  const { user, logout } = useAuth();
   const { toggle: toggleSidebar } = useSidebarStore();
   const {
     setCommandPaletteOpen,
@@ -53,10 +55,48 @@ export function useKeyboardShortcuts() {
         return;
       }
 
+      // Ctrl+Shift+E — toggle eclipse theme (Easter egg)
+      if (ctrl && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+        e.preventDefault();
+        toggleEclipse();
+        return;
+      }
+
+      // Ctrl+Shift+4 — toggle tron theme
+      if (ctrl && e.shiftKey && (e.key === '4' || e.key === '$' || e.code === 'Digit4')) {
+        e.preventDefault();
+        toggleTron();
+        return;
+      }
+
+      // Ctrl+Shift+L — logout (if logged in)
+      if (ctrl && e.shiftKey && (e.key === 'l' || e.key === 'L')) {
+        e.preventDefault();
+        if (user) {
+          logout();
+          navigate('/login');
+        }
+        return;
+      }
+
       // Ctrl+B — toggle sidebar
       if (ctrl && e.key === 'b') {
         e.preventDefault();
         toggleSidebar();
+        return;
+      }
+
+      // Ctrl+Left — toggle sidebar collapse/expand
+      if (ctrl && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        toggleSidebar();
+        return;
+      }
+
+      // Ctrl+Right — toggle theme (light/dark only)
+      if (ctrl && e.key === 'ArrowRight') {
+        e.preventDefault();
+        toggleTheme();
         return;
       }
 
@@ -105,5 +145,5 @@ export function useKeyboardShortcuts() {
       window.removeEventListener('keydown', handleKeyDown);
       clearTimeout(gTimeout);
     };
-  }, [navigate, toggleTheme, toggleSidebar, setCommandPaletteOpen, setKeyboardShortcutsOpen, setNotificationPanelOpen, isInputFocused]);
+  }, [navigate, toggleTheme, toggleEclipse, user, logout, toggleSidebar, setCommandPaletteOpen, setKeyboardShortcutsOpen, setNotificationPanelOpen, isInputFocused]);
 }

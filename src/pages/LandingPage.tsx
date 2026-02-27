@@ -39,6 +39,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ROUTES } from '@/lib/constants';
+import { useTheme } from '@/hooks/useTheme';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -321,6 +322,7 @@ const opsFeatures = [
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   return (
     <div className="min-h-screen bg-background">
@@ -329,7 +331,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-auto" />
+              <img src={theme === 'tron' ? '/images/AITS - Tron.svg' : theme === 'eclipse' ? '/images/AITS - Eclipse.svg' : theme === 'dark' ? '/images/AiTS_White.svg' : '/images/AiTS.svg'} alt="Ai-TS" className={`h-10 w-auto ${theme === 'tron' ? 'tron-logo-glow' : ''}`} />
               <span className="hidden sm:block text-sm text-muted-foreground font-lexend">
                 Airport Intelligent Trolley System
               </span>
@@ -351,16 +353,146 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-transparent to-transparent" />
-        <img
-          src="/images/Trolly.svg"
-          alt=""
-          aria-hidden="true"
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] opacity-[0.03] pointer-events-none select-none"
-        />
+        
+        {/* Animated flowing lines */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <svg className="absolute w-full h-full" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="flowGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="hsl(var(--brand))" stopOpacity="0" />
+                <stop offset="50%" stopColor="hsl(var(--brand))" stopOpacity="0.15" />
+                <stop offset="100%" stopColor="hsl(var(--brand))" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="flowGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0" />
+                <stop offset="50%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0.08" />
+                <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Flow line 1 */}
+            <motion.path
+              d="M-100,200 Q300,150 600,250 T1200,200 T1800,180 T2400,220"
+              fill="none"
+              stroke="url(#flowGradient1)"
+              strokeWidth="2"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 4, ease: "easeInOut", repeat: Infinity, times: [0, 0.6, 1] }}
+            />
+            {/* Flow line 2 */}
+            <motion.path
+              d="M-100,400 Q400,350 700,420 T1300,380 T1900,400 T2500,360"
+              fill="none"
+              stroke="url(#flowGradient2)"
+              strokeWidth="1.5"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 5, ease: "easeInOut", delay: 1, repeat: Infinity, times: [0, 0.6, 1] }}
+            />
+            {/* Flow line 3 */}
+            <motion.path
+              d="M-100,600 Q350,550 650,620 T1250,580 T1850,620 T2450,580"
+              fill="none"
+              stroke="url(#flowGradient1)"
+              strokeWidth="1"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: [0, 1, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 4.5, ease: "easeInOut", delay: 2, repeat: Infinity, times: [0, 0.6, 1] }}
+            />
+          </svg>
+          
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Airport Skyline Silhouette */}
+          <div className="absolute bottom-0 left-0 right-0 opacity-[0.06] pointer-events-none">
+            <svg 
+              viewBox="0 0 1440 200" 
+              className="w-full h-auto text-foreground" 
+              fill="currentColor"
+              preserveAspectRatio="xMidYMax slice"
+            >
+              {/* Ground/Runway */}
+              <rect x="0" y="190" width="1440" height="10" />
+              
+              {/* Runway lights */}
+              {[...Array(20)].map((_, i) => (
+                <circle key={i} cx={72 * i + 36} cy="195" r="2" className="fill-brand" fillOpacity="0.5" />
+              ))}
+              
+              {/* Left Terminal Building */}
+              <rect x="50" y="120" width="200" height="70" />
+              <rect x="60" y="100" width="180" height="25" />
+              <rect x="80" y="85" width="140" height="20" />
+              {/* Terminal windows */}
+              {[...Array(8)].map((_, i) => (
+                <rect key={`lw${i}`} x={70 + i * 22} y="130" width="15" height="20" fillOpacity="0.3" className="fill-background" />
+              ))}
+              
+              {/* Left Control Tower */}
+              <rect x="280" y="60" width="25" height="130" />
+              <rect x="270" y="40" width="45" height="25" />
+              <ellipse cx="292" cy="35" rx="30" ry="10" />
+              <rect x="288" y="5" width="8" height="30" />
+              <circle cx="292" cy="3" r="5" className="fill-brand" fillOpacity="0.3" />
+              
+              {/* Center Main Terminal */}
+              <rect x="500" y="100" width="440" height="90" />
+              <rect x="520" y="70" width="400" height="35" />
+              <rect x="560" y="50" width="320" height="25" />
+              {/* Curved roof */}
+              <ellipse cx="720" cy="50" rx="180" ry="20" />
+              {/* Large windows */}
+              {[...Array(12)].map((_, i) => (
+                <rect key={`cw${i}`} x={520 + i * 35} y="110" width="25" height="40" fillOpacity="0.3" className="fill-background" />
+              ))}
+              {/* Terminal entrance */}
+              <rect x="680" y="150" width="80" height="40" fillOpacity="0.2" className="fill-background" />
+              
+              {/* Right Terminal Building */}
+              <rect x="1000" y="110" width="250" height="80" />
+              <rect x="1020" y="90" width="210" height="25" />
+              <rect x="1050" y="75" width="150" height="20" />
+              {/* Terminal windows */}
+              {[...Array(10)].map((_, i) => (
+                <rect key={`rw${i}`} x={1015 + i * 23} y="125" width="15" height="25" fillOpacity="0.3" className="fill-background" />
+              ))}
+              
+              {/* Right Control Tower */}
+              <rect x="1280" y="50" width="30" height="140" />
+              <rect x="1268" y="25" width="54" height="30" />
+              <ellipse cx="1295" cy="20" rx="35" ry="12" />
+              <rect x="1290" y="-15" width="10" height="35" />
+              <circle cx="1295" cy="-18" r="6" className="fill-brand" fillOpacity="0.3" />
+              
+              {/* Hangars on far right */}
+              <path d="M1350,190 L1350,140 Q1380,120 1410,140 L1410,190 Z" />
+              <path d="M1380,190 L1380,150 Q1400,135 1420,150 L1420,190 Z" />
+              
+              {/* Jet bridge connectors */}
+              <rect x="250" y="135" width="30" height="8" />
+              <rect x="940" y="125" width="60" height="10" />
+              <rect x="1250" y="130" width="30" height="8" />
+              
+              {/* Parked aircraft silhouettes */}
+              <g transform="translate(350, 160)">
+                <ellipse cx="0" cy="0" rx="35" ry="8" />
+                <polygon points="-20,-5 -45,15 -45,20 -20,5" />
+                <polygon points="20,-5 45,15 45,20 20,5" />
+                <polygon points="0,-8 -8,5 8,5" />
+              </g>
+              <g transform="translate(1150, 155)">
+                <ellipse cx="0" cy="0" rx="30" ry="7" />
+                <polygon points="-17,-4 -38,12 -38,16 -17,4" />
+                <polygon points="17,-4 38,12 38,16 17,4" />
+                <polygon points="0,-7 -7,4 7,4" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
           <motion.div
             className="text-center max-w-4xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
@@ -391,6 +523,25 @@ export default function LandingPage() {
             </div>
           </motion.div>
         </div>
+        
+        {/* Scroll indicator */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, y: [0, 10, 0] }}
+          transition={{ opacity: { delay: 1 }, y: { duration: 1.5, repeat: Infinity } }}
+        >
+          <div className="flex flex-col items-center gap-2 text-muted-foreground">
+            <span className="text-xs font-lexend">Scroll to explore</span>
+            <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center pt-2">
+              <motion.div 
+                className="w-1.5 h-1.5 bg-brand rounded-full"
+                animate={{ y: [0, 16, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+            </div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Core Outcomes */}
@@ -888,7 +1039,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-8 w-auto" />
+              <img src={theme === 'tron' ? '/images/AITS - Tron.svg' : theme === 'eclipse' ? '/images/AITS - Eclipse.svg' : theme === 'dark' ? '/images/AiTS_White.svg' : '/images/AiTS.svg'} alt="Ai-TS" className={`h-8 w-auto ${theme === 'tron' ? 'tron-logo-glow' : ''}`} />
               <span className="text-sm text-muted-foreground font-lexend">
                 Airport Intelligent Trolley System
               </span>

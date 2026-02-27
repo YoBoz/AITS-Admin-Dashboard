@@ -4,6 +4,7 @@ import {
 } from 'recharts';
 import { SectionCard } from '@/components/common/SectionCard';
 import { Button } from '@/components/ui/Button';
+import { useTheme } from '@/hooks/useTheme';
 import {
   visitorFlowData24h,
   visitorFlowDataWeekly,
@@ -12,8 +13,18 @@ import {
 
 type Range = '24h' | '7D' | '30D';
 
+// Theme-specific chart colors
+const chartColors = {
+  light: { primary: '#BE052E', primaryLight: '#BE052E' },
+  dark: { primary: '#E11D48', primaryLight: '#E11D48' },
+  eclipse: { primary: '#A78BFA', primaryLight: '#A78BFA' },
+  tron: { primary: '#00FF66', primaryLight: '#39FF6A' },
+};
+
 export function VisitorFlowChart() {
   const [range, setRange] = useState<Range>('24h');
+  const { theme } = useTheme();
+  const colors = chartColors[theme] || chartColors.light;
 
   const getData = () => {
     switch (range) {
@@ -54,8 +65,8 @@ export function VisitorFlowChart() {
           <AreaChart data={getData()} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#BE052E" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#BE052E" stopOpacity={0} />
+                <stop offset="5%" stopColor={colors.primary} stopOpacity={theme === 'tron' ? 0.5 : 0.3} />
+                <stop offset="95%" stopColor={colors.primary} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -88,9 +99,10 @@ export function VisitorFlowChart() {
               type="monotone"
               dataKey="current"
               name={currentLabel}
-              stroke="#BE052E"
+              stroke={colors.primary}
               fill="url(#colorCurrent)"
               strokeWidth={2}
+              style={theme === 'tron' ? { filter: 'drop-shadow(0 0 4px rgba(0, 255, 102, 0.6))' } : undefined}
             />
             <Area
               type="monotone"

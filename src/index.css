@@ -10,7 +10,7 @@
     --card-foreground: 0 0% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
-    --primary: 349 95% 38%;
+    --primary: 349 78% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 9%;
@@ -18,34 +18,201 @@
     --muted-foreground: 0 0% 45%;
     --accent: 0 0% 95%;
     --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 89%;
     --input: 0 0% 89%;
-    --ring: 349 95% 38%;
+    --ring: 349 78% 45%;
     --radius: 0.5rem;
+    --brand: 349 78% 50%;
+    
+    /* Status colors */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --error: 0 84% 60%;
+    --info: 217 91% 60%;
+    
+    /* Chart colors */
+    --chart-1: 349 78% 45%;
+    --chart-2: 217 91% 60%;
+    --chart-3: 142 76% 36%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 280 65% 60%;
+    
+    /* Navigation */
+    --nav-bg: 0 0% 100%;
+    --nav-active: 349 78% 45%;
+    --nav-inactive: 0 0% 45%;
+    --nav-underline: 349 78% 45%;
+    
+    /* Sidebar */
+    --sidebar-bg: 0 0% 100%;
+    --sidebar-hover: 0 0% 95%;
+    --sidebar-active: 349 78% 95%;
+    --sidebar-text: 0 0% 45%;
+    --sidebar-text-active: 349 78% 45%;
   }
 
   .dark {
-    --background: 0 0% 4%;
+    --background: 0 0% 9%;
     --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
+    --card: 0 0% 12%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
-    --primary: 349 95% 38%;
+    --primary: 349 72% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 15%;
+    --secondary: 0 0% 18%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 0 0% 15%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 18%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 63% 31%;
+    --destructive: 0 60% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 16%;
-    --input: 0 0% 16%;
-    --ring: 349 95% 38%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 349 72% 52%;
+    --brand: 349 72% 52%;
+    
+    /* Status colors */
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --error: 0 72% 51%;
+    --info: 217 91% 65%;
+    
+    /* Chart colors */
+    --chart-1: 349 72% 52%;
+    --chart-2: 217 91% 65%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 280 65% 60%;
+    
+    /* Navigation */
+    --nav-bg: 0 0% 9%;
+    --nav-active: 349 72% 52%;
+    --nav-inactive: 0 0% 65%;
+    --nav-underline: 349 72% 52%;
+    
+    /* Sidebar */
+    --sidebar-bg: 0 0% 9%;
+    --sidebar-hover: 0 0% 15%;
+    --sidebar-active: 0 0% 18%;
+    --sidebar-text: 0 0% 65%;
+    --sidebar-text-active: 0 0% 98%;
+  }
+
+  /* Eclipse Theme - Easter Egg (Ctrl+Shift+E) */
+  .eclipse {
+    --background: 234 30% 20%;
+    --foreground: 230 30% 92%;
+    --card: 231 28% 26%;
+    --card-foreground: 230 30% 92%;
+    --popover: 231 28% 26%;
+    --popover-foreground: 230 30% 92%;
+    --primary: 265 70% 72%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 235 22% 32%;
+    --secondary-foreground: 230 30% 92%;
+    --muted: 235 18% 28%;
+    --muted-foreground: 230 25% 78%;
+    --accent: 265 40% 40%;
+    --accent-foreground: 230 30% 92%;
+    --destructive: 330 55% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 234 18% 42%;
+    --input: 234 18% 42%;
+    --ring: 265 70% 72%;
+    --brand: 265 70% 72%;
+    
+    /* Status colors */
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --error: 330 55% 55%;
+    --info: 265 70% 72%;
+    
+    /* Chart colors */
+    --chart-1: 265 70% 72%;
+    --chart-2: 330 55% 55%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 200 65% 55%;
+    
+    /* Navigation */
+    --nav-bg: 234 30% 18%;
+    --nav-active: 265 70% 72%;
+    --nav-inactive: 230 25% 78%;
+    --nav-underline: 265 70% 72%;
+    
+    /* Sidebar */
+    --sidebar-bg: 234 30% 18%;
+    --sidebar-hover: 235 18% 28%;
+    --sidebar-active: 235 22% 32%;
+    --sidebar-text: 230 25% 78%;
+    --sidebar-text-active: 230 30% 92%;
+  }
+
+  /* Tron Theme (Ctrl+Shift+4) */
+  .tron {
+    /* Backgrounds - from palette */
+    --background: 120 22% 5%;          /* #0A0F0A appBackground */
+    --foreground: 0 0% 100%;           /* #FFFFFF primaryWhite */
+    --card: 112 25% 8%;                /* #111911 cardBackground */
+    --card-foreground: 0 0% 100%;      /* #FFFFFF */
+    --popover: 120 21% 11%;            /* #162016 elevatedCard */
+    --popover-foreground: 0 0% 100%;   /* #FFFFFF */
+    
+    /* Primary - neon green */
+    --primary: 144 100% 50%;           /* #00FF66 primaryGreen */
+    --primary-foreground: 120 22% 5%;  /* dark bg for contrast */
+    
+    /* Secondary */
+    --secondary: 132 40% 17%;          /* #1A3D20 darkGreenTint */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF */
+    
+    /* Muted */
+    --muted: 120 21% 11%;              /* #162016 elevatedCard */
+    --muted-foreground: 120 14% 60%;   /* #8AA88A secondary text */
+    
+    /* Accent */
+    --accent: 134 100% 61%;            /* #39FF6A neonGreen */
+    --accent-foreground: 120 22% 5%;   /* dark for contrast */
+    
+    /* Destructive */
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders & inputs */
+    --border: 132 42% 21%;             /* #1F4D28 activeTagBorder */
+    --input: 120 27% 7%;               /* #0E160E searchField */
+    --ring: 144 100% 50%;              /* #00FF66 */
+    --brand: 144 100% 50%;             /* #00FF66 */
+    
+    /* Tron-specific: status colors */
+    --success: 144 100% 45%;           /* #00E55A positiveBadge */
+    --warning: 45 100% 50%;            /* amber for warnings */
+    --info: 144 100% 50%;              /* use primary green */
+    --error: 0 72% 50%;                /* red */
+    
+    /* Tron-specific: chart colors */
+    --chart-1: 144 100% 50%;           /* #00FF66 chartRedemptions */
+    --chart-2: 140 5% 64%;             /* #9EAAA0 chartImpressions */
+    --chart-3: 134 100% 61%;           /* #39FF6A neonGreen */
+    --chart-4: 131 45% 33%;            /* #2D7A3A mutedGreen */
+    --chart-5: 132 40% 17%;            /* #1A3D20 darkGreenTint */
+    
+    /* Tron-specific: navigation */
+    --nav-bg: 120 22% 6%;              /* #0D130D navBarBg */
+    --nav-active: 144 100% 45%;        /* #00E55A navIconActive */
+    --nav-inactive: 120 13% 33%;       /* #4A604A navIconInactive */
+    --nav-underline: 144 100% 50%;     /* #00FF66 activeUnderline */
+    
+    /* Tron-specific: sidebar */
+    --sidebar-bg: 120 22% 5%;          /* #0A0F0A */
+    --sidebar-hover: 120 21% 11%;      /* #162016 */
+    --sidebar-active: 132 40% 17%;     /* #1A3D20 */
+    --sidebar-text: 120 14% 60%;       /* #8AA88A */
+    --sidebar-text-active: 0 0% 100%;  /* #FFFFFF */
   }
 }
 
@@ -117,4 +284,219 @@
 }
 .masonry-grid-column > * {
   margin-bottom: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TRON THEME - Neon glow effects and styling
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Logo glow effect */
+.tron-logo-glow {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 102, 0.6))
+          drop-shadow(0 0 16px rgba(0, 255, 102, 0.4))
+          drop-shadow(0 0 24px rgba(0, 255, 102, 0.2));
+  transition: filter 0.3s ease;
+}
+
+.tron-logo-glow:hover {
+  filter: drop-shadow(0 0 12px rgba(0, 255, 102, 0.8))
+          drop-shadow(0 0 24px rgba(0, 255, 102, 0.5))
+          drop-shadow(0 0 36px rgba(0, 255, 102, 0.3));
+}
+
+/* Primary buttons with neon glow */
+.tron button[data-variant="default"],
+.tron .btn-primary,
+.tron [class*="bg-primary"]:not([class*="bg-primary/"]) {
+  box-shadow: 0 0 10px hsl(144 100% 50% / 0.3),
+              0 0 20px hsl(144 100% 50% / 0.2),
+              0 0 30px hsl(144 100% 50% / 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.tron button[data-variant="default"]:hover,
+.tron .btn-primary:hover,
+.tron [class*="bg-primary"]:hover:not([class*="bg-primary/"]) {
+  box-shadow: 0 0 15px hsl(144 100% 50% / 0.5),
+              0 0 30px hsl(144 100% 50% / 0.3),
+              0 0 45px hsl(144 100% 50% / 0.2);
+}
+
+/* Cards with subtle border glow */
+.tron .card,
+.tron [class*="bg-card"] {
+  border: 1px solid hsl(132 42% 21% / 0.6);
+  box-shadow: 0 0 1px hsl(144 100% 50% / 0.1),
+              inset 0 1px 0 hsl(144 100% 50% / 0.05);
+}
+
+.tron .card:hover,
+.tron [class*="bg-card"]:hover {
+  border-color: hsl(144 100% 50% / 0.3);
+  box-shadow: 0 0 8px hsl(144 100% 50% / 0.15),
+              inset 0 1px 0 hsl(144 100% 50% / 0.08);
+}
+
+/* Input fields with glow on focus */
+.tron input:focus,
+.tron textarea:focus,
+.tron select:focus,
+.tron [role="combobox"]:focus {
+  box-shadow: 0 0 0 2px hsl(144 100% 50% / 0.2),
+              0 0 8px hsl(144 100% 50% / 0.3);
+  border-color: hsl(144 100% 50% / 0.5);
+}
+
+/* Links */
+.tron a:not([class*="btn"]):not([class*="button"]) {
+  color: hsl(144 100% 50%);
+}
+
+.tron a:not([class*="btn"]):not([class*="button"]):hover {
+  text-shadow: 0 0 8px hsl(144 100% 50% / 0.5);
+}
+
+/* Badges and tags */
+.tron .badge,
+.tron [class*="badge"] {
+  border: 1px solid hsl(144 100% 50% / 0.3);
+}
+
+/* Sidebar active state */
+.tron [data-active="true"],
+.tron .sidebar-active,
+.tron nav a[aria-current="page"] {
+  background: hsl(132 40% 17%);
+  border-left: 2px solid hsl(144 100% 50%);
+  box-shadow: inset 3px 0 8px hsl(144 100% 50% / 0.2);
+}
+
+/* Tables */
+.tron table {
+  border: 1px solid hsl(132 42% 21% / 0.5);
+}
+
+.tron th {
+  background: hsl(120 21% 11%);
+  border-bottom: 1px solid hsl(144 100% 50% / 0.2);
+}
+
+.tron tr:hover td {
+  background: hsl(120 21% 11% / 0.5);
+}
+
+/* Progress bars */
+.tron [role="progressbar"] > div,
+.tron .progress-bar {
+  background: linear-gradient(90deg, 
+    hsl(144 100% 50%) 0%, 
+    hsl(134 100% 61%) 100%);
+  box-shadow: 0 0 10px hsl(144 100% 50% / 0.5);
+}
+
+/* Tabs */
+.tron [role="tab"][aria-selected="true"],
+.tron .tab-active {
+  border-bottom: 2px solid hsl(144 100% 50%);
+  color: hsl(144 100% 50%);
+  text-shadow: 0 0 8px hsl(144 100% 50% / 0.3);
+}
+
+/* Switches and toggles */
+.tron [role="switch"][aria-checked="true"],
+.tron input[type="checkbox"]:checked {
+  background: hsl(144 100% 50%);
+  box-shadow: 0 0 8px hsl(144 100% 50% / 0.5);
+}
+
+/* Scrollbar for tron theme */
+.tron ::-webkit-scrollbar-thumb {
+  background: hsl(144 100% 50% / 0.3);
+}
+
+.tron ::-webkit-scrollbar-thumb:hover {
+  background: hsl(144 100% 50% / 0.5);
+}
+
+/* Charts - add glow to data points */
+.tron .recharts-dot,
+.tron .recharts-active-dot {
+  filter: drop-shadow(0 0 4px hsl(144 100% 50%));
+}
+
+/* Tooltips */
+.tron [role="tooltip"],
+.tron .tooltip {
+  background: hsl(112 25% 8%);
+  border: 1px solid hsl(144 100% 50% / 0.3);
+  box-shadow: 0 0 12px hsl(144 100% 50% / 0.2);
+}
+
+/* Modals and dialogs */
+.tron [role="dialog"],
+.tron .modal {
+  border: 1px solid hsl(144 100% 50% / 0.2);
+  box-shadow: 0 0 30px hsl(144 100% 50% / 0.15),
+              0 25px 50px -12px hsl(0 0% 0% / 0.5);
+}
+
+/* Dropdown menus */
+.tron [role="menu"],
+.tron .dropdown-menu {
+  background: hsl(112 25% 8%);
+  border: 1px solid hsl(144 100% 50% / 0.2);
+  box-shadow: 0 0 15px hsl(144 100% 50% / 0.1);
+}
+
+.tron [role="menuitem"]:hover,
+.tron .dropdown-item:hover {
+  background: hsl(120 21% 11%);
+}
+
+/* Text selection */
+.tron ::selection {
+  background: hsl(144 100% 50% / 0.3);
+  color: hsl(0 0% 100%);
+}
+
+/* ─── Recharts / Graph styling for Tron ─── */
+.tron .recharts-cartesian-grid-horizontal line,
+.tron .recharts-cartesian-grid-vertical line {
+  stroke: hsl(144 100% 50% / 0.15);
+}
+
+.tron .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: hsl(112 25% 8%) !important;
+  border: 1px solid hsl(144 100% 50% / 0.3) !important;
+  box-shadow: 0 0 12px hsl(144 100% 50% / 0.2);
+}
+
+.tron .recharts-legend-item-text {
+  color: hsl(0 0% 100%) !important;
+}
+
+.tron .recharts-text {
+  fill: hsl(120 14% 60%);
+}
+
+.tron .recharts-sector {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.tron .recharts-bar-rectangle,
+.tron .recharts-rectangle {
+  filter: drop-shadow(0 0 3px currentColor);
+}
+
+.tron .recharts-line-curve,
+.tron .recharts-area-curve {
+  filter: drop-shadow(0 0 4px currentColor);
+}
+
+.tron .recharts-dot {
+  filter: drop-shadow(0 0 6px hsl(144 100% 50%));
+}
+
+.tron .recharts-active-dot circle {
+  filter: drop-shadow(0 0 8px hsl(144 100% 50%));
 }

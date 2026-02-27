@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -6,6 +7,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Avatar, AvatarFallback } from '@/components/common/Avatar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/Tooltip';
 import type { LucideIcon } from 'lucide-react';
@@ -73,11 +75,59 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
   const location = useLocation();
   const navigate = useNavigate();
   const { merchantUser, canDo } = useMerchantAuth();
+  const { theme } = useTheme();
 
   const isActive = (route: string) =>
     location.pathname === route || location.pathname.startsWith(route + '/');
 
-  
+  // Flat list of visible nav routes for Ctrl+Arrow navigation
+  const allRoutes = useMemo(
+    () =>
+      navCategories
+        .flatMap((cat) => cat.items)
+        .filter((item) => !item.requiredPermission || canDo(item.requiredPermission))
+        .map((item) => item.route),
+    [canDo]
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      
+      // Ctrl+Left: collapse, Ctrl+Right: expand
+      if (e.key === 'ArrowLeft') {
+        if (!isCollapsed) {
+          e.preventDefault();
+          onToggle();
+        }
+        return;
+      }
+      if (e.key === 'ArrowRight') {
+        if (isCollapsed) {
+          e.preventDefault();
+          onToggle();
+        }
+        return;
+      }
+      
+      // Ctrl+Up/Down: navigate between nav items
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      e.preventDefault();
+
+      const currentIndex = allRoutes.findIndex(
+        (r) => location.pathname === r || location.pathname.startsWith(r + '/')
+      );
+      let nextIndex: number;
+      if (e.key === 'ArrowDown') {
+        nextIndex = currentIndex < allRoutes.length - 1 ? currentIndex + 1 : 0;
+      } else {
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : allRoutes.length - 1;
+      }
+      navigate(allRoutes[nextIndex]);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [allRoutes, location.pathname, navigate, isCollapsed, onToggle]);
 
   return (
     <motion.aside
@@ -98,7 +148,7 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
               transition={{ duration: 0.15 }}
               className="flex items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-10 object-contain" />
+              <img src={theme === 'tron' ? '/images/AITS - Tron.svg' : theme === 'eclipse' ? '/images/AITS - Eclipse.svg' : theme === 'dark' ? '/images/AiTS_White.svg' : '/images/AiTS.svg'} alt="Ai-TS" className={`h-10 w-10 object-contain ${theme === 'tron' ? 'tron-logo-glow' : ''}`} />
             </motion.div>
           ) : (
             <motion.div
@@ -109,7 +159,7 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
               transition={{ duration: 0.15 }}
               className="flex flex-col items-center justify-center"
             >
-              <img src="/images/AiTS.svg" alt="Ai-TS" className="h-10 w-auto object-contain" />
+              <img src={theme === 'tron' ? '/images/AITS - Tron.svg' : theme === 'eclipse' ? '/images/AITS - Eclipse.svg' : theme === 'dark' ? '/images/AiTS_White.svg' : '/images/AiTS.svg'} alt="Ai-TS" className={`h-10 w-auto object-contain ${theme === 'tron' ? 'tron-logo-glow' : ''}`} />
               <span className="text-[10px] font-semibold text-brand font-lexend mt-1 uppercase tracking-wider">
                 Merchant
               </span>
@@ -219,7 +269,7 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
       </nav>
 
       {/* User + Collapse toggle */}
-      <div className="border-t border-border p-2 space-y-1 shrink-0">
+      <div className="border-t border-border p-2 shrink-0 space-y-1">
         <div className={cn('flex items-center gap-3', isCollapsed && 'justify-center')}>
           <Avatar className="h-8 w-8 flex-shrink-0">
             <AvatarFallback className="text-xs bg-brand/10 text-brand">
@@ -243,30 +293,34 @@ export function MerchantSidebar({ isCollapsed, onToggle }: MerchantSidebarProps)
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        <button
-          onClick={onToggle}
-          className="flex w-full items-center justify-center gap-2 rounded-lg py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-        >
-          {isCollapsed ? (
-            <ChevronsRight className="h-4 w-4" />
-          ) : (
-            <ChevronsLeft className="h-4 w-4" />
+          {/* Collapse toggle - inline only when expanded */}
+          {!isCollapsed && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onToggle}
+                  className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex-shrink-0"
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p>Collapse</p>
+              </TooltipContent>
+            </Tooltip>
           )}
-          <AnimatePresence>
-            {!isCollapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="font-lexend"
-              >
-                Collapse
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </button>
+        </div>
+        {/* Expand toggle - below avatar when collapsed */}
+        {isCollapsed && (
+          <div className="flex justify-center">
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
     </motion.aside>
   );

@@ -2,11 +2,10 @@
 import { motion } from 'framer-motion';
 import Masonry from 'react-masonry-css';
 import {
-  Save, RotateCcw, Store, Globe, Bell, Clock,
+  Save, RotateCcw, Store, Bell, Clock,
   MapPin, Image, Wrench, Link2, AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { RequirePermission } from '@/components/merchant/RequirePermission';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -14,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Switch } from '@/components/ui/Switch';
 import { Badge } from '@/components/ui/Badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { useMerchantAuth } from '@/hooks/useMerchantAuth';
 import { useMerchantAuditStore } from '@/store/merchant-audit.store';
 
@@ -28,7 +28,6 @@ interface ShopSettings {
   location_zone: string;
   location_gate_range: string;
   closed_for_maintenance: boolean;
-  default_language: 'en' | 'ar' | 'fr';
   timezone: string;
   operating_hours: { day: string; open: string; close: string; closed: boolean }[];
   notifications: {
@@ -58,7 +57,6 @@ const defaultSettings: ShopSettings = {
   location_zone: 'Zone B - Concourse East',
   location_gate_range: 'Gates B1-B8',
   closed_for_maintenance: false,
-  default_language: 'en',
   timezone: 'Asia/Dubai',
   operating_hours: DAYS.map((day) => ({
     day,
@@ -272,46 +270,38 @@ export default function MerchantSettingsPage() {
                 </div>
               </div>
 
-              <div className="border-t border-border pt-4 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-brand" />
-                  <h3 className="text-sm font-semibold font-montserrat">Localization</h3>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Default Language</Label>
-                  <div className="flex gap-2">
-                    {([
-                      { key: 'en', label: 'English' },
-                      { key: 'ar', label: '\u0627\u0644\u0639\u0631\u0628\u064A\u0629' },
-                      { key: 'fr', label: 'Fran\u00E7ais' },
-                    ] as { key: 'en' | 'ar' | 'fr'; label: string }[]).map(({ key, label }) => (
-                      <button
-                        key={key}
-                        onClick={() => canEdit && setDraft((d) => ({ ...d, default_language: key }))}
-                        disabled={!canEdit}
-                        className={cn(
-                          'flex-1 rounded-lg border py-2 text-xs font-medium transition-all',
-                          draft.default_language === key
-                            ? 'border-brand bg-brand/5 text-brand'
-                            : 'border-border hover:border-foreground/20',
-                          !canEdit && 'opacity-50 cursor-not-allowed',
-                        )}
-                      >
-                        {label}
-                      </button>
+              <div className="border-t border-border pt-4 space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Timezone</Label>
+                <Select
+                  value={draft.timezone}
+                  onValueChange={(value) => setDraft((d) => ({ ...d, timezone: value }))}
+                  disabled={!canEdit}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      { value: 'Asia/Dubai', label: 'Dubai (GMT+4)' },
+                      { value: 'Asia/Riyadh', label: 'Riyadh (GMT+3)' },
+                      { value: 'Asia/Qatar', label: 'Qatar (GMT+3)' },
+                      { value: 'Asia/Kuwait', label: 'Kuwait (GMT+3)' },
+                      { value: 'Asia/Bahrain', label: 'Bahrain (GMT+3)' },
+                      { value: 'Europe/London', label: 'London (GMT+0)' },
+                      { value: 'Europe/Paris', label: 'Paris (GMT+1)' },
+                      { value: 'Europe/Berlin', label: 'Berlin (GMT+1)' },
+                      { value: 'America/New_York', label: 'New York (GMT-5)' },
+                      { value: 'America/Los_Angeles', label: 'Los Angeles (GMT-8)' },
+                      { value: 'Asia/Singapore', label: 'Singapore (GMT+8)' },
+                      { value: 'Asia/Tokyo', label: 'Tokyo (GMT+9)' },
+                      { value: 'Australia/Sydney', label: 'Sydney (GMT+11)' },
+                    ].map((tz) => (
+                      <SelectItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </SelectItem>
                     ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Timezone</Label>
-                  <Input
-                    value={draft.timezone}
-                    onChange={(e) => setDraft((d) => ({ ...d, timezone: e.target.value }))}
-                    disabled={!canEdit}
-                  />
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
           </Card>

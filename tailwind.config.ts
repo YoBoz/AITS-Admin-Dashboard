@@ -8,10 +8,10 @@ export default {
     extend: {
       colors: {
         brand: {
-          DEFAULT: '#BE052E',
-          dark: '#9B0424',
-          light: '#E8103F',
-          muted: 'rgba(190, 5, 46, 0.15)',
+          DEFAULT: 'hsl(var(--brand))',
+          dark: 'hsl(var(--brand) / 0.8)',
+          light: 'hsl(var(--brand) / 1.1)',
+          muted: 'hsl(var(--brand) / 0.15)',
         },
         surface: {
           background: 'hsl(var(--background))',
@@ -20,10 +20,30 @@ export default {
           3: 'hsl(var(--muted))',
         },
         status: {
-          success: '#10B981',
-          warning: '#F59E0B',
-          error: '#EF4444',
-          info: '#3B82F6',
+          success: 'hsl(var(--success, 142 76% 36%))',
+          warning: 'hsl(var(--warning, 38 92% 50%))',
+          error: 'hsl(var(--error, 0 84% 60%))',
+          info: 'hsl(var(--info, 217 91% 60%))',
+        },
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
+        },
+        nav: {
+          bg: 'hsl(var(--nav-bg))',
+          active: 'hsl(var(--nav-active))',
+          inactive: 'hsl(var(--nav-inactive))',
+          underline: 'hsl(var(--nav-underline))',
+        },
+        sidebar: {
+          bg: 'hsl(var(--sidebar-bg))',
+          hover: 'hsl(var(--sidebar-hover))',
+          active: 'hsl(var(--sidebar-active))',
+          text: 'hsl(var(--sidebar-text))',
+          'text-active': 'hsl(var(--sidebar-text-active))',
         },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
@@ -76,6 +96,8 @@ export default {
         md: '0 4px 16px rgba(0,0,0,0.08)',
         lg: '0 8px 32px rgba(0,0,0,0.12)',
         'primary-glow': '0 0 20px rgba(190,5,46,0.25)',
+        'tron-glow': '0 0 10px rgba(0,255,102,0.3), 0 0 20px rgba(0,255,102,0.2), 0 0 30px rgba(0,255,102,0.1)',
+        'tron-glow-lg': '0 0 15px rgba(0,255,102,0.5), 0 0 30px rgba(0,255,102,0.3), 0 0 45px rgba(0,255,102,0.2)',
       },
       transitionDuration: {
         fast: '150ms',
