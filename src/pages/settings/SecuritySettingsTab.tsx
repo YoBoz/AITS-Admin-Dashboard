@@ -13,6 +13,9 @@ import {
   Monitor,
   Smartphone,
   AlertTriangle,
+  Camera,
+  EyeOff,
+  Fingerprint,
 } from 'lucide-react';
 
 interface Props {
@@ -40,6 +43,8 @@ export default function SecuritySettingsTab({ onDirty }: Props) {
     sessionTimeout: store.sessionTimeout,
     rememberMeDuration: store.rememberMeDuration,
     allowedIps: [...store.allowedIps],
+    screenshotProtection: store.screenshotProtection,
+    unfocusProtection: store.unfocusProtection,
   });
   const [newIp, setNewIp] = useState('');
   const [show2FASetup, setShow2FASetup] = useState(false);
@@ -50,6 +55,8 @@ export default function SecuritySettingsTab({ onDirty }: Props) {
       local.twoFactorEnabled !== store.twoFactorEnabled ||
       local.sessionTimeout !== store.sessionTimeout ||
       local.rememberMeDuration !== store.rememberMeDuration ||
+      local.screenshotProtection !== store.screenshotProtection ||
+      local.unfocusProtection !== store.unfocusProtection ||
       JSON.stringify(local.allowedIps) !== JSON.stringify(store.allowedIps);
     onDirty(isDirty);
   }, [local, store, onDirty]);
@@ -91,6 +98,70 @@ export default function SecuritySettingsTab({ onDirty }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Screenshot Protection */}
+      <SettingsSection
+        title="Screenshot Protection"
+        description="Multi-layered defense against screen captures, recordings, and data leakage."
+      >
+        <SettingRow
+          label="Block Screenshots & Screen Recording"
+          description="Blocks all screenshot keyboard shortcuts (PrintScreen, Win+Shift+S, Cmd+Shift+3/4/5), disables right-click, prevents printing and developer tools. Also adds a traceable watermark with your identity across the screen."
+        >
+          <div className="flex items-center gap-3">
+            <Camera className={`h-4 w-4 ${local.screenshotProtection ? 'text-red-500' : 'text-muted-foreground'}`} />
+            <Switch
+              checked={local.screenshotProtection}
+              onCheckedChange={(checked) => {
+                setLocal((s) => ({ ...s, screenshotProtection: checked }));
+                store.updateSetting('screenshotProtection', checked);
+                toast.success(checked ? 'Screenshot protection enabled' : 'Screenshot protection disabled');
+              }}
+            />
+          </div>
+        </SettingRow>
+        {local.screenshotProtection && (
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+              <Fingerprint className="h-4 w-4 text-amber-600 flex-shrink-0" />
+              <p className="text-xs text-amber-700 dark:text-amber-400 font-lexend">
+                <strong>Watermark active:</strong> Your name, email, and timestamp are watermarked across the screen — any leaked screenshot is traceable to you.
+              </p>
+            </div>
+          </div>
+        )}
+      </SettingsSection>
+
+      {/* Unfocus Protection */}
+      <SettingsSection
+        title="Unfocus Protection"
+        description="Hide dashboard content when the browser window or tab loses focus."
+      >
+        <SettingRow
+          label="Enable Unfocus Mode"
+          description="When enabled, the screen blurs whenever you switch to another tab or window. Content stays hidden until you return and tap anywhere or click 'I'm Back'."
+        >
+          <div className="flex items-center gap-3">
+            <EyeOff className={`h-4 w-4 ${local.unfocusProtection ? 'text-blue-500' : 'text-muted-foreground'}`} />
+            <Switch
+              checked={local.unfocusProtection}
+              onCheckedChange={(checked) => {
+                setLocal((s) => ({ ...s, unfocusProtection: checked }));
+                store.updateSetting('unfocusProtection', checked);
+                toast.success(checked ? 'Unfocus protection enabled' : 'Unfocus protection disabled');
+              }}
+            />
+          </div>
+        </SettingRow>
+        {local.unfocusProtection && (
+          <div className="mt-3 flex items-center gap-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+            <EyeOff className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <p className="text-xs text-blue-700 dark:text-blue-400 font-lexend">
+              Active — dashboard will blur when you switch away and stay hidden until you interact.
+            </p>
+          </div>
+        )}
+      </SettingsSection>
+
       {/* 2FA */}
       <SettingsSection
         title="Two-Factor Authentication"

@@ -5,6 +5,7 @@ import { NetworkStatus } from '@/components/common/NetworkStatus';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { BackToTop } from '@/components/common/BackToTop';
 import { KeyboardShortcutsDialog } from '@/components/common/KeyboardShortcutsDialog';
+import { UnfocusShield } from '@/components/common/UnfocusShield';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useUIStore } from '@/store/ui.store';
 
@@ -20,6 +21,8 @@ export function RootLayout() {
       <Outlet />
 
       <BackToTop />
+
+      <UnfocusShield />
 
       <KeyboardShortcutsDialog
         open={isKeyboardShortcutsOpen}

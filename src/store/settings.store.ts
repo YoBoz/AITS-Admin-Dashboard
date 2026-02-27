@@ -42,6 +42,8 @@ export interface SettingsState {
   sessionTimeout: string;
   rememberMeDuration: string;
   allowedIps: string[];
+  screenshotProtection: boolean;
+  unfocusProtection: boolean;
 
   // Terminal
   defaultTerminal: string;
@@ -120,6 +122,8 @@ const securityDefaults = {
   sessionTimeout: '1h',
   rememberMeDuration: '7d',
   allowedIps: [] as string[],
+  screenshotProtection: false,
+  unfocusProtection: false,
 };
 
 const terminalDefaults = {

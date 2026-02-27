@@ -54,6 +54,7 @@ const RunnersPage = lazy(() => import('@/pages/runners/RunnersPage'));
 const GateManagementPage = lazy(() => import('@/pages/gates/GateManagementPage'));
 const AuditLogsPage = lazy(() => import('@/pages/audit/AuditLogsPage'));
 const PermissionsPage = lazy(() => import('@/pages/permissions/PermissionsPage'));
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 
 // Hub pages — absorb removed sidebar items as sub-tabs
 const LiveMapHubPage = lazy(() => import('@/pages/map/LiveMapHubPage'));
@@ -196,7 +197,11 @@ export const router = createBrowserRouter([
           },
           {
             path: 'settings',
-            element: <Navigate to="/dashboard/permissions" replace />,
+            element: (
+              <SuspenseWrapper>
+                <SettingsPage />
+              </SuspenseWrapper>
+            ),
           },
           // Phase 8 — Ops routes (now promoted to top-level navigation)
           {

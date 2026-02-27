@@ -18,6 +18,7 @@ import {
   ScrollText,
   UserCheck,
   FileText,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/store/sidebar.store';
@@ -86,6 +87,7 @@ const navCategories: NavCategory[] = [
     items: [
       { label: 'nav.rbac', icon: ScrollText, route: '/dashboard/permissions', badge: null },
       { label: 'nav.auditLogs', icon: FileText, route: '/dashboard/audit-logs', badge: null },
+      { label: 'nav.settings', icon: Settings, route: '/dashboard/settings', badge: null },
     ],
   },
 ];

@@ -7,6 +7,7 @@ import { NotificationPanel } from './NotificationPanel';
 import { MobileNav } from './MobileNav';
 import { useSidebarStore } from '@/store/sidebar.store';
 import { useUIStore } from '@/store/ui.store';
+import { ScreenshotWatermark } from '@/components/common/ScreenshotWatermark';
 
 export function DashboardLayout() {
   const location = useLocation();
@@ -61,7 +62,7 @@ export function DashboardLayout() {
           onNotificationClick={() => setNotificationPanelOpen(true)}
         />
 
-        <main className="flex-1 p-4 lg:p-6 pb-24 lg:pb-10 min-h-0 overflow-auto" role="main">
+        <main className="flex-1 p-4 lg:p-6 pb-10 lg:pb-8 min-h-0 overflow-auto" role="main">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -69,7 +70,7 @@ export function DashboardLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="h-full"
+              className="min-h-full"
             >
               <Outlet />
             </motion.div>
@@ -83,6 +84,9 @@ export function DashboardLayout() {
       {/* Overlays */}
       <CommandPalette open={isCommandPaletteOpen} onOpenChange={setCommandPaletteOpen} />
       <NotificationPanel open={isNotificationPanelOpen} onClose={() => setNotificationPanelOpen(false)} />
+
+      {/* Screenshot protection watermark — admin dashboard only */}
+      <ScreenshotWatermark />
     </div>
   );
 }
