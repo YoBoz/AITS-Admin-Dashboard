@@ -185,9 +185,9 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto pt-6 pb-2 px-2 scrollbar-thin">
+      <nav className="flex-1 overflow-y-auto pt-4 pb-2 px-2 scrollbar-thin">
         {navCategories.map((group, gi) => (
-          <div key={gi} className={cn(group.category && 'mt-2')}>
+          <div key={gi} className={cn(group.category && 'mt-3')}>
             {/* Category header — hidden when collapsed */}
             {group.category && (
               <AnimatePresence>
@@ -197,12 +197,12 @@ export function Sidebar() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="px-3 mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 font-roboto select-none"
+                    className="px-3 mb-1 text-[10px] font-medium uppercase tracking-widest text-muted-foreground/50 font-roboto select-none"
                   >
                     {t(group.category)}
                   </motion.p>
                 ) : (
-                  <div className="mx-auto my-1 h-px w-6 bg-border" />
+                  <div className="mx-auto my-2 h-px w-5 bg-border/60" />
                 )}
               </AnimatePresence>
             )}
@@ -214,16 +214,23 @@ export function Sidebar() {
             <button
               onClick={() => navigate(item.route)}
               className={cn(
-                'group relative flex w-full items-center gap-3 rounded-lg py-1.5 text-[13px] font-lexend transition-all duration-150',
+                'group relative flex w-full items-center gap-3 rounded-md py-2 text-[13px] font-lexend transition-all duration-200 ease-out',
                 active
-                  ? 'bg-brand/10 text-brand font-medium border-l-4 border-brand pl-2.5 pr-3'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-4 border-transparent px-3',
-                isCollapsed && 'justify-center px-0 border-l-0'
+                  ? 'sidebar-active-item text-foreground font-medium pl-3 pr-3'
+                  : 'text-muted-foreground hover:text-foreground/80 hover:bg-muted/50 px-3',
+                isCollapsed && 'justify-center px-0 !pl-0'
               )}
+              style={active && !isCollapsed ? {
+                background: 'hsl(var(--brand) / 0.06)',
+                borderLeft: '3px solid hsl(var(--brand))',
+                boxShadow: 'inset 4px 0 8px -4px hsl(var(--brand) / 0.15)',
+              } : active && isCollapsed ? {
+                background: 'hsl(var(--brand) / 0.06)',
+              } : undefined}
             >
               <span className="relative">
                 <item.icon
-                  className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand' : '')}
+                  className={cn('shrink-0 transition-colors duration-200', active ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground/70')}
                   style={{ width: 18, height: 18 }}
                 />
                 {/* Collapsed red dot indicator for unread notifications */}
@@ -247,12 +254,20 @@ export function Sidebar() {
                     initial={{ opacity: 0, width: 0 }}
                     animate={{ opacity: 1, width: 'auto' }}
                     exit={{ opacity: 0, width: 0 }}
-                    className="truncate whitespace-nowrap"
+                    className={cn('truncate whitespace-nowrap', active && 'tracking-[0.01em]')}
                   >
                     {t(item.label)}
                   </motion.span>
                 )}
               </AnimatePresence>
+
+              {/* Subtle active indicator dot when collapsed */}
+              {active && isCollapsed && (
+                <span
+                  className="absolute -left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full"
+                  style={{ background: 'hsl(var(--brand))' }}
+                />
+              )}
 
               {/* Badges - only show expanded versions when not collapsed */}
               {item.badge === 'live' && !isCollapsed && (
